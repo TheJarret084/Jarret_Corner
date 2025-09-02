@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador de Sprites</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    body { font-family: Arial; text-align:center; padding: 20px; }
+    .boton { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Generador de Sprites</h1>
+  <input type="file" id="zipInput" accept=".zip">
+  <br><br>
+  <button class="boton" onclick="procesarZip()">Procesar ZIP</button>
+  <br><br>
+  <a id="descargar" style="display:none;">Descargar sprites.zip</a>
+
+  <script>
+    async function procesarZip() {
+      const input = document.getElementById("zipInput");
+      if (!input.files.length) { alert("Selecciona un ZIP"); return; }
+
+      const file = input.files[0];
+      const jszip = new JSZip();
+      const contenido = await jszip.loadAsync(file);
+
+      // Agrupar archivos por base
+      const grupos = {};
+      for (const [nombre, entry] of Object.entries(contenido.files)) {
+        if (!entry.dir && /\.(png|jpg|jpeg|gif|webp)$/i.test(nombre)) {
+          const base = nombre.split("_")[0];
+          if (!grupos[base]) grupos[base] = [];
+          grupos[base].push(entry);
+        }
+      }
+
+      const zipFinal = new JSZip();
+
+      for (const base in grupos) {
+        const imagenes = [];
+
+        for (const entry of grupos[base]) {
+          try {
+            const blob = await entry.async("blob");
+            const img = await new Promise((resolve, reject) => {
+              const image = new Image();
+              image.onload = () => resolve(image);
+              image.onerror = reject;
+              image.src = URL.createObjectURL(blob);
+            });
+            imagenes.push(img);
+          } catch(e) {
+            console.error("Error cargando imagen:", e);
+          }
+        }
+
+        if (imagenes.length === 0) continue;
+
+        const ancho = imagenes[0].width;
+        const alto = imagenes[0].height;
+        const canvas = document.createElement("canvas");
+        canvas.width = ancho * imagenes.length;
+        canvas.height = alto;
+        const ctx = canvas.getContext("2d");
+
+        imagenes.forEach((img, i) => ctx.drawImage(img, i * ancho, 0));
+
+        const spriteBlob = await new Promise(r => canvas.toBlob(r, "image/png"));
+        zipFinal.file(`${base}_sprite.png`, spriteBlob);
+      }
+
+      const zipBlob = await zipFinal.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.getElementById("descargar");
+      link.href = url;
+      link.download = "sprites.zip";
+      link.style.display = "inline";
+      link.textContent = "Descargar sprites.zip";
+    }
+  </script>
+</body>
+</html>
