@@ -1,0 +1,37 @@
+    body {
+       background-image: url("imagenes/boykisser1.gif");
+       background-size: cover;
+       background-repeat: no-repeat;
+       background-position: center;
+       background-attachment: fixed;
+       font-family: Arial, sans-serif;
+       text-align: center;
+       padding: 50px;
+    }
+
+    h1 {
+      color: #cc00ff;
+    }
+
+    p {
+      color: #000000;
+      font-size: 18px;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 15px;
+    }
+
+    .boton {
+     padding: 10px 10px 10px 10px;
+     margin-left: 20px;
+     border-radius: 20px; 
+     background: linear-gradient(90deg, #00ffff, #ae00ff);
+     color: #fff;
+     border: none;
+     cursor: pointer;
+     transition: background 0.3s;
+     box-shadow: 0 0 1px #00ffff, 0 0 10px #00b7ff;
+    }
+
+    .boton:hover {
+      background-color: #5555ff;
+    }
