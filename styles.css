@@ -1,0 +1,52 @@
+    body {
+       background-image: url("imagenes/boykisser2.gif");
+       background-size: cover;
+       background-repeat: no-repeat;
+       background-position: center center;
+       font-family: Arial, sans-serif;
+       text-align: center;
+       padding: 50px;
+    }
+
+    h1 {
+      color: #0000ff;
+    }
+
+    p {
+      color: #000000;
+      font-size: 18px;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 15px;
+    }
+
+    .boton {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #18b6ff;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+
+    .boton:hover {
+      background-color: #5555ff;
+    }
+
+    .fila {
+     display: flex;               /* activa flexbox */
+     align-items: center;         /* centra verticalmente */
+     gap: 10px;
+     background-color: rgba(255,255,255,0.1); /* opcional, para ver el contenedor */
+     padding: 10px;
+     margin: 10px 0;
+    }
+
+    .fila p {
+     margin: 0;           /* quita márgenes por defecto del párrafo */
+     font-size: 20px;
+    }
+
+    .fila .boton {
+      margin: 0;
+    }
