@@ -1,0 +1,34 @@
+{
+  "fichas": [
+    {
+      "titulo": "Foxy",
+      "descripcion": "Mi mejor amigo.",
+      "imagen": "images/avatar1.png",
+      "link": "https://discord.gg/v3ur6PesvA"
+    },
+    {
+      "titulo": "Carosbrine",
+      "descripcion": "Al principio si era medio random, pero es un buen amigo",
+      "imagen": "",
+      "link": "https://discord.gg/fpk9FJe7Sd"
+    },
+    {
+      "titulo": "Edwin",
+      "descripcion": "Es el unico que conosco que programe bien.",
+      "imagen": "images/avatar3.png",
+      "link": "https://discord.gg/3fdZdeGAXu"
+    },
+    {
+      "titulo": "Rushplay",
+      "descripcion": "Compañero del colegio, vende pan.",
+      "imagen": "images/avatar3.png",
+      "link": ""
+    },    
+    {
+      "titulo": "A",
+      "descripcion": "Tercera ficha, demostrando el sistema dinámico.",
+      "imagen": "images/avatar3.png",
+      "link": ""
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+    body {
+       background-image: url("imagenes/boykisser2.gif");
+       background-size: cover;
+       background-repeat: no-repeat;
+       background-position: center center;
+       font-family: Arial, sans-serif;
+       text-align: center;
+       padding: 50px;
+    }
+
+    h1 {
+      color: #0000ff;
+    }
+
+    p {
+      color: #000000;
+      font-size: 18px;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 15px;
+    }
+
+    .boton {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #18b6ff;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+
+    .boton:hover {
+      background-color: #5555ff;
+    }
+
+    .fila {
+     display: flex;               /* activa flexbox */
+     align-items: center;         /* centra verticalmente */
+     gap: 10px;
+     background-color: rgba(255,255,255,0.1); /* opcional, para ver el contenedor */
+     padding: 10px;
+     margin: 10px 0;
+    }
+
+    .fila p {
+     margin: 0;           /* quita márgenes por defecto del párrafo */
+     font-size: 20px;
+    }
+
+    .fila .boton {
+      margin: 0;
+    }
+
+   .boton2 {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #18b6ff, #0aa1dd);
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s ease;
+    }
+
+   .boton2:hover {
+    background: linear-gradient(135deg, #0aa1dd, #088ec6);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    /*Puta Jarret, te estas luciendo*/
+    /* contenedores*/
+    
+.contenedor-bonito {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* Título dentro del contenedor */
+.contenedor-bonito h2 {
+  margin-bottom: 15px;
+  font-size: 1.8rem;
+}
+
+/* Párrafo dentro del contenedor */
+.contenedor-bonito p {
+  margin-bottom: 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #000000; /* gris claro para contraste */
+}
+
+/* Botón */
+.contenedor-bonito .boton {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: rgba(255,255,255,0.2);
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.contenedor-bonito .boton:hover {
+  background-color: rgba(255,255,255,0.35);
+  transform: translateY(-2px);
+}
+
+
+    

@@ -1,0 +1,74 @@
+/* Contenedor principal para las fichas */
+.contenedor-fichas {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #6b73ff, #000dff); /* degradado azul-morado */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+/* Cada ficha dentro del contenedor */
+.ficha {
+  position: relative;
+  background: linear-gradient(135deg, #18b6ff, #0aa1dd);
+  border-radius: 15px;
+  width: 280px;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ficha:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
+
+/* Imagen en la esquina superior derecha */
+.ficha-img {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid white;
+  object-fit: cover;
+}
+
+/* Contenido de la ficha */
+.ficha-contenido {
+  padding-top: 60px; /* espacio para la imagen */
+}
+
+.ficha h3 {
+  margin-bottom: 10px;
+}
+
+.ficha p {
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+  color: #f3f4f6;
+}
+
+/* Botón dentro de la ficha */
+.ficha .boton {
+  display: inline-block;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.ficha .boton:hover {
+  background: rgba(255,255,255,0.35);
+  transform: translateY(-2px);
+}
