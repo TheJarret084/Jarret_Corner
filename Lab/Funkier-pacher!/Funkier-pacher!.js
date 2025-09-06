@@ -64,16 +64,17 @@ class FunkierPacker {
     }
 
     _cutFrame(img, frame) {
-        const w = frame.frameWidth || frame.width;
-        const h = frame.frameHeight || frame.height;
+        const w = frame.frameWidth;
+        const h = frame.frameHeight;
         const canvas = document.createElement('canvas');
         canvas.width = w;
         canvas.height = h;
         const ctx = canvas.getContext('2d');
 
-        const offsetX = frame.frameX || 0;
-        const offsetY = frame.frameY || 0;
+        const offsetX = frame.frameX;
+        const offsetY = frame.frameY;
 
+        ctx.clearRect(0, 0, w, h);
         ctx.drawImage(
             img,
             frame.x, frame.y, frame.width, frame.height, // recorte de atlas
