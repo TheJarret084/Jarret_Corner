@@ -23,33 +23,6 @@ class FunkierPacker {
         return this.frames;
     }
 
-    // ======== Generar spritesheet ========
-    async generateSpritesheet() {
-        if(this.frames.length === 0) throw new Error("No hay frames procesados");
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        const frameWidths = this.frames.map(f => f.width || 64);
-        const frameHeights = this.frames.map(f => f.height || 64);
-
-        canvas.width = Math.max(...frameWidths) * this.frames.length;
-        canvas.height = Math.max(...frameHeights);
-
-        this.frames.forEach((f, i) => {
-            const img = new Image();
-            img.src = URL.createObjectURL(f.blob);
-            img.onload = () => {
-                ctx.drawImage(img, i * Math.max(...frameWidths), 0);
-            }
-        });
-
-        // Esperar a que se dibujen todas las imágenes
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        const blob = await new Promise(resolve => canvas.toBlob(resolve));
-        return { blob, fileName: 'spritesheet.png' };
-    }
-
     // ======== Generar ZIP de frames ========
     async generateZip() {
         if(this.frames.length === 0) throw new Error("No hay frames procesados");
@@ -81,19 +54,32 @@ class FunkierPacker {
                 x: parseInt(n.getAttribute('x')),
                 y: parseInt(n.getAttribute('y')),
                 width: parseInt(n.getAttribute('width')),
-                height: parseInt(n.getAttribute('height'))
+                height: parseInt(n.getAttribute('height')),
+                frameX: parseInt(n.getAttribute('frameX')) || 0,
+                frameY: parseInt(n.getAttribute('frameY')) || 0,
+                frameWidth: parseInt(n.getAttribute('frameWidth')) || parseInt(n.getAttribute('width')),
+                frameHeight: parseInt(n.getAttribute('frameHeight')) || parseInt(n.getAttribute('height'))
             }))
         };
     }
 
     _cutFrame(img, frame) {
+        const w = frame.frameWidth || frame.width;
+        const h = frame.frameHeight || frame.height;
         const canvas = document.createElement('canvas');
-        canvas.width = frame.width;
-        canvas.height = frame.height;
+        canvas.width = w;
+        canvas.height = h;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, frame.x, frame.y, frame.width, frame.height, 0, 0, frame.width, frame.height);
-        frame.width = canvas.width;
-        frame.height = canvas.height;
+
+        const offsetX = frame.frameX || 0;
+        const offsetY = frame.frameY || 0;
+
+        ctx.drawImage(
+            img,
+            frame.x, frame.y, frame.width, frame.height, // recorte de atlas
+            -offsetX, -offsetY, frame.width, frame.height // posición con offset
+        );
+
         return canvas;
     }
 

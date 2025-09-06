@@ -2,22 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Funkier-Packer</title>
+    <title>Funkier-Pacher!</title>
  <link rel="stylesheet" href="Funkier-pacher!.css">
 </head>
 <body>
-    <h1>Funkier-Packer</h1>
+    <h1>Funkier-Pacher!</h1>
 
     <!-- Inputs ocultos -->
     <input type="file" id="image-input" accept=".png,.jpg,.jpeg" style="display:none;">
     <input type="file" id="xml-input" accept=".xml" style="display:none;">
+    <input type="file" id="zip-input" accept=".zip" style="display:none;"> <!-- nuevo -->
+
+    <!-- Selector de modo -->
+    <select id="mode-select">
+        <option value="packer">Spritesheet + XML</option>
+        <option value="funky">ZIP de imágenes</option>
+    </select>
 
     <!-- Botones visibles -->
     <button id="image-btn">Seleccionar Imagen</button>
     <button id="xml-btn">Seleccionar XML</button>
-    <button id="generate-btn" disabled>Generar Spritesheet</button>
+    <button id="zip-btn">Seleccionar ZIP</button>
+    <button id="generate-btn" disabled>Generar</button>
 
-    <p id="status-text">Selecciona ambos archivos para continuar.</p>
+    <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
 
     <!-- Panel de resultados -->
     <div id="result-panel"></div>
@@ -26,7 +34,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- FunkierPacker.js -->
     <script src="Funkier-pacher!.js"></script>
-    <!-- UI JS -->
+    <!-- UI JS combinado -->
     <script src="funkier-ui.js"></script>
+    <!-- FunkinToFunky.js -->
+    <script src="FunkinToFunky.js"></script>
+    <footer>
+        © 2025 Funkier-Pacher!. Fragmentos de código originales de Funky Atlas © 2025.
+    </footer>
 </body>
 </html>
+

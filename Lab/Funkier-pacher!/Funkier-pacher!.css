@@ -1,38 +1,114 @@
-        body {
-            font-family: sans-serif;
-            background-color: #1a1a2e;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px;
-        }
-        h1 { margin-bottom: 20px; }
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: #333366;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:disabled { background-color: #555; cursor: not-allowed; }
-        #status-text { margin-top: 20px; }
-        #result-panel {
-            margin-top: 30px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .frame-preview {
-            background-color: rgba(20,20,40,0.7);
-            padding: 5px;
-            text-align: center;
-            border: 1px solid #555;
-            width: 110px;
-        }
-        .frame-preview img {
-            max-width: 100px;
-            max-height: 100px;
-        }
+/* Estilos generales de la página */
+body {
+    font-family: sans-serif;
+    background-color: #1a1a2e;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+}
+
+h1 { 
+    margin-bottom: 20px; 
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #333366;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:disabled { 
+    background-color: #555; 
+    cursor: not-allowed; 
+}
+
+#status-text { 
+    margin-top: 20px; 
+}
+
+/* Result panel */
+#result-panel {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap; /* mantiene compatibilidad si quieres scroll horizontal en algunos previews */
+}
+
+/* Previews de animaciones */
+.preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(40,40,60,0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    width: 250px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.preview-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 6px;
+    flex-shrink: 0; /* para que no se reduzca */
+}
+
+.preview-strip-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: 160px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.preview-strip-wrapper img {
+    display: block;
+    max-height: 160px;
+}
+
+.preview-label {
+    font-size: 0.85rem;
+    color: #ccc;
+    text-align: center;
+}
+
+/* Botón de descarga de ZIP */
+button.download-btn {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: #ff6b6b;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+}
+
+button.download-btn:hover {
+    background-color: #ff4c4c;
+}
+
+/* Estilos antiguos de frame-preview, opcionales si quieres compatibilidad */
+.frame-preview {
+    background-color: rgba(20,20,40,0.7);
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #555;
+    width: 110px;
+}
+
+.frame-preview img {
+    max-width: 100px;
+    max-height: 100px;
+}
