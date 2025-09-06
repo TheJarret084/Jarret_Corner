@@ -3,20 +3,20 @@
     {
       "titulo": "Foxy",
       "descripcion": "Mi mejor amigo.",
-      "imagen": "images/avatar1.png",
+      "imagen": "images/icon-foxy.png",
       "link": "https://discord.gg/v3ur6PesvA"
     },
     {
       "titulo": "Carosbrine",
       "descripcion": "Al principio si era medio random, pero es un buen amigo",
-      "imagen": "",
-      "link": "https://discord.gg/fpk9FJe7Sd"
+      "imagen": "images/caros.webp",
+      "link": "https://www.youtube.com/@Carosbrine"
     },
     {
       "titulo": "Edwin",
       "descripcion": "Es el unico que conosco que programe bien.",
       "imagen": "images/avatar3.png",
-      "link": "https://discord.gg/3fdZdeGAXu"
+      "link": "https://edwinrccdev.github.io/"
     },
     {
       "titulo": "Rushplay",
@@ -25,10 +25,22 @@
       "link": ""
     },    
     {
-      "titulo": "A",
-      "descripcion": "Tercera ficha, demostrando el sistema dinámico.",
+      "titulo": "Neil, Alias ¨Gordo¨",
+      "descripcion": "El gordo en mi grupo de amigos, (tranquilamente me puede matar de dos golpes) Palabras de el: veanse Jojos, es Meta.",
       "imagen": "images/avatar3.png",
       "link": ""
+    },
+    {
+      "titulo": "Jeremillas",
+      "descripcion": "El inteligente del grupo, sabe mucho, pero se equivoca como ser humano, palabras de el: Jojos es mejor que jojos.",
+      "imagen": "images/avatar3.png",
+      "link": ""
+    },
+    {
+      "titulo": "Alguien",
+      "descripcion": "Placeholder.",
+      "imagen": "images/avatar3.png",
+      "link": "https://youtu.be/xvFZjo5PgG0?si=WQCtdqtt3TKPr06B"
     }
   ]
 }
