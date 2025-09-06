@@ -15,7 +15,6 @@ class FunkierPacker {
         for (let i = 0; i < total; i++) {
             const f = atlas.frames[i];
             const frameCanvas = this._cutFrame(img, f);
-            if (!frameCanvas) continue; // Ignora frames inválidos
             const blob = await this._canvasToBlob(frameCanvas);
             this.frames.push({ name: f.name, blob });
             onProgress((i + 1) / total);
@@ -40,7 +39,7 @@ class FunkierPacker {
         return new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error("No se pudo cargar la imagen"));
+            img.onerror = reject;
             img.src = URL.createObjectURL(file);
         });
     }
@@ -52,36 +51,37 @@ class FunkierPacker {
         return {
             frames: frameNodes.map(n => ({
                 name: n.getAttribute('name'),
-                x: parseInt(n.getAttribute('x')) || 0,
-                y: parseInt(n.getAttribute('y')) || 0,
-                width: parseInt(n.getAttribute('width')) || 0,
-                height: parseInt(n.getAttribute('height')) || 0,
+                x: parseInt(n.getAttribute('x')),
+                y: parseInt(n.getAttribute('y')),
+                width: parseInt(n.getAttribute('width')),
+                height: parseInt(n.getAttribute('height')),
                 frameX: parseInt(n.getAttribute('frameX')) || 0,
                 frameY: parseInt(n.getAttribute('frameY')) || 0,
-                frameWidth: parseInt(n.getAttribute('frameWidth')) || parseInt(n.getAttribute('width')) || 0,
-                frameHeight: parseInt(n.getAttribute('frameHeight')) || parseInt(n.getAttribute('height')) || 0
+                frameWidth: parseInt(n.getAttribute('frameWidth')) || parseInt(n.getAttribute('width')),
+                frameHeight: parseInt(n.getAttribute('frameHeight')) || parseInt(n.getAttribute('height'))
             }))
         };
     }
 
     _cutFrame(img, frame) {
+        // Tamaño total del canvas según frameWidth/Height
         const w = frame.frameWidth;
         const h = frame.frameHeight;
-
-        if (w <= 0 || h <= 0) {
-            console.warn(`Frame ${frame.name} tiene tamaño inválido: ${w}x${h}, será ignorado.`);
-            return null;
-        }
 
         const canvas = document.createElement('canvas');
         canvas.width = w;
         canvas.height = h;
         const ctx = canvas.getContext('2d');
 
+        // Offset negativo reacomodado
+        const offsetX = frame.frameX;
+        const offsetY = frame.frameY;
+
+        // Dibuja el recorte exacto del atlas, reacomodando el offset
         ctx.drawImage(
             img,
-            frame.x, frame.y, frame.width, frame.height,
-            -frame.frameX, -frame.frameY, frame.width, frame.height
+            frame.x, frame.y, frame.width, frame.height,  // área del atlas
+            -offsetX, -offsetY, frame.width, frame.height // posición en el canvas
         );
 
         return canvas;
@@ -90,11 +90,9 @@ class FunkierPacker {
     _canvasToBlob(canvas) {
         return new Promise(resolve => {
             canvas.toBlob(blob => {
-                if (!blob) {
-                    console.warn('No se pudo generar blob del canvas');
-                }
+                if (!blob) throw new Error("No se pudo generar el blob de la imagen");
                 resolve(blob);
-            }, 'image/png');
+            });
         });
     }
 }
