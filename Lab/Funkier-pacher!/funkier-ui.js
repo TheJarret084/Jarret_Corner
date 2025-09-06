@@ -24,138 +24,145 @@ document.addEventListener('DOMContentLoaded', () => {
     xmlBtn.addEventListener('click', () => xmlInput.click());
     zipBtn?.addEventListener('click', () => zipInput.click());
 
-    // Inputs
-    imageInput.addEventListener('change', () => { 
+    // ======== Inputs ========
+    imageInput.addEventListener('change', () => {
         if(imageInput.files.length>0){
-            state.mode='packer';
-            state.imageFile=imageInput.files[0]; 
+            state.imageFile = imageInput.files[0];
             checkReady();
-            statusText.textContent = "Imagen seleccionada: " + state.imageFile.name;
-        }
-    });
-    xmlInput.addEventListener('change', () => { 
-        if(xmlInput.files.length>0){
-            state.xmlFile=xmlInput.files[0]; 
-            checkReady();
-            statusText.textContent = "XML seleccionado: " + state.xmlFile.name;
-        }
-    });
-    zipInput?.addEventListener('change', () => {
-        if(zipInput.files.length>0){
-            state.mode='zip';
-            state.zipFile=zipInput.files[0];
-            generateBtn.disabled=false;
-            statusText.textContent="ZIP seleccionado: " + state.zipFile.name;
         }
     });
 
+    xmlInput.addEventListener('change', () => {
+        if(xmlInput.files.length>0){
+            state.xmlFile = xmlInput.files[0];
+            checkReady();
+        }
+    });
+
+    zipInput?.addEventListener('change', () => {
+        if(zipInput.files.length>0){
+            state.mode = 'zip';
+            state.zipFile = zipInput.files[0];
+            generateBtn.disabled = false;
+            statusText.textContent = "ZIP seleccionado: " + state.zipFile.name;
+        }
+    });
+
+    // ======== Chequeo de disponibilidad ========
     function checkReady(){
-        if(state.mode==='packer') generateBtn.disabled=!(state.imageFile && state.xmlFile);
+        if(state.imageFile && state.xmlFile){
+            state.mode = 'packer';
+            generateBtn.disabled = false;
+            statusText.textContent = `Listo para generar: ${state.imageFile.name} + ${state.xmlFile.name}`;
+        } else {
+            generateBtn.disabled = true;
+            if(state.imageFile && !state.xmlFile) statusText.textContent = "Falta el XML";
+            if(state.xmlFile && !state.imageFile) statusText.textContent = "Falta la imagen";
+        }
     }
 
     // ======== Generar ========
     generateBtn.addEventListener('click', async () => {
-        resultPanel.innerHTML='';
-        if(state.mode==='packer') await runPacker();
+        resultPanel.innerHTML = '';
+        if(state.mode === 'packer') await runPacker();
         else await runZip();
     });
 
-    // ------------------- Funciones -------------------
+    // ======== Funciones principales ========
     async function runPacker(){
         try{
-            statusText.textContent="Procesando PNG + XML...";
-            const frames = await packer.processFiles(state.imageFile,state.xmlFile,{},()=>{});
+            statusText.textContent = "Procesando PNG + XML...";
+            const frames = await packer.processFiles(state.imageFile, state.xmlFile);
             const animGroups = groupFrames(frames);
-            await createTiras(animGroups,state.imageFile.name);
+            await createTiras(animGroups, state.imageFile.name);
         }catch(err){
-            statusText.textContent='Error: '+err.message;
+            statusText.textContent = 'Error: ' + err.message;
             console.error(err);
         }
     }
 
     async function runZip(){
         try{
-            statusText.textContent="Procesando ZIP de frames...";
+            statusText.textContent = "Procesando ZIP de frames...";
             const zip = await JSZip.loadAsync(state.zipFile);
-            const framesList=[];
+            const framesList = [];
 
-            for(const [filename,entry] of Object.entries(zip.files)){
+            for(const [filename, entry] of Object.entries(zip.files)){
                 if(!filename.toLowerCase().endsWith('.png')) continue;
-                framesList.push({name:filename.slice(0,-4), entry});
+                framesList.push({name: filename.slice(0,-4), entry});
             }
 
-            const animGroups={};
+            const animGroups = {};
             for(const f of framesList){
-                const match=f.name.match(/^(.*?)(\d+)$/);
+                const match = f.name.match(/^(.*?)(\d+)$/);
                 if(!match) continue;
-                const baseName=match[1].trim();
-                const frameNumber=parseInt(match[2]);
-                if(!animGroups[baseName]) animGroups[baseName]=[];
-                animGroups[baseName].push({name:f.name, frameNumber, entry:f.entry});
+                const baseName = match[1].trim();
+                const frameNumber = parseInt(match[2]);
+                if(!animGroups[baseName]) animGroups[baseName] = [];
+                animGroups[baseName].push({name: f.name, frameNumber, entry: f.entry});
             }
 
-            await createTiras(animGroups,state.zipFile.name);
+            await createTiras(animGroups, state.zipFile.name);
         }catch(err){
-            statusText.textContent='Error: '+err.message;
+            statusText.textContent = 'Error: ' + err.message;
             console.error(err);
         }
     }
 
+    // ======== Crear tiras y ZIP final ========
     async function createTiras(animGroups, originalName){
-        const zip=new JSZip();
-        const sortedNames=Object.keys(animGroups).sort();
+        const zip = new JSZip();
+        const sortedNames = Object.keys(animGroups).sort();
 
         for(const animName of sortedNames){
-            const framesArr=animGroups[animName];
-            framesArr.sort((a,b)=>a.frameNumber-b.frameNumber);
+            const framesArr = animGroups[animName];
+            framesArr.sort((a,b)=>a.frameNumber - b.frameNumber);
 
-            const blobs=await Promise.all(framesArr.map(async f=>{
+            const blobs = await Promise.all(framesArr.map(async f => {
                 if(f.blob) return f.blob;
                 else return f.entry.async('blob');
             }));
 
-            const stripBlob=await createStrip(blobs);
+            const stripBlob = await createStrip(blobs);
             zip.file(`${animName}.png`, stripBlob);
             addPreview(animName, stripBlob, framesArr.length);
         }
 
-        const finalBlob=await zip.generateAsync({type:'blob'});
-        const baseName=originalName.replace(/\.(png|jpg|jpeg|zip)$/i,'');
-        const finalName=`TJ-${baseName}.zip`;
+        const finalBlob = await zip.generateAsync({type: 'blob'});
+        const baseName = originalName.replace(/\.(png|jpg|jpeg|zip)$/i,'');
+        const finalName = `TJ-${baseName}.zip`;
         addDownloadButton(finalBlob, finalName);
-        statusText.textContent="¡Procesamiento completado!";
+        statusText.textContent = "¡Procesamiento completado!";
     }
 
     async function createStrip(blobs){
-        const images=await Promise.all(blobs.map(b=>createImageBitmap(b)));
-        const maxWidth=Math.max(...images.map(img=>img.width));
-        const maxHeight=Math.max(...images.map(img=>img.height));
-        const canvas=document.createElement('canvas');
-        canvas.width=maxWidth*images.length;
-        canvas.height=maxHeight;
-        const ctx=canvas.getContext('2d');
+        const images = await Promise.all(blobs.map(b => createImageBitmap(b)));
+        const maxWidth = Math.max(...images.map(img => img.width));
+        const maxHeight = Math.max(...images.map(img => img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = maxWidth * images.length;
+        canvas.height = maxHeight;
+        const ctx = canvas.getContext('2d');
 
         images.forEach((img,i)=>{
-            const x=i*maxWidth + (maxWidth-img.width)/2;
-            const y=(maxHeight-img.height)/2;
-            ctx.drawImage(img,x,y);
+            const x = i*maxWidth + (maxWidth - img.width)/2;
+            const y = (maxHeight - img.height)/2;
+            ctx.drawImage(img, x, y);
         });
 
-        return new Promise(resolve=>canvas.toBlob(resolve));
+        return new Promise(resolve => canvas.toBlob(resolve));
     }
 
-    // ------------------- Previews -------------------
+    // ======== Previews ========
     function addPreview(name, blob, frameCount){
         const container = document.createElement('div');
         container.className = 'preview-container';
 
-        // Nombre de la animación fijo arriba
         const title = document.createElement('div');
         title.className = 'preview-title';
         title.textContent = name;
         container.appendChild(title);
 
-        // Wrapper para que la tira tenga scroll horizontal
         const stripWrapper = document.createElement('div');
         stripWrapper.className = 'preview-strip-wrapper';
 
@@ -164,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         stripWrapper.appendChild(img);
         container.appendChild(stripWrapper);
 
-        // Label de frames
         const label = document.createElement('div');
         label.className = 'preview-label';
         label.textContent = `${frameCount} frame${frameCount>1?'s':''}`;
@@ -174,26 +180,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function addDownloadButton(blob, fileName){
-        const btn=document.createElement('button');
-        btn.textContent="Descargar ZIP";
-        btn.style.marginTop='10px';
-        btn.addEventListener('click',()=>{
-            const a=document.createElement('a');
-            a.href=URL.createObjectURL(blob);
-            a.download=fileName;
+        const btn = document.createElement('button');
+        btn.textContent = "Descargar ZIP";
+        btn.style.marginTop = '10px';
+        btn.addEventListener('click', ()=>{
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
             a.click();
         });
         resultPanel.appendChild(btn);
     }
 
     function groupFrames(frames){
-        const animGroups={};
+        const animGroups = {};
         for(const f of frames){
-            const match=f.name.match(/^(.*?)(\d+)$/);
+            const match = f.name.match(/^(.*?)(\d+)$/);
             if(!match) continue;
-            const baseName=match[1].trim();
-            const frameNumber=parseInt(match[2]);
-            if(!animGroups[baseName]) animGroups[baseName]=[];
+            const baseName = match[1].trim();
+            const frameNumber = parseInt(match[2]);
+            if(!animGroups[baseName]) animGroups[baseName] = [];
             animGroups[baseName].push({...f, frameNumber});
         }
         return animGroups;
