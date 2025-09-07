@@ -1,0 +1,86 @@
+/* Reset básico y fuente */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    padding: 20px;
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+h1 {
+    margin-bottom: 30px;
+    color: #333;
+    font-size: 2rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Dropzone */
+#dropzone {
+    width: 90%;
+    max-width: 500px;
+    border: 3px dashed #6c63ff;
+    border-radius: 20px;
+    padding: 60px 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    background: #fff;
+    transition: background 0.3s, border-color 0.3s, transform 0.2s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    font-size: 1.1rem;
+    color: #555;
+}
+
+#dropzone.dragover {
+    background: #f0f4ff;
+    border-color: #4a42f5;
+    transform: scale(1.03);
+}
+
+/* Botón */
+button {
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    border: none;
+    background: #6c63ff;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+button:hover:not(:disabled) {
+    background: #5548d6;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+button:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Mini responsive */
+@media (max-width: 600px) {
+    #dropzone {
+        padding: 50px 15px;
+        font-size: 1rem;
+    }
+
+    button {
+        width: 100%;
+        font-size: 1.1rem;
+        padding: 14px 0;
+    }
+}
