@@ -4,5 +4,5 @@ todo mis proyectos y demas cosas estaran aqui, normalmente cosas basicas, y func
 
 https://thejarret084.github.io/Jarret_Corner/
 
-actu 1.0
+actu 1.1
 
