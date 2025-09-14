@@ -7,269 +7,98 @@
 
 /* ====== Body ====== */
 body {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: white;
-  min-height: 100vh;
-  margin: 0;
-  line-height: 1.6;
-  text-align: center;
-  padding: 40px 20px;
+  background: linear-gradient(135deg, #7c3aed, #2563eb); /* morado → azul */
   font-family: Arial, sans-serif;
-}
-
-/* ====== Contenedor principal ====== */
-.container {
-  width: 90%;
-  max-width: 1000px;
-  margin: auto;
-  background-color: rgba(255, 255, 255, 0.85);
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-/* ====== Encabezado ====== */
-header {
-  background: rgba(37, 99, 235, 0.9);
+  min-height: 100vh;
+  padding: 70px 20px 60px 20px; /* espacio para header y footer */
   color: white;
-  padding: 1.5rem 0;
   text-align: center;
-  border-radius: 0.75rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  margin-bottom: 1.5rem;
 }
 
-header h1 {
-  font-size: 2.2rem;
-  font-weight: bold;
+/* ====== Header fijo ====== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #6a1b9a;
   color: #fff;
-}
-
-/* ====== Párrafos ====== */
-p {
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  color: #111827;
-  line-height: 1.7;
-  background-color: rgba(255, 255, 255, 0.7);
-  padding: 12px 16px;
-  border-radius: 8px;
-}
-
-/* ====== Botones ====== */
-.boton {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #18b6ff;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: background-color 0.3s;
-}
-
-.boton:hover {
-  background-color: #5555ff;
-}
-
-/* Botón moderno */
-.boton2 {
-  display: inline-block;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #18b6ff, #0aa1dd);
-  color: #fff;
-  font-weight: 500;
-  text-decoration: none;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s ease;
-}
-
-.boton2:hover {
-  background: linear-gradient(135deg, #0aa1dd, #088ec6);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-}
-
-/* ====== Contenedor de fichas ====== */
-.contenedor-fichas {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 30px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #6b73ff, #000dff);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-}
-
-/* ====== Cada ficha ====== */
-.ficha {
-  position: relative;
-  background: linear-gradient(135deg, #18b6ff, #0aa1dd);
-  border-radius: 15px;
-  width: 280px;
-  padding: 20px;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.ficha:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-}
-
-/* ====== Imagen circular ====== */
-.ficha-img {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: 2px solid white;
-  object-fit: cover;
-  background-color: rgba(255,255,255,0.2);
-}
-
-/* ====== Placeholder con iniciales ====== */
-.ficha-img-placeholder {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 0.9rem;
+  font-size: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 1000;
 }
 
-/* ====== Contenido de la ficha ====== */
-.ficha-contenido {
-  padding-top: 60px;
-  text-align: left;
-}
-
-.ficha h3 {
-  margin-bottom: 10px;
-  color: #ffffff; /* título visible */
-}
-
-.ficha p {
-  font-size: 0.95rem;
-  margin-bottom: 15px;
-  color: rgba(0, 0, 0, 0.9); /* párrafo visible */
-}
-
-/* ====== Botón dentro de la ficha ====== */
-.ficha .boton {
-  display: inline-block;
-  padding: 8px 16px;
-  background: rgba(255,255,255,0.2);
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: background 0.3s, transform 0.2s;
-}
-
-.ficha .boton:hover {
-  background: rgba(255,255,255,0.35);
-  transform: translateY(-2px);
-}
-
-/* ====== Tarjetas extras (opcional) ====== */
-.card {
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin: 1rem 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  text-align: left;
-}
-
-.card h2 {
-  margin-bottom: 0.75rem;
-  font-size: 1.25rem;
-  color: #111827;
-}
-
-/* ====== Pie de página ====== */
-footer {
-  text-align: center;
-  padding: 1rem 0;
-  margin-top: 2rem;
-  font-size: 0.9rem;
-  color: #374151;
-  background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 0.75rem;
-}
-.carousel-container {
-  position: relative;
-  width: 320px; /* ancho de la ficha + margen */
-  margin: 50px auto;
-}
-
-.carousel-track-wrapper {
-  overflow: hidden; /* oculta las fichas fuera del área visible */
+/* ====== Footer fijo ====== */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
   width: 100%;
-}
-
-.carousel-track {
+  height: 50px;
+  background-color: #283593;
+  color: #fff;
   display: flex;
-  transition: transform 0.4s ease-in-out;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
+  z-index: 1000;
 }
 
-.carousel-track .ficha {
-  min-width: 100%;      /* cada ficha ocupa todo el contenedor */
-  margin: 0 auto;       /* centra la ficha */
-  box-sizing: border-box;
+/* ====== Contenido principal ====== */
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 800px;
+  margin: auto;
 }
 
-.carousel-container button.prev,
-.carousel-container button.next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0,0,0,0.4);
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  z-index: 10;
+/* ====== Contenedores bonitos ====== */
+.contenedor-bonito {
+  background: linear-gradient(135deg, #9c27b0, #5e35b1);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
 }
 
-.carousel-container button.prev { left: -25px; }
-.carousel-container button.next { right: -25px; }
+/* Títulos en contenedores */
+.contenedor-bonito h2 {
+  font-size: 1.8rem;
+  color: #e0e0ff;
+}
 
-#boton-musica {
-  background: linear-gradient(135deg, #6e8efb, #a777e3);
-  color: white;
-  border: none;
+/* Párrafos en contenedores */
+.contenedor-bonito p {
+  font-size: 1rem;
+  color: #d1c4e9;
+  line-height: 1.6;
+}
+
+/* ====== Botones bonitos ====== */
+.boton2 {
   padding: 12px 24px;
-  font-size: 16px;
-  font-weight: bold;
+  background: linear-gradient(135deg, #42a5f5, #1e88e5);
+  color: #fff;
+  font-weight: 600;
+  border: none;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  font-size: 1rem;
 }
 
-#boton-musica:hover {
+.boton2:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-}
-
-#boton-musica:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }

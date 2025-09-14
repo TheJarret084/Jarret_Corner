@@ -1,37 +1,131 @@
-    body {
-       background-image: url("imagenes/boykisser1.gif");
-       background-size: cover;
-       background-repeat: no-repeat;
-       background-position: center;
-       background-attachment: fixed;
-       font-family: Arial, sans-serif;
-       text-align: center;
-       padding: 50px;
-    }
+/* ====== Reset básico ====== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    h1 {
-      color: #cc00ff;
-    }
+/* ====== Body ====== */
+body {
+  background: linear-gradient(135deg, #6a1b9a, #3949ab); /* morado → azul más oscuro */
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  padding: 70px 20px 60px 20px; /* espacio para header y footer */
+  color: white;
+  text-align: center;
+}
 
-    p {
-      color: #000000;
-      font-size: 18px;
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 15px;
-    }
+/* ====== Header fijo ====== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #7c4dff; /* morado vibrante */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+  z-index: 1000;
+}
 
-    .boton {
-     padding: 10px 10px 10px 10px;
-     margin-left: 20px;
-     border-radius: 20px; 
-     background: linear-gradient(90deg, #00ffff, #ae00ff);
-     color: #fff;
-     border: none;
-     cursor: pointer;
-     transition: background 0.3s;
-     box-shadow: 0 0 1px #00ffff, 0 0 10px #00b7ff;
-    }
+/* ====== Footer fijo ====== */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: #283593; /* azul oscuro */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.3);
+  z-index: 1000;
+}
 
-    .boton:hover {
-      background-color: #5555ff;
-    }
+/* ====== Contenido principal ====== */
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 800px;
+  margin: auto;
+}
+
+/* ====== Contenedores bonitos ====== */
+.contenedor-bonito {
+  background: linear-gradient(135deg, #8e24aa, #5e35b1); /* degradado morado diferente */
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3); /* sombra más suave */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.contenedor-bonito:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+}
+
+/* Títulos en contenedores */
+.contenedor-bonito h2 {
+  font-size: 1.8rem;
+  color: #e0d7ff; /* lila claro */
+  margin-bottom: 10px;
+}
+
+/* Párrafos en contenedores */
+.contenedor-bonito p {
+  font-size: 1rem;
+  color: #d1c4e9;
+  line-height: 1.6;
+}
+
+/* ====== Botones bonitos ====== */
+.boton2 {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #1e88e5, #42a5f5); /* azul degradado diferente al index */
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.boton2:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+/* ====== Párrafos generales ====== */
+p {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #f0e6ff;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+/* ====== Footer / Encabezado extra ajuste ====== */
+header h1, .header {
+  font-family: 'Arial Black', sans-serif;
+}
+
+.footer {
+  font-family: Arial, sans-serif;
+  line-height: 1.4;
+}
