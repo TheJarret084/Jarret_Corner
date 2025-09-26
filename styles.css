@@ -32,7 +32,7 @@
 .scrolling-bg {
   width: 200%;
   height: 100%;
-  background-image: url('Resources/images/FMMBG.png'); /* Usa tu propio fondo si quieres */
+  background-image: url('Resources/images/FMMBG.png');
   background-size: 50% 100%;
   background-repeat: repeat-x;
   position: absolute;
@@ -46,7 +46,7 @@
 }
 
 body {
-  background-color: #0f0f1a; /* base oscura */
+  background-color: #0f0f1a;
   color: white;
   min-height: 100vh;
   display: flex;
@@ -56,24 +56,173 @@ body {
 }
 
 /* ============================
-   Encabezado fijo
+   Topbar
 ============================ */
-.header {
-  background: linear-gradient(90deg, #6a1b9a, #283593);
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.topbar {
   position: sticky;
   top: 0;
+  background: linear-gradient(90deg, #6a1b9a, #283593);
   z-index: 100;
-  font-size: 1.8rem;
-  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
+.topbar a {
+  color: white;
+  text-decoration: none;
+  margin: 0 8px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topbar a:hover {
+  opacity: 0.8;
+}
+
 /* ============================
-   Pie de página
+   Page titles
+============================ */
+.page-title h1, .page-title h2 {
+  text-shadow: 0 0 8px rgba(106,27,154,0.8);
+}
+
+.page-title h1 { font-size: 2rem; }
+.page-title h2 { font-size: 1.2rem; color: #ccc; }
+
+/* ============================
+   Carrusel de cards
+============================ */
+.cards-wrapper {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding: 20px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cards-wrapper::-webkit-scrollbar {
+  height: 10px;
+}
+
+.cards-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #42a5f5, #1e88e5);
+  border-radius: 5px;
+}
+
+.card {
+  min-width: 220px;
+  height: 300px;
+  flex-shrink: 0;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #333;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  color: white;
+}
+
+.card-content {
+  background: rgba(0,0,0,0.5);
+  padding: 10px;
+  text-align: left;
+}
+
+.card-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.card-text {
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.card-image img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Botones */
+.boton {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(135deg, #29b6f6, #0288d1);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.boton:hover {
+  background: linear-gradient(135deg, #0288d1, #01579b);
+}
+
+/* ============================
+   Text Page
+============================ */
+.textpage-wrapper {
+  display: none;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  text-align: left;
+}
+
+.text-page-section {
+  margin-bottom: 25px;
+}
+
+.text-page-title {
+  font-size: 1.6rem;
+  color: #f3e5f5;
+  margin-bottom: 10px;
+}
+
+.text-page-subtitle {
+  font-size: 1.2rem;
+  color: #ccc;
+  margin-bottom: 10px;
+}
+
+.text-page-paragraph {
+  font-size: 1rem;
+  color: #e1bee7;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.text-page-image-wrapper {
+  margin: 10px 0;
+  text-align: center;
+}
+
+.text-page-image {
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+.text-page-image-caption {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+/* ============================
+   Footer
 ============================ */
 .footer {
   background: linear-gradient(90deg, #283593, #6a1b9a);
@@ -84,113 +233,21 @@ body {
   font-size: 0.9rem;
 }
 
-/* ============================
-   Títulos y párrafos
-============================ */
-h1 {
-  color: #f3e5f5;
-  text-shadow: 0 0 8px rgba(106,27,154,0.8);
-}
-
-p {
-  color: #fff;
-  font-size: 18px;
-  background-color: rgba(0, 0, 0, 0.35);
-  padding: 15px;
-  border-radius: 10px;
-  margin: 10px 0;
-}
-
-/* ============================
-   Botones
-============================ */
-.boton, .boton2, .botonMusica {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 12px;
-  color: #fff;
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: 600;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-  font-size: 1rem;
-}
-
-.boton {
-  background: linear-gradient(135deg, #29b6f6, #0288d1);
-}
-
-.boton:hover {
-  background: linear-gradient(135deg, #0288d1, #01579b);
-  transform: translateY(-2px);
-}
-
-.boton2, .botonMusica {
-  background: linear-gradient(135deg, #42a5f5, #1e88e5);
-}
-
-.boton2:hover, .botonMusica:hover {
-  background: linear-gradient(135deg, #1e88e5, #1565c0);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
-}
-
-/* ============================
-   Contenedores bonitos
-============================ */
-.contenedor-bonito {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 30px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #9c27b0, #5e35b1);
+.footer a {
+  margin: 0 6px;
   color: white;
-  text-align: center;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
 }
 
-.contenedor-bonito:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.5);
-}
-
-.contenedor-bonito h2 {
-  margin: 0;
-  font-size: 1.8rem;
-}
-
-.contenedor-bonito p {
-  color: #e1bee7;
-  font-size: 1rem;
-  line-height: 1.6;
+.footer a:hover {
+  opacity: 0.8;
 }
 
 /* ============================
-   Carrusel
+   Responsivo
 ============================ */
-.carrusel {
-  display: flex;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  gap: 20px;
-  padding: 20px;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #42a5f5 rgba(0,0,0,0.2);
-}
-
-.carrusel::-webkit-scrollbar {
-  height: 10px;
-}
-
-.carrusel::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #42a5f5, #1e88e5);
-  border-radius: 5px;
+@media(max-width: 600px){
+  .card { min-width: 180px; height: 250px; }
+  .page-title h1 { font-size: 1.6rem; }
+  .page-title h2 { font-size: 1rem; }
 }
