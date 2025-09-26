@@ -1,86 +1,50 @@
-/* Reset básico y fuente */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+*{box-sizing:border-box}
+body{
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(180deg,#eef2fb,#dfe8f7);
+  margin:0;padding:24px;color:#122;
 }
+header{ text-align:center;margin-bottom:18px }
+h1{ font-size:1.9rem;margin-bottom:4px }
+.subtitle{ color:#445; margin-top:0 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-    padding: 20px;
-    text-align: center;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
+main{ max-width:980px;margin:0 auto; display:grid; gap:18px }
+.panel{ background:#fff;padding:16px;border-radius:12px; box-shadow:0 8px 24px rgba(20,30,60,0.06) }
+
+.controls-row{ display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px }
+.control{ display:flex;gap:8px;align-items:center }
+.control input[type="number"], .control select{
+  padding:10px 12px;border-radius:8px;border:1px solid #d3d7e8;font-size:1rem;width:110px;
 }
+.control label{ font-weight:600;color:#233 }
 
-h1 {
-    margin-bottom: 30px;
-    color: #333;
-    font-size: 2rem;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+#dropzone{
+  border:3px dashed #6c63ff;border-radius:14px;padding:36px;text-align:center;cursor:pointer;
+  background:#fbfcff; color:#333; font-size:1.05rem; transition:transform .15s, background .12s;
+  user-select:none;
 }
+#dropzone.dragover{ background:#eef3ff; transform:scale(1.01); border-color:#4a42f5 }
 
-/* Dropzone */
-#dropzone {
-    width: 90%;
-    max-width: 500px;
-    border: 3px dashed #6c63ff;
-    border-radius: 20px;
-    padding: 60px 20px;
-    margin-bottom: 20px;
-    cursor: pointer;
-    background: #fff;
-    transition: background 0.3s, border-color 0.3s, transform 0.2s;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    font-size: 1.1rem;
-    color: #555;
+.actions-row{ display:flex;gap:12px;align-items:center;margin-top:12px }
+#procesar{
+  background:#6c63ff;color:#fff;border:none;padding:12px 18px;border-radius:10px;font-weight:700;
+  cursor:pointer; box-shadow:0 6px 20px rgba(80,70,215,0.12)
 }
+#procesar:disabled{ background:#b7b3da; cursor:not-allowed; box-shadow:none }
 
-#dropzone.dragover {
-    background: #f0f4ff;
-    border-color: #4a42f5;
-    transform: scale(1.03);
-}
+.status{ color:#445; font-weight:600 }
 
-/* Botón */
-button {
-    padding: 15px 30px;
-    font-size: 1.1rem;
-    border-radius: 12px;
-    border: none;
-    background: #6c63ff;
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
+.progress-wrap{ height:12px;background:#eef1ff;border-radius:8px;overflow:hidden;margin-top:12px }
+.progress{ height:100%; background:linear-gradient(90deg,#6c63ff,#4a42f5) ; width:0%; transition:width .2s }
 
-button:hover:not(:disabled) {
-    background: #5548d6;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
+#preview{ display:block; padding:8px; font-size:0.95rem; color:#222 }
+.group-row{ margin:10px 0; padding:8px; border:1px dashed #e6e9f8; border-radius:8px; background:#fff }
+.group-row b{ display:block; margin-bottom:6px }
+.small{ font-size:0.85rem; color:#556; margin-left:6px }
 
-button:disabled {
-    background: #aaa;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* Mini responsive */
-@media (max-width: 600px) {
-    #dropzone {
-        padding: 50px 15px;
-        font-size: 1rem;
-    }
-
-    button {
-        width: 100%;
-        font-size: 1.1rem;
-        padding: 14px 0;
-    }
+.logs{ margin-top:12px; font-family:monospace; font-size:0.85rem; color:#233; max-height:180px; overflow:auto; background:#fbfbff; padding:8px; border-radius:8px; border:1px solid #f0f1f8 }
+footer{ text-align:center;margin-top:12px;color:#667; font-size:0.9rem }
+@media (max-width:700px){
+  .controls-row{ flex-direction:column; align-items:stretch }
+  .control input[type="number"], .control select{ width:100% }
 }
