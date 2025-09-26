@@ -45,7 +45,7 @@ async function loadData(jsonSource = DATA_SOURCE) {
                     ? (cardData.backgroundImage.startsWith("linear-gradient")
                         ? cardData.backgroundImage
                         : `url(${cardData.backgroundImage}) center/cover no-repeat`)
-                    : `url('Resources/images/BG_placeholder.jpg') center/cover no-repeat`;
+                    : `url('Material/imgs/BG_placeholder.png') center/cover no-repeat`;
 
                 // Card inner
                 const cardContent = document.createElement("div");
@@ -84,7 +84,7 @@ async function loadData(jsonSource = DATA_SOURCE) {
                     const img = document.createElement("img");
                     img.src = cardData.image;
                     img.alt = cardData.title || "Imagen";
-                    img.onerror = ()=>{ img.src = "Material/imgs/BG_placeholder.jpg"; };
+                    img.onerror = ()=>{ img.src = "Material/imgs/BG_placeholder.png"; };
                     imgDiv.appendChild(img);
                     card.appendChild(imgDiv);
                 }
@@ -135,7 +135,7 @@ async function loadData(jsonSource = DATA_SOURCE) {
                         img.src = imgData.src;
                         img.alt = imgData.alt || "";
                         img.className = "text-page-image";
-                        img.onerror = ()=>{ img.src = "Resources/images/BG_placeholder.jpg"; };
+                        img.onerror = ()=>{ img.src = "Material/imgs/BG_placeholder.png"; };
                         imgWrapper.appendChild(img);
                         if(imgData.caption){
                             const cap = document.createElement("div");
@@ -173,4 +173,5 @@ async function loadData(jsonSource = DATA_SOURCE) {
 loadData();
 
 // imagina que abelito lea esto... que miedo
+
 
