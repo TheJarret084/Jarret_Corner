@@ -1,73 +1,66 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="siteTitle">Cargando...</title>
+  <title>Mi Mugrosa página</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="a2.ico" type="image/x-icon">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+ <audio id="miMusica" autoplay loop>
+   <source src="music/pause.ogg" type="audio/ogg">
+ </audio>
+
 </head>
 <body>
-  <!-- Fondo animado -->
-  <div class="bg-container">
-    <div class="scrolling-bg"></div>
-  </div>
+  <h1>Buenas</h1>
+  
+   <p>Soy TheJarret084 <br> Tengo 16 Años</p>
 
-  <!-- Topbar -->
-  <div class="topbar">
-    <div class="logo">
-      <div class="logo-icon"><i class="fas fa-flask"></i></div>
-      <div class="logo-text" id="siteName">Cargando...</div>
-    </div>
-    <div class="nav-links" id="topNavLinks">
-      <div class="loading">Cargando navegación...</div>
-    </div>
-  </div>
+    <div class="contenedor-bonito">
+     
+     <h2>Youtube profile</h2>
 
-  <!-- Contenido principal -->
-  <div class="main-content">
-    <div class="page-title">
-      <h1 id="pageTitle">Cargando...</h1>
-      <h2 id="pageSubtitle">Un momento...</h2>
+     <p>Mi canal de youtube, para que veas la pobreza que manejo en Subs</p>
+
+     <a href="https://www.youtube.com/@TheJarret084" class="boton">Mi canal de youtube</a>
+
     </div>
 
-    <div class="content-wrapper">
-      <!-- Cards -->
-      <div class="cards-wrapper" id="cardsWrapper">
-        <div class="card-container" id="cardContainer">
-          <div class="loading">Cargando tarjetas...</div>
-        </div>
-      </div>
+    <div class="contenedor-bonito">
 
-      <!-- Text pages -->
-      <div class="textpage-wrapper" id="textpageWrapper" style="display:none;">
-        <div class="text-page-container" id="textPageContainer">
-          <div class="loading">Cargando contenido...</div>
-        </div>
-      </div>
+     <h2>Funky Maker Profile</h2>
+
+     <p>Mis bodrios del FMM</p>
+  
+     <a href="https://funkymaker.kingamescreator.com/_app/@TheJarret084" class="boton">Perfil de funky maker</a> 
+
     </div>
-  </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    <div class="footer-content">
-      <div class="footer-links" id="footerLinks">Cargando...</div>
-      <div class="copyright" id="copyright">© 2025</div>
-      <div class="social-links" id="socialLinks"></div>
+    <div class="contenedor-bonito">
+
+     <h2>Amikitos</h2>
+
+     <p>Aqui los pendejos que se hacen llamar amigos. (los quiero la verdad)</p> 
+
+     <button class="boton2" onclick="window.location.href='My-friends/Amigos.html'"> "amigos"</button>
+
+
     </div>
-  </div>
 
-  <!-- Configuración JSON -->
-  <script>
-    let DATA_SOURCE = "main.json"; // Cambia aquí si quieres otro JSON
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has("json")) {
-      DATA_SOURCE = urlParams.get("json");
-    }
-  </script>
+    <div class="contenedor-bonito">
+     
+     <h2>Experimentos de Jarret</h2>
 
-  <!-- Script principal -->
-  <script src="script.js"></script>
+     <p>Aqui mis Experimentos mas raros XD</p>
+
+     <button class="boton" onclick="window.location.href='Lab/Welcome_to_the_Lab.html'">Laboratorio</button>
+
+    </div>
+
+   <p>Por si acaso</p>
+
+   <button onclick="document.getElementById('miMusica').play()">▶ Reproducir</button>
+   <button onclick="document.getElementById('miMusica').pause()">⏸ Pausar</button>
+
 </body>
 </html>
+
