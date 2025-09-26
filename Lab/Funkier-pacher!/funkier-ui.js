@@ -1,7 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const imageBtn = document.getElementById('image-btn');
-    const xmlBtn = document.getElementById('xml-btn');
-    const zipBtn = document.getElementById('zip-btn');
+    // ======== Botones de método de entrada ========
+    const zipMethodBtn = document.getElementById('zip-method-btn');
+    const spritesheetMethodBtn = document.getElementById('spritesheet-method-btn');
+
+    const zipPanel = document.getElementById('zip-upload-panel');
+    const spritesheetPanel = document.getElementById('spritesheet-upload-panel');
+
+    zipMethodBtn.addEventListener('click', () => {
+        zipMethodBtn.classList.add('active');
+        spritesheetMethodBtn.classList.remove('active');
+        zipPanel.style.display = 'block';
+        spritesheetPanel.style.display = 'none';
+    });
+
+    spritesheetMethodBtn.addEventListener('click', () => {
+        spritesheetMethodBtn.classList.add('active');
+        zipMethodBtn.classList.remove('active');
+        spritesheetPanel.style.display = 'block';
+        zipPanel.style.display = 'none';
+    });
+
+    // ======== Elementos principales ========
     const generateBtn = document.getElementById('generate-btn');
     const statusText = document.getElementById('status-text');
     const resultPanel = document.getElementById('result-panel');
@@ -13,11 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let state = { mode: 'packer', imageFile: null, xmlFile: null, zipFile: null };
 
     const packer = new FunkierPacker();
-
-    // ======== Botones ========
-    imageBtn.addEventListener('click', () => imageInput.click());
-    xmlBtn.addEventListener('click', () => xmlInput.click());
-    zipBtn?.addEventListener('click', () => zipInput.click());
 
     // ======== Inputs ========
     imageInput.addEventListener('change', () => {
@@ -34,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    zipInput?.addEventListener('change', () => {
+    zipInput.addEventListener('change', () => {
         if (zipInput.files.length > 0) {
             state.mode = 'zip';
             state.zipFile = zipInput.files[0];
@@ -150,18 +164,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise(resolve => canvas.toBlob(resolve));
     }
 
-    // ======== Mostrar previews por animación ========
+    // ======== Mostrar previews ========
     function addPreview(name, blobsArray) {
         const container = document.createElement('div');
         container.className = 'preview-container';
 
-        // Nombre de la animación
         const title = document.createElement('div');
         title.className = 'preview-title';
         title.textContent = name;
         container.appendChild(title);
 
-        // Contenedor horizontal de frames
         const stripWrapper = document.createElement('div');
         stripWrapper.className = 'preview-strip-wrapper';
         blobsArray.forEach(blob => {
@@ -171,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         container.appendChild(stripWrapper);
 
-        // Número de frames
         const label = document.createElement('div');
         label.className = 'preview-label';
         label.textContent = `${blobsArray.length} frame${blobsArray.length > 1 ? 's' : ''}`;
