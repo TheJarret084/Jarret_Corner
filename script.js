@@ -8,31 +8,32 @@ async function loadData(jsonSource = DATA_SOURCE) {
         document.getElementById("pageTitle").textContent = data.siteInfo.title;
         document.getElementById("pageSubtitle").textContent = data.siteInfo.subtitle;
         document.getElementById("copyright").textContent = data.siteInfo.copyright;
+        document.title = data.siteInfo.title;
 
         // Top nav
         const nav = document.getElementById("topNavLinks");
         nav.innerHTML = "";
-        data.topNavigation.forEach(item => {
+        data.topNavigation?.forEach(item => {
             const a = document.createElement("a");
             a.href = item.link || "#";
             a.innerHTML = `<i class="${item.icon}"></i> ${item.title}`;
             a.addEventListener("click", e => {
                 if(item.json){
                     e.preventDefault();
-                    loadData(item.json); // carga el JSON de la página
+                    loadData(item.json);
                 }
             });
             nav.appendChild(a);
         });
 
-        // Cards
+        // Cards y Text pages
         const cardsWrapper = document.getElementById("cardsWrapper");
         const textpageWrapper = document.getElementById("textpageWrapper");
 
-        // Si hay cards, mostrar carrusel
-        if(data.cards && data.cards.length > 0){
+        if(data.cards?.length){
             cardsWrapper.style.display = "flex";
             textpageWrapper.style.display = "none";
+
             const cards = document.getElementById("cardContainer");
             cards.innerHTML = "";
             data.cards.forEach(cardData => {
@@ -45,9 +46,8 @@ async function loadData(jsonSource = DATA_SOURCE) {
                     ? (cardData.backgroundImage.startsWith("linear-gradient")
                         ? cardData.backgroundImage
                         : `url(${cardData.backgroundImage}) center/cover no-repeat`)
-                    : `url('Material/imgs/BG_placeholder.png') center/cover no-repeat`;
+                    : `url('Material/imgs/BG_Placeholder.png') center/cover no-repeat`;
 
-                // Card inner
                 const cardContent = document.createElement("div");
                 cardContent.className = "card-content";
 
@@ -64,7 +64,6 @@ async function loadData(jsonSource = DATA_SOURCE) {
                 boton.className = "boton";
                 boton.textContent = "Ver más";
 
-                // Si la card tiene JSON, abrir text page
                 if(cardData.json){
                     boton.addEventListener("click", e=>{
                         e.preventDefault();
@@ -77,29 +76,25 @@ async function loadData(jsonSource = DATA_SOURCE) {
                 cardContent.appendChild(boton);
                 card.appendChild(cardContent);
 
-                // Imagen frontal
                 if(cardData.image){
                     const imgDiv = document.createElement("div");
                     imgDiv.className = "card-image";
                     const img = document.createElement("img");
                     img.src = cardData.image;
                     img.alt = cardData.title || "Imagen";
-                    img.onerror = ()=>{ img.src = "Material/imgs/BG_placeholder.png"; };
+                    img.onerror = ()=>{ img.src = "Material/imgs/BG_Placeholder.png"; };
                     imgDiv.appendChild(img);
                     card.appendChild(imgDiv);
                 }
 
                 cards.appendChild(card);
             });
-        }
-        // Si no hay cards pero sí secciones de texto
-        else if(data.sections && data.sections.length > 0){
+        } else if(data.sections?.length){
             cardsWrapper.style.display = "none";
             textpageWrapper.style.display = "block";
 
             const container = document.getElementById("textPageContainer");
             container.innerHTML = "";
-
             data.sections.forEach(sec=>{
                 const section = document.createElement("div");
                 section.className = "text-page-section";
@@ -118,34 +113,30 @@ async function loadData(jsonSource = DATA_SOURCE) {
                     section.appendChild(h3);
                 }
 
-                if(sec.paragraphs){
-                    sec.paragraphs.forEach(pText=>{
-                        const p = document.createElement("p");
-                        p.className = "text-page-paragraph";
-                        p.textContent = pText;
-                        section.appendChild(p);
-                    });
-                }
+                sec.paragraphs?.forEach(pText=>{
+                    const p = document.createElement("p");
+                    p.className = "text-page-paragraph";
+                    p.textContent = pText;
+                    section.appendChild(p);
+                });
 
-                if(sec.images){
-                    sec.images.forEach(imgData=>{
-                        const imgWrapper = document.createElement("div");
-                        imgWrapper.className = "text-page-image-wrapper";
-                        const img = document.createElement("img");
-                        img.src = imgData.src;
-                        img.alt = imgData.alt || "";
-                        img.className = "text-page-image";
-                        img.onerror = ()=>{ img.src = "Material/imgs/BG_placeholder.png"; };
-                        imgWrapper.appendChild(img);
-                        if(imgData.caption){
-                            const cap = document.createElement("div");
-                            cap.className = "text-page-image-caption";
-                            cap.textContent = imgData.caption;
-                            imgWrapper.appendChild(cap);
-                        }
-                        section.appendChild(imgWrapper);
-                    });
-                }
+                sec.images?.forEach(imgData=>{
+                    const imgWrapper = document.createElement("div");
+                    imgWrapper.className = "text-page-image-wrapper";
+                    const img = document.createElement("img");
+                    img.src = imgData.src;
+                    img.alt = imgData.alt || "";
+                    img.className = "text-page-image";
+                    img.onerror = ()=>{ img.src = "Material/imgs/BG_Placeholder.png"; };
+                    imgWrapper.appendChild(img);
+                    if(imgData.caption){
+                        const cap = document.createElement("div");
+                        cap.className = "text-page-image-caption";
+                        cap.textContent = imgData.caption;
+                        imgWrapper.appendChild(cap);
+                    }
+                    section.appendChild(imgWrapper);
+                });
 
                 container.appendChild(section);
             });
@@ -154,15 +145,13 @@ async function loadData(jsonSource = DATA_SOURCE) {
         // Sociales
         const socials = document.getElementById("socialLinks");
         socials.innerHTML = "";
-        if(data.socialLinks){
-            data.socialLinks.forEach(link=>{
-                const a = document.createElement("a");
-                a.href = link.link;
-                a.innerHTML = `<i class="${link.icon}"></i>`;
-                a.target = "_blank";
-                socials.appendChild(a);
-            });
-        }
+        data.socialLinks?.forEach(link=>{
+            const a = document.createElement("a");
+            a.href = link.link;
+            a.innerHTML = `<i class="${link.icon}"></i>`;
+            a.target = "_blank";
+            socials.appendChild(a);
+        });
 
     } catch(err){
         console.error("Error cargando JSON:", err);
@@ -171,7 +160,3 @@ async function loadData(jsonSource = DATA_SOURCE) {
 
 // Carga inicial
 loadData();
-
-// imagina que abelito lea esto... que miedo
-
-
