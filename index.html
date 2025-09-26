@@ -33,9 +33,17 @@
     </div>
 
     <div class="content-wrapper">
+      <!-- Cards -->
       <div class="cards-wrapper" id="cardsWrapper">
         <div class="card-container" id="cardContainer">
           <div class="loading">Cargando tarjetas...</div>
+        </div>
+      </div>
+
+      <!-- Text pages -->
+      <div class="textpage-wrapper" id="textpageWrapper" style="display:none;">
+        <div class="text-page-container" id="textPageContainer">
+          <div class="loading">Cargando contenido...</div>
         </div>
       </div>
     </div>
@@ -50,15 +58,16 @@
     </div>
   </div>
 
-  <!-- Configuración -->
+  <!-- Configuración JSON -->
   <script>
-    let DATA_SOURCE = "index.json";
+    let DATA_SOURCE = "main.json"; // Cambia aquí si quieres otro JSON
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has("json")) {
       DATA_SOURCE = urlParams.get("json");
     }
   </script>
+
+  <!-- Script principal -->
   <script src="script.js"></script>
 </body>
 </html>
-
