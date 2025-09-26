@@ -1,6 +1,22 @@
+/* ======== Fuente Milky Nice ======== */
+@font-face {
+    font-family: 'Milky Nice';
+    src: url('fonts/MilkyNice.woff2') format('woff2'),
+         url('fonts/MilkyNice.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Aplicar Milky Nice a todo el contenido */
+body, .funky-tool-container, .funky-panel, .panel-header, 
+button, .drop-zone, .method-button, .result-content, 
+.form-check-label, .select-file-button, .generate-button,
+.preview-title, .preview-label {
+    font-family: 'Milky Nice', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 /* ======== Estilos generales ======== */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #1a1a2e;
     color: #fff;
     display: flex;
@@ -26,17 +42,21 @@ button {
     border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
     min-width: 160px;
 }
 
 button:hover:not(:disabled) {
     background-color: #4444aa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 button:disabled {
     background-color: #555;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 /* ======== Status ======== */
@@ -121,6 +141,339 @@ button.download-btn:hover {
     background-color: #ff4c4c;
 }
 
+/* ======== Paneles estilo Funky Atlas pero colores tuyos ======== */
+.funky-tool-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.tool-title {
+    color: #ff6b6b;
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+}
+
+.funky-panel {
+    background-color: rgba(40,40,60,0.8);
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+}
+
+.panel-header {
+    background-color: #333366;
+    color: white;
+    padding: 1rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ======== Drop Zones ======== */
+.drop-zone {
+    border: 2px dashed rgba(255,255,255,0.3);
+    border-radius: 4px;
+    padding: 2rem;
+    text-align: center;
+    background: rgba(40,40,60,0.4);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    color: white;
+    margin: 1rem;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+    background: rgba(60,60,100,0.4);
+    border-color: #4444aa;
+}
+
+/* ======== Botones Funky estilizados pero con tus colores ======== */
+.funky-button {
+    background: linear-gradient(135deg, #333366, #4444aa);
+    border: none;
+    color: white;
+    padding: 0.7rem 1.5rem;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    margin-top: 0.5rem;
+}
+
+.funky-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4444aa, #333366);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.funky-button:disabled {
+    background: #888;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ======== Settings Panel ======== */
+.settings-panel {
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.form-check {
+    margin: 1rem;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+.form-check-input {
+    margin-right: 0.5rem;
+    width: 18px;
+    height: 18px;
+    accent-color: #ff6b6b;
+    cursor: pointer;
+}
+
+.form-check-label {
+    color: white;
+    cursor: pointer;
+}
+
+/* ======== Progress ======== */
+.progress-container {
+    margin: 1rem;
+}
+
+.progress {
+    background-color: rgba(40,40,60,0.4);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    height: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #ff6b6b, #4ecdc4);
+    transition: width 0.3s ease;
+    border-radius: 100px;
+}
+
+.progress-bar.bg-success {
+    background: linear-gradient(to right, #52c41a, #b7eb8f);
+}
+
+.progress-bar.bg-danger {
+    background: linear-gradient(to right, #ff4d4f, #ffccc7);
+}
+
+#progress-container {
+    display: none;
+}
+
+#status-text {
+    color: white;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+/* ======== Result Panel ======== */
+.result-panel {
+    margin-top: 1rem;
+    overflow: hidden;
+    display: none;
+}
+
+.result-content {
+    padding: 1.5rem;
+    color: white;
+    text-align: center;
+    background: rgba(40,40,60,0.4);
+    border-radius: 4px;
+    margin: 1rem;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ======== Input Method Styles ======== */
+.input-method-selection {
+    padding: 1rem;
+}
+
+.method-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.method-button {
+    background: rgba(40,40,60,0.6);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: bold;
+    min-width: 150px;
+}
+
+.method-button:hover {
+    background: rgba(68,68,170,0.2);
+    border-color: #4444aa;
+    transform: translateY(-2px);
+}
+
+.method-button.active {
+    background: rgba(68,68,170,0.3);
+    border-color: #4444aa;
+    box-shadow: 0 4px 10px rgba(68,68,170,0.3);
+}
+
+.method-button i {
+    font-size: 1.5rem;
+}
+
+/* ======== Dual Upload ======== */
+.dual-upload-container {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem;
+}
+
+.upload-section {
+    flex: 1;
+}
+
+.dual-upload-container .drop-zone {
+    margin: 0;
+    padding: 1.5rem;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dual-upload-container .drop-zone i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+}
+
+.dual-upload-container .drop-zone p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* ======== Select file button ======== */
+.select-file-button.file-selected {
+    background: linear-gradient(135deg, #52c41a, #b7eb8f);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.select-file-button.file-selected:hover {
+    background: linear-gradient(135deg, #b7eb8f, #52c41a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* ======== GIF warning ======== */
+.gif-warning {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: rgba(255,193,7,0.2);
+    border-radius: 4px;
+    font-size: 0.95rem;
+    text-align: center;
+    color: #fff;
+    border-left: 4px solid #ffc107;
+}
+
+/* ======== Generate & Download ======== */
+.download-button {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.generate-button-container {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+    padding: 0 1rem 1rem 1rem;
+}
+
+.generate-button {
+    width: 100%;
+    max-width: 250px;
+    background: linear-gradient(135deg, #4ecdc4, #2ab7ca);
+    font-size: 1.1rem;
+    padding: 0.8rem 1.5rem;
+}
+
+.generate-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2ab7ca, #4ecdc4);
+    transform: translateY(-2px);
+}
+
+.generate-button:disabled {
+    background: #888;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+.download-button:hover {
+    background: #ff5252;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* ======== Misc ======== */
+.content-wrapper {
+    display: none;
+}
+
+.page-title {
+    display: none;
+}
+
 /* ======== Footer ======== */
 footer {
     background: #2c2f33;
@@ -137,7 +490,6 @@ footer p {
     margin: 5px 0;
 }
 
-/* Link de Discord */
 .discord-link {
     color: #7289da;
     font-size: 32px;
@@ -170,6 +522,34 @@ footer p {
     .preview-strip-wrapper img {
         max-height: 100px;
     }
+
+    .funky-tool-container {
+        width: 95%;
+    }
+    
+    .funky-panel {
+        padding: 0;
+    }
+    
+    .panel-header {
+        padding: 0.8rem;
+    }
+    
+    .drop-zone {
+        padding: 1.5rem 1rem;
+    }
+    
+    .method-buttons {
+        flex-direction: column;
+    }
+    
+    .dual-upload-container {
+        flex-direction: column;
+    }
+    
+    .dual-upload-container .drop-zone {
+        min-height: 120px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -178,7 +558,7 @@ footer p {
     }
 
     button {
-        width: 60%;            /* Botones más pequeños en móvil */
+        width: 60%;
         font-size: 1rem;
         padding: 12px 14px;
         margin: 6px;
