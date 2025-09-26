@@ -1,101 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Mi Mugrosa página</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarret Corner</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="a2.ico" type="image/x-icon">
- <audio id="miMusica" autoplay loop>
-   <source src="music/pause.ogg" type="audio/ogg">
- </audio>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
+  <!-- Música -->
+  <audio id="miMusica" autoplay loop>
+    <source src="music/pause.ogg" type="audio/ogg">
+  </audio>
 </head>
 <body>
-  <header class="header">
-   <h1>Jarret Corner</h1>
-  </header>
-   
-   <p>Soy TheJarret084 <br> Tengo 16 Años</p>
+  <!-- Fondo animado -->
+  <div class="bg-container">
+    <div class="scrolling-bg"></div>
+  </div>
 
-   <div class="carrusel">
-     <div class="contenedor-bonito">
-       <h2>Youtube profile</h2>
-       <p>Mi canal de youtube, para que veas la pobreza que manejo en Subs</p>
-       <a href="https://www.youtube.com/@TheJarret084" class="boton">Mi canal de youtube</a>
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-flask"></i></div>
+      <div class="logo-text">Jarret Corner</div>
     </div>
-
-    <div class="contenedor-bonito">
-      <h2>Funky Maker Profile</h2>
-      <p>Mis bodrios del FMM</p>
-      <a href="https://funkymaker.kingamescreator.com/_app/@TheJarret084" class="boton">Perfil de funky maker</a>
-    </div>
-
-    <div class="contenedor-bonito">
-      <h2>Amikitos</h2>
-      <p>Aqui los pendejos que se hacen llamar amigos. (los quiero la verdad)</p>
-      <button class="boton2" onclick="window.location.href='My-friends/Amigos.html'">Amigos</button>
-    </div>
-
-    <div class="contenedor-bonito">
-      <h2>Experimentos de Jarret</h2>
-      <p>Aqui mis Experimentos mas raros XD</p>
-      <button class="boton" onclick="window.location.href='Lab/Welcome_to_the_Lab.html'">Laboratorio</button>
+    <div class="nav-links">
+      <a href="https://www.youtube.com/@TheJarret084" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
+      <a href="https://funkymaker.kingamescreator.com/_app/@TheJarret084" target="_blank"><i class="fas fa-gamepad"></i> Funky Maker</a>
+      <a href="My-friends/Amigos.html"><i class="fas fa-users"></i> Amigos</a>
+      <a href="Lab/Welcome_to_the_Lab.html"><i class="fas fa-flask"></i> Laboratorio</a>
     </div>
   </div>
 
-
-  
-   <script src="script.js" defer></script>
-
-   <!--- <div class="contenedor-bonito"> 
-     
-     <h2>Youtube profile</h2>
-
-     <p>Mi canal de youtube, para que veas la pobreza que manejo en Subs</p>
-
-     <a href="https://www.youtube.com/@TheJarret084" class="boton">Mi canal de youtube</a>
-
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div class="page-title">
+      <h1>Bienvenido a mi rincón</h1>
     </div>
 
-    <div class="contenedor-bonito">
+    <!-- Tarjetas -->
+    <div class="cards-wrapper">
+      <div class="card-container">
 
-     <h2>Funky Maker Profile</h2>
+        <div class="card">
+          <h2><i class="fas fa-gamepad"></i> Funky Maker</h2>
+          <p>Mis bodrios del FMM.</p>
+          <a href="https://funkymaker.kingamescreator.com/_app/@TheJarret084" class="boton" target="_blank">Ver perfil</a>
+        </div>
 
-     <p>Mis bodrios del FMM</p>
-  
-     <a href="https://funkymaker.kingamescreator.com/_app/@TheJarret084" class="boton">Perfil de funky maker</a> 
+        <div class="card">
+          <h2><i class="fas fa-users"></i> Amikitos</h2>
+          <p>Aquí los pendejos que se hacen llamar amigos (los quiero en verdad).</p>
+          <a href="My-friends/Amigos.html" class="boton2">Ver amigos</a>
+        </div>
 
+        <div class="card">
+          <h2><i class="fas fa-flask"></i> Laboratorio</h2>
+          <p>Mis experimentos más raros XD.</p>
+          <a href="Lab/Welcome_to_the_Lab.html" class="boton">Ir al laboratorio</a>
+        </div>
+
+      </div>
     </div>
+  </div>
 
-    <div class="contenedor-bonito">
+  <!-- Botón de música -->
+  <div class="music-control">
+    <button id="botonMusica" class="botonMusica"><i class="fas fa-play"></i> Reproducir</button>
+  </div>
 
-     <h2>Amikitos</h2>
-
-     <p>Aqui los pendejos que se hacen llamar amigos. (los quiero la verdad)</p> 
-
-     <button class="boton2" onclick="window.location.href='My-friends/Amigos.html'"> "amigos"</button>
-
-
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="https://www.youtube.com/@TheJarret084" target="_blank"><i class="fab fa-youtube"></i></a>
+      </div>
+      <div class="copyright">
+        © 2025 Jarret Labs. Todos los derechos reservados.
+      </div>
     </div>
+  </div>
 
-    <div class="contenedor-bonito">
-     
-     <h2>Experimentos de Jarret</h2>
-
-     <p>Aqui mis Experimentos mas raros XD</p>
-
-     <button class="boton" onclick="window.location.href='Lab/Welcome_to_the_Lab.html'">Laboratorio</button>
-
-    </div> -->
-
-   <p>Por si acaso</p>
-
-  <button id="botonMusica" class="botonMusica">▶ Reproducir</button>
- 
-  <footer class="footer">
-    <p>© 2025 Jarret Labs. Todos los derechos reservados.</p>
-  </footer>
-
+  <!-- Script -->
+  <script src="script.js" defer></script>
 </body>
 </html>
-
