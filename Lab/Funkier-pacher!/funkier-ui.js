@@ -1,3 +1,4 @@
+//me cago en todo...
 document.addEventListener('DOMContentLoaded', () => {
     // ======== Botones de método de entrada ========
     const zipMethodBtn = document.getElementById('zip-method-btn');
@@ -6,21 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const zipPanel = document.getElementById('zip-upload-panel');
     const spritesheetPanel = document.getElementById('spritesheet-upload-panel');
 
-    zipMethodBtn.addEventListener('click', () => {
-        zipMethodBtn.classList.add('active');
-        spritesheetMethodBtn.classList.remove('active');
-        zipPanel.style.display = 'block';
-        spritesheetPanel.style.display = 'none';
-    });
-
-    spritesheetMethodBtn.addEventListener('click', () => {
-        spritesheetMethodBtn.classList.add('active');
-        zipMethodBtn.classList.remove('active');
-        spritesheetPanel.style.display = 'block';
-        zipPanel.style.display = 'none';
-    });
-
-    // ======== Elementos principales ========
+    // ======== Estado global ========
     const generateBtn = document.getElementById('generate-btn');
     const statusText = document.getElementById('status-text');
     const resultPanel = document.getElementById('result-panel');
@@ -29,38 +16,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const xmlInput = document.getElementById('xml-input');
     const zipInput = document.getElementById('zip-input');
 
-    let state = { mode: 'packer', imageFile: null, xmlFile: null, zipFile: null };
+    let state = { mode: 'zip', imageFile: null, xmlFile: null, zipFile: null };
 
     const packer = new FunkierPacker();
 
+    // ======== Función de alternar métodos ========
+    function switchMethod(to) {
+        if (to === 'zip') {
+            zipMethodBtn.classList.add('active');
+            spritesheetMethodBtn.classList.remove('active');
+            zipPanel.style.display = 'block';
+            spritesheetPanel.style.display = 'none';
+            state.mode = 'zip';
+            generateBtn.disabled = !state.zipFile;
+            statusText.textContent = state.zipFile ? "ZIP seleccionado: " + state.zipFile.name : "Selecciona un ZIP";
+        } else {
+            spritesheetMethodBtn.classList.add('active');
+            zipMethodBtn.classList.remove('active');
+            spritesheetPanel.style.display = 'block';
+            zipPanel.style.display = 'none';
+            state.mode = 'packer';
+            generateBtn.disabled = !(state.imageFile && state.xmlFile);
+            if (state.imageFile && state.xmlFile) {
+                statusText.textContent = `Listo para generar: ${state.imageFile.name} + ${state.xmlFile.name}`;
+            } else {
+                statusText.textContent = "Selecciona PNG y XML";
+            }
+        }
+    }
+
+    // ======== Eventos de alternancia ========
+    zipMethodBtn.addEventListener('click', () => switchMethod('zip'));
+    spritesheetMethodBtn.addEventListener('click', () => switchMethod('packer'));
+
     // ======== Inputs ========
     imageInput.addEventListener('change', () => {
-        if (imageInput.files.length > 0) {
-            state.imageFile = imageInput.files[0];
-            checkReady();
-        }
+        if (imageInput.files.length > 0) state.imageFile = imageInput.files[0];
+        if (state.mode === 'packer') checkReady();
     });
 
     xmlInput.addEventListener('change', () => {
-        if (xmlInput.files.length > 0) {
-            state.xmlFile = xmlInput.files[0];
-            checkReady();
-        }
+        if (xmlInput.files.length > 0) state.xmlFile = xmlInput.files[0];
+        if (state.mode === 'packer') checkReady();
     });
 
     zipInput.addEventListener('change', () => {
         if (zipInput.files.length > 0) {
-            state.mode = 'zip';
             state.zipFile = zipInput.files[0];
-            generateBtn.disabled = false;
-            statusText.textContent = "ZIP seleccionado: " + state.zipFile.name;
+            if (state.mode === 'zip') {
+                generateBtn.disabled = false;
+                statusText.textContent = "ZIP seleccionado: " + state.zipFile.name;
+            }
         }
     });
 
     // ======== Chequeo de disponibilidad ========
     function checkReady() {
         if (state.imageFile && state.xmlFile) {
-            state.mode = 'packer';
             generateBtn.disabled = false;
             statusText.textContent = `Listo para generar: ${state.imageFile.name} + ${state.xmlFile.name}`;
         } else {
@@ -128,20 +140,14 @@ document.addEventListener('DOMContentLoaded', () => {
             framesArr.sort((a, b) => a.frameNumber - b.frameNumber);
 
             const blobs = await Promise.all(framesArr.map(async f => f.blob ? f.blob : f.entry.async('blob')));
-
-            // Crear tira para ZIP
             const stripBlob = await createStrip(blobs);
             zip.file(`${animName}.png`, stripBlob);
-
-            // Mostrar cada animación en su contenedor
             addPreview(animName, blobs);
         }
 
-        // Botón de descarga
         const finalBlob = await zip.generateAsync({ type: 'blob' });
         const baseName = originalName.replace(/\.(png|jpg|jpeg|zip)$/i, '');
-        const finalName = `TJ-${baseName}.zip`;
-        addDownloadButton(finalBlob, finalName);
+        addDownloadButton(finalBlob, `TJ-${baseName}.zip`);
 
         statusText.textContent = "¡Procesamiento completado!";
     }
@@ -164,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise(resolve => canvas.toBlob(resolve));
     }
 
-    // ======== Mostrar previews ========
     function addPreview(name, blobsArray) {
         const container = document.createElement('div');
         container.className = 'preview-container';
@@ -191,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resultPanel.appendChild(container);
     }
 
-    // ======== Botón de descarga ========
     function addDownloadButton(blob, fileName) {
         const btn = document.createElement('button');
         btn.className = 'download-btn';
@@ -205,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resultPanel.appendChild(btn);
     }
 
-    // ======== Agrupar frames por animación ========
     function groupFrames(frames) {
         const animGroups = {};
         for (const f of frames) {
