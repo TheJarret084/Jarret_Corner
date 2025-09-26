@@ -1,101 +1,136 @@
 /* ============================
-   Encabezado fijo
+   Fuente personalizada
 ============================ */
-.header {
+@font-face {
+  font-family: 'Milky Nice';
+  src: url('fonts/MilkyNice.woff2') format('woff2'),
+       url('fonts/MilkyNice.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Milky Nice', Arial, sans-serif;
+}
+
+/* ============================
+   Fondo con animación
+============================ */
+.bg-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 60px;
-  background-color: #6a1b9a; /* Morado más oscuro y elegante */
-  color: #fff;
+  height: 100%;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.scrolling-bg {
+  width: 200%;
+  height: 100%;
+  background-image: url('Resources/images/FMMBG.png'); /* Usa tu propio fondo si quieres */
+  background-size: 50% 100%;
+  background-repeat: repeat-x;
+  position: absolute;
+  animation: scrollBackground 60s linear infinite;
+  opacity: 0.2;
+}
+
+@keyframes scrollBackground {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+body {
+  background-color: #0f0f1a; /* base oscura */
+  color: white;
+  min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  font-size: 1.5rem;
+  flex-direction: column;
+  overflow-x: hidden;
+  text-align: center;
 }
 
 /* ============================
-   Pie de página fijo
+   Encabezado fijo
+============================ */
+.header {
+  background: linear-gradient(90deg, #6a1b9a, #283593);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  font-size: 1.8rem;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* ============================
+   Pie de página
 ============================ */
 .footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50px;
-  background-color: #283593; /* Azul más profundo */
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
-}
-
-/* Contenido principal */
-.contenido {
-  padding-top: 70px;   /* Espacio para header */
-  padding-bottom: 60px; /* Espacio para footer */
-}
-
-/* ============================
-   Fondo principal
-============================ */
-body {
-  background: linear-gradient(135deg, #8e24aa, #3949ab); /* Degradado morado-azul más suave */
-  font-family: Arial, sans-serif;
+  background: linear-gradient(90deg, #283593, #6a1b9a);
+  padding: 1rem;
   text-align: center;
-  margin: 0;
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
 }
 
 /* ============================
-   Títulos y párrafos generales
+   Títulos y párrafos
 ============================ */
 h1 {
-  color: #f3e5f5; /* Lila claro */
+  color: #f3e5f5;
+  text-shadow: 0 0 8px rgba(106,27,154,0.8);
 }
 
 p {
   color: #fff;
   font-size: 18px;
-  background-color: rgba(0, 0, 0, 0.3); /* Más contraste */
+  background-color: rgba(0, 0, 0, 0.35);
   padding: 15px;
-  border-radius: 8px;
+  border-radius: 10px;
+  margin: 10px 0;
 }
 
 /* ============================
-   Botones generales
+   Botones
 ============================ */
-.boton {
+.boton, .boton2, .botonMusica {
   display: inline-block;
-  padding: 10px 20px;
-  background-color: #29b6f6; /* Azul claro */
-  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  color: #fff;
   text-decoration: none;
-  border-radius: 8px;
-  transition: background-color 0.3s;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+  font-size: 1rem;
+}
+
+.boton {
+  background: linear-gradient(135deg, #29b6f6, #0288d1);
 }
 
 .boton:hover {
-  background-color: #0288d1;
+  background: linear-gradient(135deg, #0288d1, #01579b);
+  transform: translateY(-2px);
 }
 
-.boton2 {
-  display: inline-block;
-  padding: 12px 24px;
+.boton2, .botonMusica {
   background: linear-gradient(135deg, #42a5f5, #1e88e5);
-  color: #fff;
-  font-weight: 500;
-  text-decoration: none;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s ease;
 }
 
-.boton2:hover {
+.boton2:hover, .botonMusica:hover {
   background: linear-gradient(135deg, #1e88e5, #1565c0);
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(0,0,0,0.2);
@@ -109,39 +144,35 @@ p {
   margin: 40px auto;
   padding: 30px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #9c27b0, #5e35b1); /* Morado degradado más moderno */
+  background: linear-gradient(135deg, #9c27b0, #5e35b1);
   color: white;
   text-align: center;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Título dentro del contenedor */
+.contenedor-bonito:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+}
+
 .contenedor-bonito h2 {
-  margin-bottom: 0;
+  margin: 0;
   font-size: 1.8rem;
-  word-wrap: break-word;
 }
 
-/* Párrafo dentro del contenedor */
 .contenedor-bonito p {
-  margin: 0;
+  color: #e1bee7;
   font-size: 1rem;
   line-height: 1.6;
-  color: #e1bee7; /* Lila suave para contraste */
-}
-
-/* Botón dentro del contenedor */
-.contenedor-bonito .boton,
-.contenedor-bonito .boton2 {
-  margin-top: 10px;
 }
 
 /* ============================
-   Carrusel horizontal
+   Carrusel
 ============================ */
 .carrusel {
   display: flex;
@@ -155,102 +186,11 @@ p {
   scrollbar-color: #42a5f5 rgba(0,0,0,0.2);
 }
 
-/* Banner en cada opción */
-.opcion .banner {
-  width: 100%;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-/* Opciones dentro del carrusel */
-.opcion {
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  width: 220px;
-  height: 300px;
-  background: #8e24aa; /* Morado intenso */
-  color: white;
-  border-radius: 12px;
-  padding: 15px;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-/* Título de cada opción */
-.opcion h3 {
-  margin: 0;
-  font-size: 1.4rem;
-  text-align: center;
-  word-wrap: break-word;
-}
-
-/* Texto de cada opción */
-.opcion p {
-  margin: 0;
-  font-size: 1rem;
-  text-align: center;
-  color: #f3e5f5;
-  flex-grow: 1;
-}
-
-/* Botón de cada opción */
-.opcion button,
-.opcion a {
-  padding: 8px 14px;
-  background-color: #29b6f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.opcion button:hover,
-.opcion a:hover {
-  background-color: #0288d1;
-}
-
-/* ============================
-   Scrollbar personalizada
-============================ */
 .carrusel::-webkit-scrollbar {
   height: 10px;
 }
 
-.carrusel::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.1);
-  border-radius: 5px;
-}
-
 .carrusel::-webkit-scrollbar-thumb {
-  background: #42a5f5;
+  background: linear-gradient(90deg, #42a5f5, #1e88e5);
   border-radius: 5px;
-}
-
-.carrusel {
-  scrollbar-width: thin;
-  scrollbar-color: #42a5f5 rgba(0,0,0,0.2);
-}
-.botonMusica {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #42a5f5, #1e88e5); /* Azul degradado */
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-  font-size: 1rem;
-}
-
-.botonMusica:hover {
-  background: linear-gradient(135deg, #1e88e5, #1565c0);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
 }
