@@ -2,45 +2,144 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funkier-Pacher!</title>
- <link rel="stylesheet" href="Funkier-pacher!.css">
- <link rel="icon" href="ico.ico" type="image/x-icon">
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="Funkier-pacher!.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" href="ico.ico" type="image/x-icon">
 </head>
 <body>
-    <h1>Funkier-Pacher!</h1>
+    <!-- Scrolling Background -->
+    <div class="bg-container">
+        <div class="scrolling-bg"></div>
+    </div>
 
-    <!-- Inputs ocultos -->
-    <input type="file" id="image-input" accept=".png,.jpg,.jpeg,.webp" style="display:none;">
-    <input type="file" id="xml-input" accept=".xml" style="display:none;">
-    <input type="file" id="zip-input" accept=".zip" style="display:none;"> <!-- nuevo -->
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-globe"></i></div>
+            <div class="logo-text" id="siteName">Funkier-Pacher!</div>
+        </div>
+    </div>
 
-    <!-- Botones visibles -->
-    <button id="image-btn">Seleccionar Imagen</button>
-    <button id="xml-btn">Seleccionar XML</button>
-    <button id="zip-btn">Seleccionar ZIP</button>
-    <button id="generate-btn" disabled>Generar</button>
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="customContentContainer">
+            <div class="funky-tool-container">
+                <h1 class="tool-title">Funkier-Pacher!</h1>
+                
+                <!-- Input Method Selection -->
+                <div class="funky-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-upload"></i> <span class="header-text">Método de Entrada</span></h3>
+                    </div>
+                    <div class="input-method-selection">
+                        <div class="method-buttons">
+                            <button id="zip-method-btn" class="method-button active">
+                                <i class="fas fa-file-zipper"></i>
+                                <span>Archivo ZIP</span>
+                            </button>
+                            <button id="spritesheet-method-btn" class="method-button">
+                                <i class="fas fa-image"></i>
+                                <span>Spritesheet + XML</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ZIP Upload Panel -->
+                <div class="funky-panel" id="zip-upload-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-file-zipper"></i> Subir ZIP</h3>
+                    </div>
+                    <div class="drop-zone" id="zip-drop-zone">
+                        <p>Arrastra y suelta tu archivo ZIP aquí o</p>
+                        <input type="file" id="zip-input" accept=".zip" style="display: none;">
+                        <button class="funky-button select-file-button" onclick="document.getElementById('zip-input').click()">
+                            <i class="fas fa-file-upload"></i> Seleccionar ZIP
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Spritesheet Upload Panel -->
+                <div class="funky-panel" id="spritesheet-upload-panel" style="display: none;">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-image"></i> Subir Spritesheet y XML</h3>
+                    </div>
+                    <div class="dual-upload-container">
+                        <div class="upload-section">
+                            <div class="drop-zone">
+                                <p><i class="fas fa-image"></i></p>
+                                <p>Spritesheet (PNG)</p>
+                                <input type="file" id="image-input" accept=".png" style="display: none;">
+                                <button class="funky-button" onclick="document.getElementById('image-input').click()">
+                                    <i class="fas fa-file-upload"></i> Seleccionar PNG
+                                </button>
+                            </div>
+                        </div>
+                        <div class="upload-section">
+                            <div class="drop-zone">
+                                <p><i class="fas fa-code"></i></p>
+                                <p>Metadata (XML)</p>
+                                <input type="file" id="xml-input" accept=".xml" style="display: none;">
+                                <button class="funky-button" onclick="document.getElementById('xml-input').click()">
+                                    <i class="fas fa-file-upload"></i> Seleccionar XML
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
+                <!-- Settings Panel -->
+                <div class="funky-panel settings-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-sliders-h"></i> Configuración</h3>
+                    </div>
+                    <div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remove-duplicates">
+                            <label class="form-check-label" for="remove-duplicates">Eliminar frames duplicados</label>
+                        </div>
+                        <div class="generate-button-container">
+                            <button id="generate-btn" class="funky-button" disabled>
+                                <i class="fas fa-cogs"></i> Generar
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- Panel de resultados -->
-    <div id="result-panel"></div>
+                <!-- Result Panel -->
+                <div class="funky-panel result-panel" id="result-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-image"></i> Resultado</h3>
+                        <button class="download-button" id="download-again">Descargar</button>
+                    </div>
+                    <div class="result-content">
+                        <p id="result-info"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Librería JSZip (para generar ZIP) -->
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="copyright">
+                © 2025 Jarret Labs. Fragmentos originales de Funky Atlas.
+            </div>
+            <div class="social-links">
+                <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+                    <i class="fab fa-discord"></i> Discord
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- UI JS combinado -->
     <script src="funkier-ui.js"></script>
-    <!-- FunkierPacker.js -->
     <script src="Funkier-pacher!.js"></script>
-    <!-- FunkinToFunky.js -->
     <script src="FunkinToFunky.js"></script>
-    <footer>
-        © 2025 Jarret Labs. Fragmentos de código originales de Funky Atlas © 2025. <br> Esta pagina para nada esta asociada a King GC y su juego, el material que pasa por la pagina tampoco esta asociada.
-     <p>No funciona? <br> Contáctame en Discord:</p>
-       <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
-          <i class="fab fa-discord"></i>
-       </a>
-    </footer>
 </body>
 </html>
