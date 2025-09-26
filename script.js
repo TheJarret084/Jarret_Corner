@@ -84,7 +84,7 @@ async function loadData(jsonSource = DATA_SOURCE) {
                     const img = document.createElement("img");
                     img.src = cardData.image;
                     img.alt = cardData.title || "Imagen";
-                    img.onerror = ()=>{ img.src = "Resources/images/BG_placeholder.jpg"; };
+                    img.onerror = ()=>{ img.src = "Material/imgs/BG_placeholder.jpg"; };
                     imgDiv.appendChild(img);
                     card.appendChild(imgDiv);
                 }
@@ -173,3 +173,4 @@ async function loadData(jsonSource = DATA_SOURCE) {
 loadData();
 
 // imagina que abelito lea esto... que miedo
+
