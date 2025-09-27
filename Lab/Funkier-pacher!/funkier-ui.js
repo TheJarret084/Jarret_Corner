@@ -36,12 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
             spritesheetPanel.style.display = 'block';
             zipPanel.style.display = 'none';
             state.mode = 'packer';
-            generateBtn.disabled = !(state.imageFile && state.xmlFile);
-            if (state.imageFile && state.xmlFile) {
-                statusText.textContent = `Listo para generar: ${state.imageFile.name} + ${state.xmlFile.name}`;
-            } else {
-                statusText.textContent = "Selecciona PNG y XML";
-            }
+            checkReady(); // Revisa si PNG + XML ya están listos
         }
     }
 
@@ -51,22 +46,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ======== Inputs ========
     imageInput.addEventListener('change', () => {
-        if (imageInput.files.length > 0) state.imageFile = imageInput.files[0];
+        state.imageFile = imageInput.files[0] || null;
         if (state.mode === 'packer') checkReady();
     });
 
     xmlInput.addEventListener('change', () => {
-        if (xmlInput.files.length > 0) state.xmlFile = xmlInput.files[0];
+        state.xmlFile = xmlInput.files[0] || null;
         if (state.mode === 'packer') checkReady();
     });
 
     zipInput.addEventListener('change', () => {
-        if (zipInput.files.length > 0) {
-            state.zipFile = zipInput.files[0];
-            if (state.mode === 'zip') {
-                generateBtn.disabled = false;
-                statusText.textContent = "ZIP seleccionado: " + state.zipFile.name;
-            }
+        state.zipFile = zipInput.files[0] || null;
+        if (state.mode === 'zip') {
+            generateBtn.disabled = !state.zipFile;
+            statusText.textContent = state.zipFile ? "ZIP seleccionado: " + state.zipFile.name : "Selecciona un ZIP";
         }
     });
 
@@ -77,8 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
             statusText.textContent = `Listo para generar: ${state.imageFile.name} + ${state.xmlFile.name}`;
         } else {
             generateBtn.disabled = true;
-            if (state.imageFile && !state.xmlFile) statusText.textContent = "Falta el XML";
-            if (state.xmlFile && !state.imageFile) statusText.textContent = "Falta la imagen";
+            if (state.imageFile && !state.xmlFile) statusText.textContent = "Falta el archivo XML";
+            else if (state.xmlFile && !state.imageFile) statusText.textContent = "Falta el archivo PNG";
+            else statusText.textContent = "Selecciona PNG y XML";
         }
     }
 
