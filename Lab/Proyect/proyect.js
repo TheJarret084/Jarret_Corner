@@ -88,17 +88,25 @@ function mostrarResultados(frames) {
   });
 }
 
-// === descargar ZIP ===
+// === descargar ZIP con nombres basados en la primera imagen ===
 document.getElementById("descargar").addEventListener("click", async () => {
-  if(framesArray.length === 0) return alert("Genera primero los frames");
+  const file1 = document.getElementById("img1").files[0];
+  if (!framesArray.length || !file1) {
+    return alert("Genera primero los frames y carga la imagen 1");
+  }
+
+  const baseName = file1.name.replace(/\.[^/.]+$/, ""); // elimina extensión
   const zip = new JSZip();
-  framesArray.forEach(f => {
+
+  framesArray.forEach((f, idx) => {
     const base64 = f.dataURL.split(",")[1];
-    zip.file(f.name+".png", base64, {base64:true});
+    const frameName = `${baseName}_${idx.toString().padStart(4,"0")}.png`;
+    zip.file(frameName, base64, { base64: true });
   });
-  const content = await zip.generateAsync({type:"blob"});
+
+  const content = await zip.generateAsync({ type: "blob" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(content);
-  link.download = "frames.zip";
+  link.download = `${baseName}_frames.zip`;
   link.click();
 });

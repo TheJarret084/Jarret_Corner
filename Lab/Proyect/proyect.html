@@ -16,6 +16,7 @@
 
   <section class="controls">
 
+    <!-- Imagen 1 -->
     <div class="card">
       <h2>Imagen 1</h2>
       <input type="file" id="img1" accept="image/*">
@@ -37,6 +38,7 @@
       </div>
     </div>
 
+    <!-- Imagen 2 opcional -->
     <div class="card">
       <h2>Imagen 2 (opcional)</h2>
       <input type="file" id="img2" accept="image/*">
@@ -59,18 +61,23 @@
       </div>
     </div>
 
+    <!-- Controles de frames y botones -->
     <div class="card">
       <label>Frames totales
         <input type="number" id="frames" value="20" min="2">
       </label>
-      <button id="generar">Generar Frames</button>
-      <button id="descargar">Descargar ZIP</button>
+      <div class="row">
+        <button id="generar">Generar Frames</button>
+        <button id="descargar">Descargar ZIP</button> <!-- Botón de descarga aquí -->
+      </div>
     </div>
 
   </section>
 
+  <!-- Canvas donde se dibujan las imágenes -->
   <canvas id="canvas" width="800" height="600"></canvas>
 
+  <!-- Miniaturas de los frames generados -->
   <div id="resultados"></div>
 
 </main>
