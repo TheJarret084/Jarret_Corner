@@ -1,110 +1,39 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>proyect1 — Spawn images from edges</title>
-<link rel="stylesheet" href="proyect.css">
+  <meta charset="UTF-8">
+  <title>Proyecto1</title>
+  <link rel="stylesheet" href="proyect.css">
 </head>
 <body>
+  <h1>Generador de Frames</h1>
 
-<div class="panel">
-  <h1>Spawner de imágenes — controls</h1>
-
-  <div class="controls-group">
-    <strong>Imagen 1</strong>
-    <label>Subir imagen</label>
-    <input id="img1-file" type="file" accept="image/*" />
-
-    <div class="row">
-      <div>
-        <label>Lado de entrada</label>
-        <select id="img1-side">
-          <option value="left">Izquierda</option>
-          <option value="right">Derecha</option>
-          <option value="top">Arriba</option>
-          <option value="bottom">Abajo</option>
-        </select>
-      </div>
-      <div>
-        <label>Frames (≈60fps)</label>
-        <input id="img1-frames" type="number" min="10" max="3000" value="120" />
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:6px;">
-      <div>
-        <label>Tamaño (px)</label>
-        <input id="img1-size" type="number" min="16" max="1000" value="180" />
-      </div>
-      <div>
-        <label>Qué hace al llegar</label>
-        <select id="img1-behaviour">
-          <option value="stopCenter">Se queda en el centro</option>
-          <option value="passThrough">Pasa toda la pantalla</option>
-        </select>
-      </div>
-    </div>
-
-    <button class="btn" id="spawn1">Generar imagen 1</button>
+  <div class="inputs">
+    <label>Imagen 1: <input type="file" id="img1" accept="image/*"></label>
+    <select id="dir1">
+      <option value="down">Desde arriba</option>
+      <option value="up">Desde abajo</option>
+      <option value="left">Desde la izquierda</option>
+      <option value="right">Desde la derecha</option>
+    </select>
+    <br>
+    <label>Imagen 2: <input type="file" id="img2" accept="image/*"></label>
+    <select id="dir2">
+      <option value="none">Sin segunda</option>
+      <option value="down">Desde arriba</option>
+      <option value="up">Desde abajo</option>
+      <option value="left">Desde la izquierda</option>
+      <option value="right">Desde la derecha</option>
+    </select>
+    <br>
+    <label>Frames totales: <input type="number" id="frames" value="20" min="2"></label>
+    <button id="generar">Generar Frames</button>
   </div>
 
-  <div class="controls-group">
-    <strong>Imagen 2 (opcional)</strong>
-    <label>Subir imagen</label>
-    <input id="img2-file" type="file" accept="image/*" />
+  <canvas id="lienzo" width="512" height="512"></canvas>
 
-    <div class="row">
-      <div>
-        <label>Lado de entrada</label>
-        <select id="img2-side">
-          <option value="bottom">Abajo</option>
-          <option value="top">Arriba</option>
-          <option value="left">Izquierda</option>
-          <option value="right">Derecha</option>
-        </select>
-      </div>
-      <div>
-        <label>Frames</label>
-        <input id="img2-frames" type="number" min="10" max="3000" value="120" />
-      </div>
-    </div>
+  <div id="resultados"></div>
 
-    <div class="row" style="margin-top:6px;">
-      <div>
-        <label>Tamaño (px)</label>
-        <input id="img2-size" type="number" min="16" max="1000" value="140" />
-      </div>
-      <div>
-        <label>Qué hace al llegar</label>
-        <select id="img2-behaviour">
-          <option value="stopCenter">Se queda en el centro</option>
-          <option value="passThrough">Pasa toda la pantalla</option>
-        </select>
-      </div>
-    </div>
-
-    <button class="btn" id="spawn2">Generar imagen 2</button>
-  </div>
-
-  <div style="margin-top:10px;">
-    <button class="btn" id="exportZip">Exportar todas las subimágenes a ZIP</button>
-    <span id="exportStatus" style="margin-left:10px"></span>
-  </div>
-
-  <div class="hint" style="margin-top:10px;">
-    Usa el botón varias veces para lanzar más instancias. <br>
-    (Sube un PNG, JPG o GIF desde tu computadora).
-  </div>
-</div>
-
-<div class="stage" id="stage">
-  <div class="note">Área de animación — prueba distintos lados y frames</div>
-  <footer>Demostración — mueve imágenes desde los extremos</footer>
-</div>
-
-<!-- JSZip CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="proyect.js"></script>
+  <script src="proyect.js"></script>
 </body>
 </html>
