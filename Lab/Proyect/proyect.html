@@ -13,8 +13,8 @@
 
   <div class="controls-group">
     <strong>Imagen 1</strong>
-    <label>URL de la imagen</label>
-    <input id="img1-url" type="text" value="https://i.imgur.com/Ou0Qv6R.png" />
+    <label>Subir imagen</label>
+    <input id="img1-file" type="file" accept="image/*" />
 
     <div class="row">
       <div>
@@ -51,8 +51,8 @@
 
   <div class="controls-group">
     <strong>Imagen 2 (opcional)</strong>
-    <label>URL de la imagen</label>
-    <input id="img2-url" type="text" value="https://i.imgur.com/3y2X2mK.png" />
+    <label>Subir imagen</label>
+    <input id="img2-file" type="file" accept="image/*" />
 
     <div class="row">
       <div>
@@ -87,8 +87,14 @@
     <button class="btn" id="spawn2">Generar imagen 2</button>
   </div>
 
-  <div class="hint">
-    Usa el botón varias veces para lanzar más instancias. Puedes cambiar la URL a tus spritesheets o PNGs.
+  <div style="margin-top:10px;">
+    <button class="btn" id="exportZip">Exportar todas las subimágenes a ZIP</button>
+    <span id="exportStatus" style="margin-left:10px"></span>
+  </div>
+
+  <div class="hint" style="margin-top:10px;">
+    Usa el botón varias veces para lanzar más instancias. <br>
+    (Sube un PNG, JPG o GIF desde tu computadora).
   </div>
 </div>
 
@@ -97,6 +103,8 @@
   <footer>Demostración — mueve imágenes desde los extremos</footer>
 </div>
 
+<!-- JSZip CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="proyect.js"></script>
 </body>
 </html>
