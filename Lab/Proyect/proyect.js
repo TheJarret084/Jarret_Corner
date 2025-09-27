@@ -1,11 +1,28 @@
-const canvas = document.getElementById("lienzo");
+const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
+// === utilidades ===
+function loadImage(file) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => res(img);
+      img.onerror = rej;
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// === lógica principal ===
 document.getElementById("generar").addEventListener("click", async () => {
   const file1 = document.getElementById("img1").files[0];
   const file2 = document.getElementById("img2").files[0];
   const dir1 = document.getElementById("dir1").value;
   const dir2 = document.getElementById("dir2").value;
+  const beh1 = document.getElementById("beh1").value;
+  const beh2 = document.getElementById("beh2").value;
   const totalFrames = parseInt(document.getElementById("frames").value);
 
   if (!file1) {
@@ -21,12 +38,10 @@ document.getElementById("generar").addEventListener("click", async () => {
   for (let f = 0; f < totalFrames; f++) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // dibujar imagen 1
-    drawMovingImage(img1, dir1, f, totalFrames);
+    drawMovingImage(img1, dir1, beh1, f, totalFrames);
 
-    // dibujar imagen 2 si existe
     if (img2 && dir2 !== "none") {
-      drawMovingImage(img2, dir2, f, totalFrames);
+      drawMovingImage(img2, dir2, beh2, f, totalFrames);
     }
 
     const dataURL = canvas.toDataURL("image/png");
@@ -36,34 +51,42 @@ document.getElementById("generar").addEventListener("click", async () => {
   mostrarResultados(framesArray);
 });
 
-// ==== Helpers ====
-function loadImage(file) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = () => resolve(img);
-  });
-}
-
-function drawMovingImage(img, dir, frame, total) {
+// === helpers ===
+function drawMovingImage(img, dir, behaviour, frame, total) {
   const progress = frame / (total - 1);
-
   let x = (canvas.width - img.width) / 2;
   let y = (canvas.height - img.height) / 2;
 
-  switch (dir) {
-    case "down":
-      y = -img.height + (canvas.height / 2 + img.height / 2) * progress;
-      break;
-    case "up":
-      y = canvas.height - (canvas.height / 2 + img.height / 2) * progress;
-      break;
-    case "left":
-      x = canvas.width - (canvas.width / 2 + img.width / 2) * progress;
-      break;
-    case "right":
-      x = -img.width + (canvas.width / 2 + img.width / 2) * progress;
-      break;
+  if (behaviour === "stopCenter") {
+    switch (dir) {
+      case "down":
+        y = -img.height + ((canvas.height - img.height) / 2 + img.height) * progress;
+        break;
+      case "up":
+        y = canvas.height - ((canvas.height - img.height) / 2 + img.height) * progress;
+        break;
+      case "left":
+        x = canvas.width - ((canvas.width - img.width) / 2 + img.width) * progress;
+        break;
+      case "right":
+        x = -img.width + ((canvas.width - img.width) / 2 + img.width) * progress;
+        break;
+    }
+  } else if (behaviour === "passThrough") {
+    switch (dir) {
+      case "down":
+        y = -img.height + (canvas.height + img.height) * progress;
+        break;
+      case "up":
+        y = canvas.height - (canvas.height + img.height) * progress;
+        break;
+      case "left":
+        x = canvas.width - (canvas.width + img.width) * progress;
+        break;
+      case "right":
+        x = -img.width + (canvas.width + img.width) * progress;
+        break;
+    }
   }
 
   ctx.drawImage(img, x, y);
@@ -73,9 +96,9 @@ function mostrarResultados(framesArray) {
   const cont = document.getElementById("resultados");
   cont.innerHTML = "";
   framesArray.forEach(f => {
-    const img = document.createElement("img");
+    const img = new Image();
     img.src = f.dataURL;
-    img.alt = f.name;
+    img.title = f.name;
     cont.appendChild(img);
   });
 }
