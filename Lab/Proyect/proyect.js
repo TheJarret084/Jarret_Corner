@@ -1,7 +1,8 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+let framesArray = [];
 
-// === utilidades ===
+// === cargar imagen desde file ===
 function loadImage(file) {
   return new Promise((res, rej) => {
     const reader = new FileReader();
@@ -15,7 +16,7 @@ function loadImage(file) {
   });
 }
 
-// === lógica principal ===
+// === generar frames ===
 document.getElementById("generar").addEventListener("click", async () => {
   const file1 = document.getElementById("img1").files[0];
   const file2 = document.getElementById("img2").files[0];
@@ -33,72 +34,71 @@ document.getElementById("generar").addEventListener("click", async () => {
   const img1 = await loadImage(file1);
   const img2 = file2 ? await loadImage(file2) : null;
 
-  const framesArray = [];
+  framesArray = [];
 
   for (let f = 0; f < totalFrames; f++) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawMovingImage(img1, dir1, beh1, f, totalFrames);
-
     if (img2 && dir2 !== "none") {
       drawMovingImage(img2, dir2, beh2, f, totalFrames);
     }
 
     const dataURL = canvas.toDataURL("image/png");
-    framesArray.push({ name: `subimagen${f.toString().padStart(4, "0")}`, dataURL });
+    framesArray.push({ name: `subimagen${f.toString().padStart(4,"0")}`, dataURL });
   }
 
   mostrarResultados(framesArray);
 });
 
-// === helpers ===
+// === dibujar imagen en canvas ===
 function drawMovingImage(img, dir, behaviour, frame, total) {
   const progress = frame / (total - 1);
-  let x = (canvas.width - img.width) / 2;
-  let y = (canvas.height - img.height) / 2;
+  let x = (canvas.width - img.width)/2;
+  let y = (canvas.height - img.height)/2;
 
   if (behaviour === "stopCenter") {
-    switch (dir) {
-      case "down":
-        y = -img.height + ((canvas.height - img.height) / 2 + img.height) * progress;
-        break;
-      case "up":
-        y = canvas.height - ((canvas.height - img.height) / 2 + img.height) * progress;
-        break;
-      case "left":
-        x = canvas.width - ((canvas.width - img.width) / 2 + img.width) * progress;
-        break;
-      case "right":
-        x = -img.width + ((canvas.width - img.width) / 2 + img.width) * progress;
-        break;
+    switch(dir) {
+      case "down": y = -img.height + ((canvas.height - img.height)/2 + img.height)*progress; break;
+      case "up": y = canvas.height - ((canvas.height - img.height)/2 + img.height)*progress; break;
+      case "left": x = canvas.width - ((canvas.width - img.width)/2 + img.width)*progress; break;
+      case "right": x = -img.width + ((canvas.width - img.width)/2 + img.width)*progress; break;
     }
   } else if (behaviour === "passThrough") {
-    switch (dir) {
-      case "down":
-        y = -img.height + (canvas.height + img.height) * progress;
-        break;
-      case "up":
-        y = canvas.height - (canvas.height + img.height) * progress;
-        break;
-      case "left":
-        x = canvas.width - (canvas.width + img.width) * progress;
-        break;
-      case "right":
-        x = -img.width + (canvas.width + img.width) * progress;
-        break;
+    switch(dir) {
+      case "down": y = -img.height + (canvas.height + img.height)*progress; break;
+      case "up": y = canvas.height - (canvas.height + img.height)*progress; break;
+      case "left": x = canvas.width - (canvas.width + img.width)*progress; break;
+      case "right": x = -img.width + (canvas.width + img.width)*progress; break;
     }
   }
 
   ctx.drawImage(img, x, y);
 }
 
-function mostrarResultados(framesArray) {
+// === mostrar miniaturas ===
+function mostrarResultados(frames) {
   const cont = document.getElementById("resultados");
   cont.innerHTML = "";
-  framesArray.forEach(f => {
+  frames.forEach(f => {
     const img = new Image();
     img.src = f.dataURL;
     img.title = f.name;
     cont.appendChild(img);
   });
 }
+
+// === descargar ZIP ===
+document.getElementById("descargar").addEventListener("click", async () => {
+  if(framesArray.length === 0) return alert("Genera primero los frames");
+  const zip = new JSZip();
+  framesArray.forEach(f => {
+    const base64 = f.dataURL.split(",")[1];
+    zip.file(f.name+".png", base64, {base64:true});
+  });
+  const content = await zip.generateAsync({type:"blob"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(content);
+  link.download = "frames.zip";
+  link.click();
+});

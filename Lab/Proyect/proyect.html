@@ -1,67 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Proyect1</title>
-  <link rel="stylesheet" href="proyect.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto1 - Generador de Frames</title>
+<link rel="stylesheet" href="proyect.css">
 </head>
 <body>
+
+<header>
   <h1>Generador de Frames</h1>
+</header>
 
-  <div class="controls">
-    <div class="control-block">
-      <label>Imagen 1:
-        <input type="file" id="img1" accept="image/*">
-      </label>
-      <label>Dirección:
-        <select id="dir1">
-          <option value="down">Desde arriba</option>
-          <option value="up">Desde abajo</option>
-          <option value="left">Desde la izquierda</option>
-          <option value="right">Desde la derecha</option>
-        </select>
-      </label>
-      <label>Comportamiento:
-        <select id="beh1">
-          <option value="stopCenter">Queda en el centro</option>
-          <option value="passThrough">Pasa al otro lado</option>
-        </select>
-      </label>
+<main class="container">
+
+  <section class="controls">
+
+    <div class="card">
+      <h2>Imagen 1</h2>
+      <input type="file" id="img1" accept="image/*">
+      <div class="row">
+        <label>Dirección
+          <select id="dir1">
+            <option value="down">Desde arriba</option>
+            <option value="up">Desde abajo</option>
+            <option value="left">Desde la izquierda</option>
+            <option value="right">Desde la derecha</option>
+          </select>
+        </label>
+        <label>Comportamiento
+          <select id="beh1">
+            <option value="stopCenter">Se queda en el centro</option>
+            <option value="passThrough">Pasa al otro lado</option>
+          </select>
+        </label>
+      </div>
     </div>
 
-    <div class="control-block">
-      <label>Imagen 2:
-        <input type="file" id="img2" accept="image/*">
-      </label>
-      <label>Dirección:
-        <select id="dir2">
-          <option value="none">Sin segunda</option>
-          <option value="down">Desde arriba</option>
-          <option value="up">Desde abajo</option>
-          <option value="left">Desde la izquierda</option>
-          <option value="right">Desde la derecha</option>
-        </select>
-      </label>
-      <label>Comportamiento:
-        <select id="beh2">
-          <option value="stopCenter">Queda en el centro</option>
-          <option value="passThrough">Pasa al otro lado</option>
-        </select>
-      </label>
+    <div class="card">
+      <h2>Imagen 2 (opcional)</h2>
+      <input type="file" id="img2" accept="image/*">
+      <div class="row">
+        <label>Dirección
+          <select id="dir2">
+            <option value="none">Sin segunda</option>
+            <option value="down">Desde arriba</option>
+            <option value="up">Desde abajo</option>
+            <option value="left">Desde la izquierda</option>
+            <option value="right">Desde la derecha</option>
+          </select>
+        </label>
+        <label>Comportamiento
+          <select id="beh2">
+            <option value="stopCenter">Se queda en el centro</option>
+            <option value="passThrough">Pasa al otro lado</option>
+          </select>
+        </label>
+      </div>
     </div>
 
-    <div class="control-block">
-      <label>Frames totales:
-        <input type="number" id="frames" value="60" min="2">
+    <div class="card">
+      <label>Frames totales
+        <input type="number" id="frames" value="20" min="2">
       </label>
       <button id="generar">Generar Frames</button>
+      <button id="descargar">Descargar ZIP</button>
     </div>
-  </div>
+
+  </section>
 
   <canvas id="canvas" width="800" height="600"></canvas>
 
   <div id="resultados"></div>
 
-  <script src="proyect.js"></script>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+<script src="proyect.js"></script>
 </body>
 </html>
