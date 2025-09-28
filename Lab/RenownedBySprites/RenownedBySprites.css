@@ -1,51 +1,72 @@
-* {
-  box-sizing: border-box;
-}
+/* ======== RenownedBySprites — CSS Unificado (tema oscuro) ======== */
 
-/* ======== Estilos generales ======== */
+* { box-sizing: border-box; }
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #1a1a2e;
   color: #fff;
-  margin: 0;
-  padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 20px;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Header */
 header {
   text-align: center;
+  width: 100%;
+  max-width: 1000px;
   margin-bottom: 18px;
 }
 
 h1 {
-  font-size: 1.9rem;
-  margin-bottom: 4px;
+  margin: 0 0 12px 0;
+  font-size: 2rem;
+  text-align: center;
+  color: #fff;
 }
 
 .subtitle {
-  color: #ccc;
-  margin-top: 0;
+  margin: 0;
+  color: #cbd2ff; /* ligero acento frío */
+  opacity: 0.85;
+  font-size: 0.95rem;
 }
 
-/* ======== Panel principal ======== */
+/* Contenedor principal */
 main {
+  width: 100%;
   max-width: 980px;
-  margin: 0 auto;
   display: grid;
   gap: 18px;
+  margin: 0 auto;
+  padding: 0;
 }
 
+/* Panels */
 .panel {
-  background: rgba(40, 40, 60, 0.6);
-  padding: 16px;
+  background-color: rgba(40, 40, 60, 0.55);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  transition: transform .12s ease, box-shadow .12s ease;
 }
 
-/* ======== Controles ======== */
+.panel:hover { transform: translateY(-2px); }
+
+/* Títulos dentro del panel */
+.panel h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.15rem;
+  color: #fff;
+}
+
+/* Controles */
 .controls-row {
   display: flex;
   gap: 12px;
@@ -58,92 +79,140 @@ main {
   display: flex;
   gap: 8px;
   align-items: center;
+  color: #e6e8ff;
 }
 
+/* Labels y pequeños textos */
+.control label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: #e8eaf6;
+  font-size: 0.95rem;
+}
+
+.small {
+  font-size: 0.85rem;
+  color: #bfc8ff;
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Inputs y selects */
 .control input[type="number"],
-.control select {
+.control select,
+.control input[type="text"],
+.control input[type="checkbox"] {
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #444;
-  font-size: 1rem;
-  width: 110px;
-  background: #2a2a44;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(20,20,30,0.35);
   color: #fff;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-
-.control input[type="number"]:focus,
-.control select:focus {
+  font-size: 1rem;
   outline: none;
+  transition: box-shadow .15s, border-color .15s;
+}
+
+/* Inputs focus */
+.control input[type="number"]:focus,
+.control select:focus,
+.control input[type="text"]:focus {
+  box-shadow: 0 0 0 4px rgba(108,99,255,0.12);
   border-color: #6c63ff;
-  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.3);
 }
 
-.control label {
-  font-weight: 600;
-  color: #ddd;
-}
+/* Ocultar fileInput visualmente */
+#fileInput { display: none; }
 
-/* ======== Zona de arrastre ======== */
+/* Dropzone */
 #dropzone {
   border: 3px dashed #6c63ff;
   border-radius: 14px;
   padding: 36px;
   text-align: center;
   cursor: pointer;
-  background: rgba(30, 30, 60, 0.4);
+  background: rgba(24,24,40,0.45);
   color: #fff;
   font-size: 1.05rem;
   transition: transform .15s, background .12s, border-color .15s;
   user-select: none;
 }
 
+#dropzone:hover { background: rgba(30,30,50,0.55); }
+
 #dropzone.dragover {
-  background: rgba(60, 60, 100, 0.6);
-  transform: scale(1.02);
+  background: rgba(70,70,120,0.55);
+  transform: scale(1.01);
   border-color: #8884ff;
 }
 
-/* ======== Botón procesar ======== */
+/* Actions row */
 .actions-row {
   display: flex;
   gap: 12px;
   align-items: center;
   margin-top: 12px;
+  flex-wrap: wrap;
 }
 
-#procesar {
-  background: #333366;
+/* Botones (estilo original unificado) */
+button {
+  padding: 12px 20px;
+  margin: 8px 0;
+  background-color: #333366;
   color: #fff;
   border: none;
-  padding: 12px 18px;
-  border-radius: 10px;
-  font-weight: 700;
+  border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  transition: background 0.3s, transform 0.15s;
+  font-size: 1rem;
+  transition: background-color 0.3s, transform 0.12s;
+  min-width: 160px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
 }
 
-#procesar:hover:not(:disabled) {
-  background: #4444aa;
+button:hover:not(:disabled) {
+  background-color: #4444aa;
   transform: translateY(-1px);
 }
 
-#procesar:disabled {
-  background: #555;
+button:disabled {
+  background-color: #555;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-/* ======== Status / Progreso ======== */
-.status {
-  color: #ccc;
+/* Botón principal del UI (override si quieres otro tamaño) */
+#procesar {
+  min-width: 160px;
+  font-weight: 700;
+}
+
+/* Botón de descarga (clase utilitaria igual que antes) */
+button.download-btn {
+  margin-top: 10px;
+  background-color: #ff6b6b;
+  border-radius: 8px;
+  padding: 8px 16px;
+  transition: background-color 0.3s;
+  color: #fff;
+}
+
+button.download-btn:hover { background-color: #ff4c4c; }
+
+/* Status */
+.status, #status-text {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 1rem;
+  color: #d8dbff;
   font-weight: 600;
 }
 
+/* Progress bar */
 .progress-wrap {
   height: 12px;
-  background: #2a2a44;
+  background: rgba(20,20,40,0.45);
   border-radius: 8px;
   overflow: hidden;
   margin-top: 12px;
@@ -153,23 +222,24 @@ main {
   height: 100%;
   background: linear-gradient(90deg, #6c63ff, #4a42f5);
   width: 0%;
-  transition: width .2s;
+  transition: width .2s ease;
 }
 
-/* ======== Preview / Grupos ======== */
+/* Preview area */
 #preview {
   display: block;
   padding: 8px;
   font-size: 0.95rem;
-  color: #eee;
+  color: #fff;
 }
 
+/* Grupos / filas */
 .group-row {
   margin: 10px 0;
-  padding: 8px;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
+  padding: 10px;
+  border: 1px dashed rgba(255,255,255,0.06);
   border-radius: 8px;
-  background: rgba(40, 40, 60, 0.4);
+  background: rgba(30,30,50,0.35);
 }
 
 .group-row b {
@@ -178,69 +248,144 @@ main {
   color: #fff;
 }
 
-.small {
-  font-size: 0.85rem;
-  color: #bbb;
-  margin-left: 6px;
-}
-
-/* ======== Logs ======== */
+/* Logs */
 .logs {
   margin-top: 12px;
   font-family: monospace;
   font-size: 0.85rem;
-  color: #ddd;
+  color: #dfe3ff;
   max-height: 180px;
   overflow: auto;
-  background: rgba(20, 20, 40, 0.6);
+  background: rgba(18,18,30,0.45);
   padding: 8px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255,255,255,0.04);
 }
 
-/* ======== Footer ======== */
-footer {
-  text-align: center;
-  margin-top: 12px;
-  color: #aaa;
-  font-size: 0.9rem;
+/* Preview strip & result-panel (por compatibilidad con otros componentes) */
+#result-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1000px;
+  margin-top: 30px;
 }
+
+.preview-container {
+  background-color: rgba(30,30,50,0.45);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.preview-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-align: center;
+  width: 100%;
+  color: #fff;
+}
+
+.preview-strip-wrapper {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  width: 100%;
+  padding: 6px 0;
+  scroll-behavior: smooth;
+}
+
+.preview-strip-wrapper img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.preview-strip-wrapper img:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.75);
+}
+
+.preview-label {
+  font-size: 0.9rem;
+  color: #ccc;
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* Footer */
+footer {
+  background: #2c2f33;
+  color: #fff;
+  text-align: center;
+  padding: 20px;
+  margin-top: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+}
+
+footer p, footer small { margin: 5px 0; color: #c7c9d9; }
+
+/* Discord link utility (por compatibilidad) */
+.discord-link {
+  color: #7289da;
+  font-size: 32px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.discord-link:hover { color: #99aab5; }
 
 /* ======== Responsivo ======== */
-@media (max-width: 700px) {
-  .controls-row {
-    flex-direction: column;
-    align-items: stretch;
+@media (max-width: 768px) {
+  button {
+    width: 90%;
+    font-size: 1.1rem;
+    padding: 12px 16px;
+    margin: 8px auto;
+    min-width: auto;
   }
 
-  .control input[type="number"],
-  .control select {
-    width: 100%;
-  }
+  h1 { font-size: 1.6rem; }
 
-  #dropzone {
-    padding: 28px;
-    font-size: 0.95rem;
-  }
+  #result-panel,
+  footer { max-width: 100%; }
+
+  .preview-strip-wrapper img { max-height: 100px; }
 }
 
 @media (max-width: 480px) {
-  body {
-    padding: 12px;
-  }
+  body { padding: 12px; }
 
-  #procesar {
-    width: 80%;
+  button {
+    width: 70%;
     font-size: 1rem;
     padding: 10px 14px;
+    margin: 6px auto;
   }
 
-  h1 {
-    font-size: 1.5rem;
-  }
+  h1 { font-size: 1.4rem; }
 
-  .panel {
+  #result-panel,
+  footer {
+    width: 100%;
+    max-width: 100%;
     border-radius: 8px;
-    padding: 12px;
   }
+
+  .preview-strip-wrapper img { max-height: 90px; }
+
+  .controls-row { flex-direction: column; align-items: stretch; }
+  .control input[type="number"], .control select { width: 100%; }
+  #dropzone { padding: 22px; font-size: 0.95rem; }
+  #procesar { width: 90%; }
 }
