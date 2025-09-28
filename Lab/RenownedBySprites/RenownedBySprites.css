@@ -5,28 +5,28 @@
 /* ======== Estilos generales ======== */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(180deg, #f4f6fb, #e9edf8);
+  background-color: #1a1a2e;
+  color: #fff;
   margin: 0;
   padding: 24px;
-  color: #1d1f2b;
-  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 h1 {
-  font-size: 2rem;
-  margin-bottom: 6px;
-  color: #2a2d3e;
+  font-size: 1.9rem;
+  margin-bottom: 4px;
 }
 
 .subtitle {
-  color: #566;
+  color: #ccc;
   margin-top: 0;
-  font-size: 1rem;
 }
 
 /* ======== Panel principal ======== */
@@ -34,28 +34,24 @@ main {
   max-width: 980px;
   margin: 0 auto;
   display: grid;
-  gap: 20px;
+  gap: 18px;
 }
 
 .panel {
-  background: #fff;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(30, 40, 90, 0.08);
-  transition: transform 0.15s ease;
-}
-
-.panel:hover {
-  transform: translateY(-2px);
+  background: rgba(40, 40, 60, 0.6);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
 /* ======== Controles ======== */
 .controls-row {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .control {
@@ -68,9 +64,11 @@ main {
 .control select {
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #d1d6eb;
+  border: 1px solid #444;
   font-size: 1rem;
-  background: #fafbff;
+  width: 110px;
+  background: #2a2a44;
+  color: #fff;
   transition: border 0.2s, box-shadow 0.2s;
 }
 
@@ -78,84 +76,84 @@ main {
 .control select:focus {
   outline: none;
   border-color: #6c63ff;
-  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.3);
 }
 
 .control label {
   font-weight: 600;
-  color: #2c2f48;
+  color: #ddd;
 }
 
 /* ======== Zona de arrastre ======== */
 #dropzone {
   border: 3px dashed #6c63ff;
-  border-radius: 16px;
-  padding: 40px;
+  border-radius: 14px;
+  padding: 36px;
   text-align: center;
   cursor: pointer;
-  background: #fdfdff;
-  color: #2c2f48;
+  background: rgba(30, 30, 60, 0.4);
+  color: #fff;
   font-size: 1.05rem;
-  transition: transform 0.15s, background 0.12s, border-color 0.15s;
+  transition: transform .15s, background .12s, border-color .15s;
   user-select: none;
 }
 
 #dropzone.dragover {
-  background: #eef1ff;
+  background: rgba(60, 60, 100, 0.6);
   transform: scale(1.02);
-  border-color: #4a42f5;
+  border-color: #8884ff;
 }
 
-/* ======== Botones / Acciones ======== */
+/* ======== Botón procesar ======== */
 .actions-row {
   display: flex;
   gap: 12px;
   align-items: center;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 #procesar {
-  background: linear-gradient(135deg, #6c63ff, #4a42f5);
+  background: #333366;
   color: #fff;
   border: none;
-  padding: 12px 20px;
+  padding: 12px 18px;
   border-radius: 10px;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   transition: background 0.3s, transform 0.15s;
-  box-shadow: 0 6px 18px rgba(80, 70, 215, 0.18);
 }
 
 #procesar:hover:not(:disabled) {
-  background: linear-gradient(135deg, #7a72ff, #5750f5);
+  background: #4444aa;
   transform: translateY(-1px);
 }
 
 #procesar:disabled {
-  background: #c4c1e0;
+  background: #555;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-/* ======== Estado / Progreso ======== */
+/* ======== Status / Progreso ======== */
 .status {
-  color: #444a66;
+  color: #ccc;
   font-weight: 600;
 }
 
 .progress-wrap {
   height: 12px;
-  background: #f0f2ff;
+  background: #2a2a44;
   border-radius: 8px;
   overflow: hidden;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .progress {
   height: 100%;
   background: linear-gradient(90deg, #6c63ff, #4a42f5);
   width: 0%;
-  transition: width 0.3s ease;
+  transition: width .2s;
 }
 
 /* ======== Preview / Grupos ======== */
@@ -163,47 +161,48 @@ main {
   display: block;
   padding: 8px;
   font-size: 0.95rem;
-  color: #222;
+  color: #eee;
 }
 
 .group-row {
-  margin: 12px 0;
-  padding: 10px;
-  border: 1px dashed #dfe3f6;
-  border-radius: 10px;
-  background: #fff;
+  margin: 10px 0;
+  padding: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(40, 40, 60, 0.4);
 }
 
 .group-row b {
   display: block;
   margin-bottom: 6px;
+  color: #fff;
 }
 
 .small {
   font-size: 0.85rem;
-  color: #556;
+  color: #bbb;
   margin-left: 6px;
 }
 
 /* ======== Logs ======== */
 .logs {
-  margin-top: 14px;
+  margin-top: 12px;
   font-family: monospace;
   font-size: 0.85rem;
-  color: #2a2f3d;
+  color: #ddd;
   max-height: 180px;
   overflow: auto;
-  background: #fbfbff;
-  padding: 10px;
+  background: rgba(20, 20, 40, 0.6);
+  padding: 8px;
   border-radius: 8px;
-  border: 1px solid #e5e7f5;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* ======== Footer ======== */
 footer {
   text-align: center;
-  margin-top: 16px;
-  color: #667;
+  margin-top: 12px;
+  color: #aaa;
   font-size: 0.9rem;
 }
 
@@ -222,5 +221,26 @@ footer {
   #dropzone {
     padding: 28px;
     font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 12px;
+  }
+
+  #procesar {
+    width: 80%;
+    font-size: 1rem;
+    padding: 10px 14px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .panel {
+    border-radius: 8px;
+    padding: 12px;
   }
 }
