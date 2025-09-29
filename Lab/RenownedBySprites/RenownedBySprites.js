@@ -1,4 +1,4 @@
-// RenownedBySprites.js - versión robusta
+// RenownedBySprites.js - versión robusta (soporta "(1)" y "_0000" y renombra empezando en 0000)
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 const procesarBtn = document.getElementById('procesar');
@@ -17,15 +17,20 @@ let archivosSeleccionados = []; // array de objetos { file: File, originalPath: 
 
 // ---------- utilidades ----------
 
-// limpia el "base name" de un archivo tratando varios patrones comunes:
-function limpiarNombre(nombreArchivo){
-  // quitar rutas si las trae
+// obtiene el nombre sin extensión
+function nombreSinExt(nombreArchivo){
   const nombre = nombreArchivo.split('/').pop();
-  const idx = nombre.lastIndexOf('.');
-  const sinExt = idx >= 0 ? nombre.slice(0, idx) : nombre;
+  return nombre.replace(/\.[^.]+$/, '');
+}
+
+// limpia el "base name" dejando solo la raíz (quita sufijos numéricos o (n) para agrupar)
+// NOTA: no elimina por completo la info numérica de los archivos; sólo devuelve la base para agrupar.
+function limpiarNombre(nombreArchivo){
+  const sinExt = nombreSinExt(nombreArchivo);
   // quitar "(1)" al final, o " name 001" o "_001" o "-001"
-  return sinExt.replace(/\s*\(\d+\)$/, '')
-               .replace(/[_\-\s]\d+$/,'')
+  // pero si el nombre tiene un número intermedio (p.ej. "hero_walk_0001_loop") podríamos cortar solo al final
+  return sinExt.replace(/\s*\(\d+\)$/, '')   // quita " (1)" al final
+               .replace(/[_\-\s]\d+$/, '')   // quita "_0001", "-001", " 001" al final
                .trim();
 }
 
@@ -33,6 +38,23 @@ function limpiarNombre(nombreArchivo){
 function extensionDe(nombre){
   const i = nombre.lastIndexOf('.');
   return i>=0 ? nombre.slice(i) : '';
+}
+
+// intenta extraer un número de la parte final del nombre (antes de la extensión)
+// soporta: "name (12).png", "name_0004.png", "name-12.png", "name12.png"
+// si no hay número devuelve null
+function numeroDeArchivo(nombreArchivo){
+  const sinExt = nombreSinExt(nombreArchivo);
+  // intenta primeramente (123)
+  let m = sinExt.match(/\((\d+)\)\s*$/);
+  if (m) return parseInt(m[1], 10);
+  // intenta sufijo con separador _- espacio
+  m = sinExt.match(/[_\-\s](\d+)\s*$/);
+  if (m) return parseInt(m[1], 10);
+  // intenta sufijo directo sin separador (poco común)
+  m = sinExt.match(/(\d+)\s*$/);
+  if (m) return parseInt(m[1], 10);
+  return null;
 }
 
 // lee ZIP (JSZip) y devuelve array de objetos {file, originalPath}
@@ -45,7 +67,6 @@ async function procesarZip(file){
     if (!/\.(png|jpe?g|webp)$/i.test(path)) continue;
     const blob = await entry.async('blob');
     const baseName = path.split('/').pop();
-    // creamos File para compatibilidad con folder.file de JSZip más adelante
     const f = new File([blob], baseName, { type: "image/" + baseName.split('.').pop() });
     arr.push({ file: f, originalPath: path });
   }
@@ -104,7 +125,6 @@ async function manejarFilesArray(list){
     }
   }
   addLog(`Total imágenes detectadas: ${archivosSeleccionados.length}`);
-  // limitar por seguridad (opcional)
   if (archivosSeleccionados.length > 10000) addLog('Advertencia: demasiadas imágenes (>10000). Puede tardar o agotar memoria.');
   actualizarBoton();
   renderPreview();
@@ -130,7 +150,16 @@ function renderPreview(){
   const requested = Math.max(1, parseInt(divisionesInput.value) || 1);
 
   for (const base of Object.keys(grupos).sort()){
-    const arr = grupos[base].sort((a,b) => a.name.localeCompare(b.name, undefined, { numeric:true }));
+    // ordenamos por el número extraído (si existe), si no existe por nombre
+    const arr = grupos[base].slice().sort((a,b) => {
+      const na = numeroDeArchivo(a.name);
+      const nb = numeroDeArchivo(b.name);
+      if (na !== null && nb !== null) return na - nb;
+      if (na !== null) return -1;
+      if (nb !== null) return 1;
+      return a.name.localeCompare(b.name, undefined, { numeric:true });
+    });
+
     const total = arr.length;
     let parts;
     if (mode === 'parts'){
@@ -149,12 +178,32 @@ function renderPreview(){
     title.innerText = `${base} — ${total} imágenes → ${parts} partes`;
     node.appendChild(title);
 
+    // calcular rangos de entrada por parte (usando los números detectados si están)
+    let idx = 0;
     for (let s=0; s<parts; s++){
       const len = tamañoBase + (resto > 0 ? 1 : 0);
       if (resto > 0) resto--;
+      // rango de entrada:
+      let entradaMin = null, entradaMax = null;
+      if (len > 0){
+        // extrae número en la primera y última del slice (seguridad)
+        const slice = arr.slice(idx, idx + len);
+        const nums = slice.map(f => numeroDeArchivo(f.name)).filter(n => n !== null);
+        if (nums.length){
+          entradaMin = Math.min(...nums);
+          entradaMax = Math.max(...nums);
+        } else {
+          entradaMin = idx;
+          entradaMax = idx + len - 1;
+        }
+      }
+      const salidaMin = 0;
+      const salidaMax = Math.max(0, len - 1);
+
       const p = document.createElement('div');
-      p.innerText = `Sec ${s+1}: ${len} imágenes`;
+      p.innerText = `Sec ${s+1}: ${len} imágenes — entrada: ${entradaMin !== null ? entradaMin : 'n/a'}..${entradaMax !== null ? entradaMax : 'n/a'} → salida: ${String(salidaMin).padStart(4,'0')}..${String(salidaMax).padStart(4,'0')}`;
       node.appendChild(p);
+      idx += len;
     }
     preview.appendChild(node);
   }
@@ -202,7 +251,17 @@ procesarBtn.addEventListener('click', async () => {
 
     // para cada grupo
     for (const base of Object.keys(grupos).sort()){
-      const arr = grupos[base].sort((a,b) => a.name.localeCompare(b.name, undefined, { numeric:true }));
+      // ordenamos por número detectado (si existe) para respetar la numeración de entrada
+      const arrRaw = grupos[base].slice();
+      const arr = arrRaw.sort((a,b) => {
+        const na = numeroDeArchivo(a.name);
+        const nb = numeroDeArchivo(b.name);
+        if (na !== null && nb !== null) return na - nb;
+        if (na !== null) return -1;
+        if (nb !== null) return 1;
+        return a.name.localeCompare(b.name, undefined, { numeric:true });
+      });
+
       const total = arr.length;
       let parts;
       if (mode === 'parts') parts = Math.min(requested, total);
@@ -216,25 +275,26 @@ procesarBtn.addEventListener('click', async () => {
       for (let s=0; s<parts; s++){
         const len = tamañoBase + (resto>0 ? 1 : 0);
         if (resto>0) resto--;
-        // elegir padding
-        const pad = autoPad ? Math.max(4, String(len).length) : fixedPad;
+        // elegir padding: basado en el índice máximo dentro de la parte (len-1), mínimo 4
+        const pad = autoPad ? Math.max(4, String(Math.max(0, len - 1)).length) : fixedPad;
         const folderName = `${base} Sec${s+1}`;
 
         // determinar carpeta destino (si oneZip -> carpeta dentro del zip; si no -> crear zip por base)
         let targetZip = zip;
-        let innerFolder = targetZip.folder(folderName);
-        // si no oneZip, en su lugar creamos un zip temporal por base y lo convertimos más abajo
-        if (!oneZip){
-          // carpeta temporal en zip con el nombre del zip final (contenedor)
-          // Para simplicidad, aún usamos la misma estructura: vamos a crear *un* zip y dentro de él una carpeta por base,
-          // luego comprimiremos el zip principal: esto evita múltiples blobs simultáneos.
+        let innerFolder;
+        if (oneZip){
+          innerFolder = targetZip.folder(folderName);
+        } else {
           innerFolder = zip.folder(`${base}/${folderName}`);
         }
 
+        // dentro de esta parte renombramos empezando en 0000
         for (let j=0; j<len; j++){
-          const file = arr.shift(); // extrae el primero
+          const file = arr.shift(); // extrae el primero (ordenado por numeroDeArchivo)
+          if (!file) continue;
           const ext = extensionDe(file.name);
-          const newName = `${base}_${String(j+1).padStart(pad,'0')}${ext}`;
+          // renombrado empieza en 0 (0000)
+          const newName = `${base}_${String(j).padStart(pad,'0')}${ext}`;
           innerFolder.file(newName, file);
           processed++;
           // actualizar progreso
@@ -249,7 +309,6 @@ procesarBtn.addEventListener('click', async () => {
     // generar blob
     addLog('Generando ZIP (puede tardar según la cantidad)...');
     const blob = await zip.generateAsync({ type: 'blob' }, (meta) => {
-      // meta.percent disponible, actualizar progreso fino al 99% si lo deseamos
       if (meta && meta.percent){
         progressBar.style.width = `${Math.min(99, Math.round(meta.percent))}%`;
       }
@@ -267,7 +326,6 @@ procesarBtn.addEventListener('click', async () => {
     alert('Ocurrió un error: ' + (err && err.message ? err.message : err));
   } finally {
     procesarBtn.disabled = false;
-    // ocultar progress after short delay
     setTimeout(()=> { progressWrap.hidden = true; progressBar.style.width='0%'; }, 1200);
   }
 });
