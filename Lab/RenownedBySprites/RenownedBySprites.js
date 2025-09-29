@@ -1,4 +1,4 @@
-// RenownedBySprites.js - versión robusta (soporta "(1)" y "_0000" y renombra empezando en 0000)
+// RenownedBySprites.js - versión final corregida
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 const procesarBtn = document.getElementById('procesar');
@@ -17,44 +17,61 @@ let archivosSeleccionados = []; // array de objetos { file: File, originalPath: 
 
 // ---------- utilidades ----------
 
-// obtiene el nombre sin extensión
 function nombreSinExt(nombreArchivo){
   const nombre = nombreArchivo.split('/').pop();
   return nombre.replace(/\.[^.]+$/, '');
 }
 
-// limpia el "base name" dejando solo la raíz (quita sufijos numéricos o (n) para agrupar)
-// NOTA: no elimina por completo la info numérica de los archivos; sólo devuelve la base para agrupar.
+// limpiarNombre: devuelve la "base" para agrupar
+// - quita sufijo (n) siempre (p.ej. "sprite (1)")
+// - quita sufijo con separador + dígitos (p.ej. "_0001", "-12", " 03")
+// - quita sufijo de dígitos pegados SOLO si son >=2 dígitos (evita "doom64" => doom64)
 function limpiarNombre(nombreArchivo){
   const sinExt = nombreSinExt(nombreArchivo);
-  // quitar "(1)" al final, o " name 001" o "_001" o "-001"
-  // pero si el nombre tiene un número intermedio (p.ej. "hero_walk_0001_loop") podríamos cortar solo al final
-  return sinExt.replace(/\s*\(\d+\)$/, '')   // quita " (1)" al final
-               .replace(/[_\-\s]\d+$/, '')   // quita "_0001", "-001", " 001" al final
-               .trim();
+
+  // caso (123)
+  if (/\(\d+\)$/.test(sinExt)){
+    return sinExt.replace(/\(\d+\)$/, '').trim();
+  }
+  // caso con separador + número al final (_0001, -12, " 03")
+  if (/[_\-\s]\d+$/.test(sinExt)){
+    return sinExt.replace(/[_\-\s]\d+$/, '').trim();
+  }
+  // caso dígitos pegados al final: sólo si hay 2 o más dígitos
+  if (/\d{2,}$/.test(sinExt)){
+    return sinExt.replace(/\d{2,}$/, '').trim();
+  }
+  // si no hay patrón, devolvemos el nombre tal cual (sin extensión)
+  return sinExt.trim();
 }
 
-// extrae extensión (.png)
+// extrae número de índice del nombre (antes de la extensión)
+// soporta:
+//   "name (12).png" -> 12
+//   "name_0004.png" -> 4
+//   "name-12.png" -> 12
+//   "name0004.png" -> 4  (solo si >=2 dígitos al final)
+function numeroDeArchivo(nombreArchivo){
+  const sinExt = nombreSinExt(nombreArchivo);
+
+  // (n)
+  let m = sinExt.match(/\((\d+)\)\s*$/);
+  if (m) return parseInt(m[1], 10);
+
+  // separador + número (_- espacio)
+  m = sinExt.match(/[_\-\s](\d+)\s*$/);
+  if (m) return parseInt(m[1], 10);
+
+  // dígitos pegados al final (solo >=2)
+  m = sinExt.match(/(\d{2,})\s*$/);
+  if (m) return parseInt(m[1], 10);
+
+  return null;
+}
+
 function extensionDe(nombre){
   const i = nombre.lastIndexOf('.');
   return i>=0 ? nombre.slice(i) : '';
-}
-
-// intenta extraer un número de la parte final del nombre (antes de la extensión)
-// soporta: "name (12).png", "name_0004.png", "name-12.png", "name12.png"
-// si no hay número devuelve null
-function numeroDeArchivo(nombreArchivo){
-  const sinExt = nombreSinExt(nombreArchivo);
-  // intenta primeramente (123)
-  let m = sinExt.match(/\((\d+)\)\s*$/);
-  if (m) return parseInt(m[1], 10);
-  // intenta sufijo con separador _- espacio
-  m = sinExt.match(/[_\-\s](\d+)\s*$/);
-  if (m) return parseInt(m[1], 10);
-  // intenta sufijo directo sin separador (poco común)
-  m = sinExt.match(/(\d+)\s*$/);
-  if (m) return parseInt(m[1], 10);
-  return null;
 }
 
 // lee ZIP (JSZip) y devuelve array de objetos {file, originalPath}
@@ -73,16 +90,11 @@ async function procesarZip(file){
   return arr;
 }
 
-// escribe log sencillo
 function addLog(text){
   const time = new Date().toLocaleTimeString();
   logs.innerText = `[${time}] ${text}\n` + logs.innerText;
 }
-
-// actualiza estado
 function setStatus(txt){ status.innerText = txt; }
-
-// actualiza botón
 function actualizarBoton(){
   procesarBtn.disabled = archivosSeleccionados.length === 0;
   setStatus(`${archivosSeleccionados.length} archivos listos`);
@@ -100,12 +112,8 @@ dropzone.addEventListener('drop', async e => {
 });
 
 dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', async () => { await manejarFilesArray(fileInput.files); });
 
-fileInput.addEventListener('change', async () => {
-  await manejarFilesArray(fileInput.files);
-});
-
-// manejar array de FileList (arranca vacío si nuevo)
 async function manejarFilesArray(list){
   archivosSeleccionados = []; // reset
   addLog('Cargando archivos...');
@@ -150,13 +158,13 @@ function renderPreview(){
   const requested = Math.max(1, parseInt(divisionesInput.value) || 1);
 
   for (const base of Object.keys(grupos).sort()){
-    // ordenamos por el número extraído (si existe), si no existe por nombre
+    // ordenamos por número detectado (si existe), si no existe usamos nombre
     const arr = grupos[base].slice().sort((a,b) => {
       const na = numeroDeArchivo(a.name);
       const nb = numeroDeArchivo(b.name);
       if (na !== null && nb !== null) return na - nb;
-      if (na !== null) return -1;
-      if (nb !== null) return 1;
+      if (na !== null && nb === null) return -1;
+      if (na === null && nb !== null) return 1;
       return a.name.localeCompare(b.name, undefined, { numeric:true });
     });
 
@@ -165,7 +173,6 @@ function renderPreview(){
     if (mode === 'parts'){
       parts = Math.min(requested, total);
     } else {
-      // size mode => requested = maxPerPart
       const maxPerPart = Math.max(1, requested);
       parts = Math.ceil(total / maxPerPart);
     }
@@ -178,7 +185,6 @@ function renderPreview(){
     title.innerText = `${base} — ${total} imágenes → ${parts} partes`;
     node.appendChild(title);
 
-    // calcular rangos de entrada por parte (usando los números detectados si están)
     let idx = 0;
     for (let s=0; s<parts; s++){
       const len = tamañoBase + (resto > 0 ? 1 : 0);
@@ -186,7 +192,6 @@ function renderPreview(){
       // rango de entrada:
       let entradaMin = null, entradaMax = null;
       if (len > 0){
-        // extrae número en la primera y última del slice (seguridad)
         const slice = arr.slice(idx, idx + len);
         const nums = slice.map(f => numeroDeArchivo(f.name)).filter(n => n !== null);
         if (nums.length){
@@ -209,11 +214,8 @@ function renderPreview(){
   }
 }
 
-// recalcular preview al cambiar opciones
 [modeSelect, divisionesInput].forEach(el => el.addEventListener('input', renderPreview));
-autoPadding.addEventListener('change', () => {
-  paddingInput.disabled = autoPadding.checked;
-});
+autoPadding.addEventListener('change', () => { paddingInput.disabled = autoPadding.checked; });
 
 // ---------- procesamiento final y generación ZIP ----------
 
@@ -245,7 +247,7 @@ procesarBtn.addEventListener('click', async () => {
     for (const k in grupos) totalFiles += grupos[k].length;
     let processed = 0;
 
-    const zip = new JSZip(); // principal (si oneZip) o contenedor
+    const zip = new JSZip();
 
     addLog(`Iniciando: ${totalFiles} archivos. Modo=${mode} pet=${requested} autoPad=${autoPad} oneZip=${oneZip}`);
 
@@ -257,8 +259,8 @@ procesarBtn.addEventListener('click', async () => {
         const na = numeroDeArchivo(a.name);
         const nb = numeroDeArchivo(b.name);
         if (na !== null && nb !== null) return na - nb;
-        if (na !== null) return -1;
-        if (nb !== null) return 1;
+        if (na !== null && nb === null) return -1;
+        if (na === null && nb !== null) return 1;
         return a.name.localeCompare(b.name, undefined, { numeric:true });
       });
 
@@ -275,29 +277,25 @@ procesarBtn.addEventListener('click', async () => {
       for (let s=0; s<parts; s++){
         const len = tamañoBase + (resto>0 ? 1 : 0);
         if (resto>0) resto--;
-        // elegir padding: basado en el índice máximo dentro de la parte (len-1), mínimo 4
+        // elegir padding: basado en la cantidad de frames de la parte (len), mínimo 4
         const pad = autoPad ? Math.max(4, String(Math.max(0, len - 1)).length) : fixedPad;
         const folderName = `${base} Sec${s+1}`;
 
-        // determinar carpeta destino (si oneZip -> carpeta dentro del zip; si no -> crear zip por base)
-        let targetZip = zip;
         let innerFolder;
         if (oneZip){
-          innerFolder = targetZip.folder(folderName);
+          innerFolder = zip.folder(folderName);
         } else {
           innerFolder = zip.folder(`${base}/${folderName}`);
         }
 
-        // dentro de esta parte renombramos empezando en 0000
+        // renombramos empezando en 0000 para cada parte
         for (let j=0; j<len; j++){
-          const file = arr.shift(); // extrae el primero (ordenado por numeroDeArchivo)
+          const file = arr.shift();
           if (!file) continue;
           const ext = extensionDe(file.name);
-          // renombrado empieza en 0 (0000)
           const newName = `${base}_${String(j).padStart(pad,'0')}${ext}`;
           innerFolder.file(newName, file);
           processed++;
-          // actualizar progreso
           const pct = Math.round((processed/totalFiles)*100);
           progressBar.style.width = `${pct}%`;
           setStatus(`Procesando ${processed} / ${totalFiles} (${pct}%)`);
@@ -306,7 +304,6 @@ procesarBtn.addEventListener('click', async () => {
       addLog(`Grupo "${base}" procesado.`);
     }
 
-    // generar blob
     addLog('Generando ZIP (puede tardar según la cantidad)...');
     const blob = await zip.generateAsync({ type: 'blob' }, (meta) => {
       if (meta && meta.percent){
@@ -314,7 +311,6 @@ procesarBtn.addEventListener('click', async () => {
       }
     });
 
-    // finalizar progreso
     progressBar.style.width = '100%';
     setStatus('Completado — descargando ZIP');
     saveAs(blob, 'TJ_renombrado_dividido.zip');
