@@ -37,10 +37,9 @@
 
 /* Contenido principal */
 .contenido {
-  position: relative;
-  top: 60px;          /* Desplaza el bloque justo debajo del header */
-  margin-bottom: 70px; /* Espacio para el footer */
-  padding: 20px;      /* Espaciado interno */
+  margin-top: 60px;    /* desplaza todo el bloque debajo del header */
+  margin-bottom: 50px; /* desplaza todo el bloque encima del footer */
+  padding: 20px;       /* aire interno normal */
 }
 
 /* ============================
