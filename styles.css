@@ -50,6 +50,7 @@ body {
   background: linear-gradient(135deg, #8e24aa, #3949ab); /* Degradado morado-azul más suave */
   font-family: Arial, sans-serif;
   text-align: center;
+  gap: 20px;
   margin: 0;
 }
 
