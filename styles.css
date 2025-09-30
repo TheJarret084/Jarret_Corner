@@ -39,7 +39,9 @@
 .contenido {
   padding-top: 80px;   /* Espacio para header */
   padding-bottom: 60px; /* Espacio para footer */
+  margin-bottom: 10px; /* espacio exacto entre contenido y carrusel */
 }
+
 
 /* ============================
    Fondo principal
