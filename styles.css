@@ -1,56 +1,28 @@
-/* ============================ CSS RE-HECHO: Header fijo y control de espacios
+/* ============================ Encabezado fijo ============================ */ .header { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background-color: #6a1b9a; color: #fff; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 1.5rem; }
 
-Usa variables para la altura del header/footer
+/* ============================ Pie de página fijo ============================ */ .footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 50px; background-color: #283593; color: #fff; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 -2px 8px rgba(0,0,0,0.3); }
 
-.contenido usa margin-top (desplazamiento real)
+/* ============================ Contenido principal ============================ / .contenido { padding-top: 70px;  / espacio para que el header no tape / padding-bottom: 0; margin-bottom: 12px; / espacio entre contenido y carrusel */ }
 
-Sin paddings verticales que empujen bloques
-
-Control preciso de márgenes entre secciones ============================ */
-
-
-:root{ --header-h: 60px;   /* si cambias la altura del header, cambia aquí / --footer-h: 50px;   / si cambias la altura del footer, cambia aquí */ }
-
-/* Reset box model */ *, *::before, *::after { box-sizing: border-box; }
-
-/* ============================ Encabezado fijo ============================ */ .header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-h); background-color: #6a1b9a; color: #fff; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 1.5rem; }
-
-/* ============================ Pie de página fijo ============================ */ .footer { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-h); background-color: #283593; color: #fff; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 -2px 8px rgba(0,0,0,0.3); }
-
-/* ============================ Contenido principal
-
-margin-top mueve todo el bloque fuera del header (recomendado)
-
-margin-bottom deja espacio para el footer
-
-padding lateral solo para respiración ============================ / .contenido { margin: calc(var(--header-h)) auto 12px auto; / top, horizontal center, small bottom / padding: 0 20px; / solo padding lateral */ max-width: 1100px; }
-
-
-/* Si querés que todas las vistas respeten ese gap entre secciones, cambia el valor 12px arriba. */
-
-/* Estilo del párrafo que va dentro del .contenido (controlado y sin márgenes por defecto) / .contenido p { margin: 0;              / quita márgenes por defecto que rompían el flujo / padding: 12px 14px;     / mantiene el aspecto de caja que querías */ background: rgba(0,0,0,0.3); border-radius: 8px; color: #fff; font-size: 18px; line-height: 1.4; }
+.contenido p { margin: 0; padding: 15px; background-color: rgba(0,0,0,0.3); border-radius: 8px; color: #fff; font-size: 18px; line-height: 1.4; }
 
 /* ============================ Fondo principal ============================ */ body { background: linear-gradient(135deg, #8e24aa, #3949ab); font-family: Arial, sans-serif; text-align: center; margin: 0; }
 
-/* ============================ Títulos ============================ */ h1 { color: #f3e5f5; }
+/* ============================ Títulos y párrafos generales ============================ */ h1 { color: #f3e5f5; }
 
-/* ============================ Botones generales ============================ */ .boton { display:inline-block; padding:10px 20px; background:#29b6f6; color:#fff; text-decoration:none; border-radius:8px; transition:background .3s; } .boton:hover{ background:#0288d1; } .boton2{ display:inline-block; padding:12px 24px; background:linear-gradient(135deg,#42a5f5,#1e88e5); color:#fff; font-weight:500; text-decoration:none; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.15); transition:transform .15s ease; } .boton2:hover{ transform:translateY(-2px); }
+/* ============================ Botones generales ============================ */ .boton { display: inline-block; padding: 10px 20px; background-color: #29b6f6; color: white; text-decoration: none; border-radius: 8px; transition: background-color 0.3s; } .boton:hover { background-color: #0288d1; }
 
-/* ============================ Contenedores bonitos
+.boton2 { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #42a5f5, #1e88e5); color: #fff; font-weight: 500; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s ease; } .boton2:hover { background: linear-gradient(135deg, #1e88e5, #1565c0); transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
 
-margin vertical reducido para no empujar todo ============================ / .contenedor-bonito { max-width: 600px; margin: 10px auto;   / centrado horizontal + poco espacio vertical */ padding: 24px; border-radius: 20px; background: linear-gradient(135deg, #9c27b0, #5e35b1); color: white; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+/* ============================ Contenedores bonitos ============================ */ .contenedor-bonito { max-width: 600px; margin: 12px auto; padding: 30px; border-radius: 20px; background: linear-gradient(135deg, #9c27b0, #5e35b1); color: white; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; gap: 15px; }
 
+.contenedor-bonito h2 { margin: 0; font-size: 1.8rem; } .contenedor-bonito p { margin: 0; font-size: 1rem; line-height: 1.6; color: #e1bee7; } .contenedor-bonito .boton, .contenedor-bonito .boton2 { margin-top: 10px; }
 
-.contenedor-bonito h2{ margin:0; font-size:1.6rem; } .contenedor-bonito p{ margin:0; font-size:1rem; color:#e1bee7; line-height:1.6; }
+/* ============================ Carrusel horizontal ============================ */ .carrusel { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 20px; padding: 0 20px; white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: #42a5f5 rgba(0,0,0,0.2); }
 
-/* ============================ Carrusel horizontal
+.opcion .banner { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; } .opcion { display: inline-flex; flex-direction: column; justify-content: space-between; align-items: center; width: 220px; height: 300px; background: #8e24aa; color: white; border-radius: 12px; padding: 15px; gap: 10px; flex-shrink: 0; } .opcion h3, .opcion p { margin: 0; text-align: center; } .opcion p { flex-grow: 1; color: #f3e5f5; } .opcion button, .opcion a { padding: 8px 14px; background-color: #29b6f6; color: white; border: none; border-radius: 8px; text-decoration: none; cursor: pointer; transition: background 0.3s; } .opcion button:hover, .opcion a:hover { background-color: #0288d1; }
 
-padding lateral solamente para no empujar verticalmente ============================ / .carrusel{ display:flex; overflow-x:auto; gap:20px; padding: 0 20px; / SOLO lateral */ white-space:nowrap; -webkit-overflow-scrolling: touch; }
+/* ============================ Scrollbar personalizada ============================ */ .carrusel::-webkit-scrollbar { height: 10px; } .carrusel::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 5px; } .carrusel::-webkit-scrollbar-thumb { background: #42a5f5; border-radius: 5px; }
 
-
-/* Opciones del carrusel */ .opcion{ display:inline-flex; flex-direction:column; justify-content:space-between; align-items:center; width:220px; height:300px; background:#8e24aa; color:#fff; border-radius:12px; padding:15px; gap:10px; flex-shrink:0; } .opcion h3, .opcion p{ margin:0; }
-
-/* ============================ Helpers / Responsive ============================ */ @media (max-width:720px){ :root{ --header-h: 56px; } .contenido{ padding: 0 12px; } .contenedor-bonito{ padding:16px; } }
-
-/* Si necesitás ajustar la distancia entre secciones, cambia el "12px" en la propiedad margin-bottom de .contenido (línea donde se usa calc). Si el header cambia de tamaño, actualiza --header-h arriba. */
+/* ============================ Botón música ============================ */ .botonMusica { padding: 12px 24px; background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease; font-size: 1rem; } .botonMusica:hover { background: linear-gradient(135deg, #1e88e5, #1565c0); transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
 
