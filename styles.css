@@ -37,9 +37,8 @@
 
 /* Contenido principal */
 .contenido {
-  margin-top: 60px;    /* desplaza todo el bloque debajo del header */
-  margin-bottom: 50px; /* desplaza todo el bloque encima del footer */
-  padding: 20px;       /* aire interno normal */
+  padding-top: 80px;   /* Espacio para header */
+  padding-bottom: 60px; /* Espacio para footer */
 }
 
 /* ============================
