@@ -37,9 +37,10 @@
 
 /* Contenido principal */
 .contenido {
-  margin-top: 60px;    /* putos, no servia */
-  padding-top: 80px;   /* Espacio para header */
-  padding-bottom: 60px; /* Espacio para footer */
+  position: relative;
+  top: 60px;          /* Desplaza el bloque justo debajo del header */
+  margin-bottom: 70px; /* Espacio para el footer */
+  padding: 20px;      /* Espaciado interno */
 }
 
 /* ============================
