@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>El Tunea tu imagen-inador!</title>
+<link rel="stylesheet" href="El_Shader-inador.css">
+</head>
+<body>
+
+<h1>El MEGA Shader-inador</h1>
+
+<div id="controls">
+  <label>Subir imagen:
+    <input type="file" id="imageInput" accept="image/*">
+  </label>
+  <label>Subir shader (.frag):
+    <input type="file" id="shaderInput" accept=".frag">
+  </label>
+  <label>Intensidad del shader:
+    <input type="range" id="intensitySlider" min="0" max="1" step="0.01" value="1">
+  </label>
+</div>
+
+<div id="preview" class="preview-container">
+  <canvas id="shaderCanvas"></canvas>
+</div>
+
+<script type="module" src="El Shader-inador.js"></script>
+
+<footer>
+  <p>El_Shader-inador &copy; 2025</p>
+  <a href="#" class="discord-link">Discord</a>
+</footer>
+
+</body>
+</html>
