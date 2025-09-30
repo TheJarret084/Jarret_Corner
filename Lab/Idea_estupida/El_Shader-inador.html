@@ -1,36 +1,70 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>El Tunea tu imagen-inador!</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>El Shader-inador</title>
 <link rel="stylesheet" href="El_Shader-inador.css">
 </head>
 <body>
 
-<h1>El MEGA Shader-inador</h1>
+<header>
+  <h1>El MEGA Shader-inador</h1>
+</header>
 
-<div id="controls">
-  <label>Subir imagen:
-    <input type="file" id="imageInput" accept="image/*">
-  </label>
-  <label>Subir shader (.frag):
-    <input type="file" id="shaderInput" accept=".frag">
-  </label>
-  <label>Intensidad del shader:
-    <input type="range" id="intensitySlider" min="0" max="1" step="0.01" value="1">
-  </label>
-</div>
+<main id="app">
+  <section id="controls" class="preview-container">
+    <div class="control-row mobile-stack">
+      <button id="btnSelectImage" class="primary large">Seleccionar imagen</button>
+      <button id="btnSelectShader" class="secondary large">Agregar shader (.frag)</button>
+      <button id="btnDropHint" class="ghost large">Arrastrar / Tocar aquí</button>
+    </div>
 
-<div id="preview" class="preview-container">
-  <canvas id="shaderCanvas"></canvas>
-</div>
+    <div class="control-row mobile-stack">
+      <label class="slider-label">Intensidad
+        <input id="intensitySlider" type="range" min="0" max="1" step="0.01" value="1">
+      </label>
 
-<script type="module" src="El Shader-inador.js"></script>
+      <div class="btn-group">
+        <button id="applyShaderBtn" class="primary large" disabled>Aplicar shader</button>
+        <button id="removeShaderBtn" class="danger large" disabled>Eliminar shader</button>
+      </div>
+    </div>
 
-<footer>
-  <p>El_Shader-inador &copy; 2025</p>
-  <a href="#" class="discord-link">Discord</a>
+    <div class="control-row small">
+      <input id="imageInput" type="file" accept="image/*" capture="environment" hidden>
+      <input id="shaderInput" type="file" accept=".frag" hidden>
+      <div id="status-text">Sube una imagen y uno o varios shaders .frag</div>
+    </div>
+
+    <div id="loaderContainer" aria-hidden="true">
+      <div id="loaderBar"></div>
+    </div>
+  </section>
+
+  <section id="result-panel">
+    <div class="preview-container">
+      <div class="preview-title">Preview</div>
+      <canvas id="shaderCanvas" role="img" aria-label="Preview del shader aplicado"></canvas>
+    </div>
+
+    <div class="preview-container">
+      <div class="preview-title">Shaders cargados</div>
+      <ul id="shaderList" class="shader-list"></ul>
+    </div>
+
+    <div class="preview-container">
+      <div class="preview-title">Código / Mensajes</div>
+      <pre id="shaderCode" class="code-box">Aquí aparecerá el código del shader seleccionado y errores de compilación.</pre>
+    </div>
+  </section>
+</main>
+
+<footer id="footer-placeholder" class="preview-container">
+  <!-- Placeholder: reemplaza esto luego con tu footer -->
+  <p>Footer placeholder — pon aquí tu contenido o links después.</p>
 </footer>
 
+<script type="module" src="El_Shader-inador.js"></script>
 </body>
 </html>
