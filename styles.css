@@ -1,259 +1,56 @@
-/* ============================
-   Encabezado fijo
-============================ */
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background-color: #6a1b9a; /* Morado más oscuro y elegante */
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  font-size: 1.5rem;
-}
+/* ============================ CSS RE-HECHO: Header fijo y control de espacios
 
-/* ============================
-   Pie de página fijo
-============================ */
-.footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50px;
-  background-color: #283593; /* Azul más profundo */
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
-}
+Usa variables para la altura del header/footer
 
-/* Contenido principal */
-.contenido {
-  padding-top: 80px;   /* Espacio para header */
-  padding-bottom: 60px; /* Espacio para footer */
-  margin-bottom: 10px; /* espacio exacto entre contenido y carrusel */
-}
+.contenido usa margin-top (desplazamiento real)
+
+Sin paddings verticales que empujen bloques
+
+Control preciso de márgenes entre secciones ============================ */
 
 
-/* ============================
-   Fondo principal
-============================ */
-body {
-  background: linear-gradient(135deg, #8e24aa, #3949ab); /* Degradado morado-azul más suave */
-  font-family: Arial, sans-serif;
-  text-align: center;
-  gap: 20px;
-  margin: 0;
-}
+:root{ --header-h: 60px;   /* si cambias la altura del header, cambia aquí / --footer-h: 50px;   / si cambias la altura del footer, cambia aquí */ }
 
-/* ============================
-   Títulos y párrafos generales
-============================ */
-h1 {
-  color: #f3e5f5; /* Lila claro */
-}
+/* Reset box model */ *, *::before, *::after { box-sizing: border-box; }
 
-p {
-  color: #fff;
-  font-size: 18px;
-  background-color: rgba(0, 0, 0, 0.3); /* Más contraste */
-  padding: 15px;
-  border-radius: 8px;
-}
+/* ============================ Encabezado fijo ============================ */ .header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-h); background-color: #6a1b9a; color: #fff; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 1.5rem; }
 
-/* ============================
-   Botones generales
-============================ */
-.boton {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #29b6f6; /* Azul claro */
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: background-color 0.3s;
-}
+/* ============================ Pie de página fijo ============================ */ .footer { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-h); background-color: #283593; color: #fff; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 -2px 8px rgba(0,0,0,0.3); }
 
-.boton:hover {
-  background-color: #0288d1;
-}
+/* ============================ Contenido principal
 
-.boton2 {
-  display: inline-block;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #42a5f5, #1e88e5);
-  color: #fff;
-  font-weight: 500;
-  text-decoration: none;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s ease;
-}
+margin-top mueve todo el bloque fuera del header (recomendado)
 
-.boton2:hover {
-  background: linear-gradient(135deg, #1e88e5, #1565c0);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
-}
+margin-bottom deja espacio para el footer
 
-/* ============================
-   Contenedores bonitos
-============================ */
-.contenedor-bonito {
-  max-width: 600px;
-  margin: 1px auto;  /*SI... 1 PIXEL!*/
-  padding: 30px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #9c27b0, #5e35b1); /* Morado degradado más moderno */
-  color: white;
-  text-align: center;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
+padding lateral solo para respiración ============================ / .contenido { margin: calc(var(--header-h)) auto 12px auto; / top, horizontal center, small bottom / padding: 0 20px; / solo padding lateral */ max-width: 1100px; }
 
-/* Título dentro del contenedor */
-.contenedor-bonito h2 {
-  margin-bottom: 0;
-  font-size: 1.8rem;
-  word-wrap: break-word;
-}
 
-/* Párrafo dentro del contenedor */
-.contenedor-bonito p {
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: #e1bee7; /* Lila suave para contraste */
-}
+/* Si querés que todas las vistas respeten ese gap entre secciones, cambia el valor 12px arriba. */
 
-/* Botón dentro del contenedor */
-.contenedor-bonito .boton,
-.contenedor-bonito .boton2 {
-  margin-top: 10px;
-}
+/* Estilo del párrafo que va dentro del .contenido (controlado y sin márgenes por defecto) / .contenido p { margin: 0;              / quita márgenes por defecto que rompían el flujo / padding: 12px 14px;     / mantiene el aspecto de caja que querías */ background: rgba(0,0,0,0.3); border-radius: 8px; color: #fff; font-size: 18px; line-height: 1.4; }
 
-/* ============================
-   Carrusel horizontal
-============================ */
-.carrusel {
-  display: flex;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  gap: 20px;
-  padding: 20px;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #42a5f5 rgba(0,0,0,0.2);
-}
+/* ============================ Fondo principal ============================ */ body { background: linear-gradient(135deg, #8e24aa, #3949ab); font-family: Arial, sans-serif; text-align: center; margin: 0; }
 
-/* Banner en cada opción */
-.opcion .banner {
-  width: 100%;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
+/* ============================ Títulos ============================ */ h1 { color: #f3e5f5; }
 
-/* Opciones dentro del carrusel */
-.opcion {
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  width: 220px;
-  height: 300px;
-  background: #8e24aa; /* Morado intenso */
-  color: white;
-  border-radius: 12px;
-  padding: 15px;
-  gap: 10px;
-  flex-shrink: 0;
-}
+/* ============================ Botones generales ============================ */ .boton { display:inline-block; padding:10px 20px; background:#29b6f6; color:#fff; text-decoration:none; border-radius:8px; transition:background .3s; } .boton:hover{ background:#0288d1; } .boton2{ display:inline-block; padding:12px 24px; background:linear-gradient(135deg,#42a5f5,#1e88e5); color:#fff; font-weight:500; text-decoration:none; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.15); transition:transform .15s ease; } .boton2:hover{ transform:translateY(-2px); }
 
-/* Título de cada opción */
-.opcion h3 {
-  margin: 0;
-  font-size: 1.4rem;
-  text-align: center;
-  word-wrap: break-word;
-}
+/* ============================ Contenedores bonitos
 
-/* Texto de cada opción */
-.opcion p {
-  margin: 0;
-  font-size: 1rem;
-  text-align: center;
-  color: #f3e5f5;
-  flex-grow: 1;
-}
+margin vertical reducido para no empujar todo ============================ / .contenedor-bonito { max-width: 600px; margin: 10px auto;   / centrado horizontal + poco espacio vertical */ padding: 24px; border-radius: 20px; background: linear-gradient(135deg, #9c27b0, #5e35b1); color: white; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; gap: 12px; }
 
-/* Botón de cada opción */
-.opcion button,
-.opcion a {
-  padding: 8px 14px;
-  background-color: #29b6f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.3s;
-}
 
-.opcion button:hover,
-.opcion a:hover {
-  background-color: #0288d1;
-}
+.contenedor-bonito h2{ margin:0; font-size:1.6rem; } .contenedor-bonito p{ margin:0; font-size:1rem; color:#e1bee7; line-height:1.6; }
 
-/* ============================
-   Scrollbar personalizada
-============================ */
-.carrusel::-webkit-scrollbar {
-  height: 10px;
-}
+/* ============================ Carrusel horizontal
 
-.carrusel::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.1);
-  border-radius: 5px;
-}
+padding lateral solamente para no empujar verticalmente ============================ / .carrusel{ display:flex; overflow-x:auto; gap:20px; padding: 0 20px; / SOLO lateral */ white-space:nowrap; -webkit-overflow-scrolling: touch; }
 
-.carrusel::-webkit-scrollbar-thumb {
-  background: #42a5f5;
-  border-radius: 5px;
-}
 
-.carrusel {
-  scrollbar-width: thin;
-  scrollbar-color: #42a5f5 rgba(0,0,0,0.2);
-}
-.botonMusica {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #42a5f5, #1e88e5); /* Azul degradado */
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-  font-size: 1rem;
-}
+/* Opciones del carrusel */ .opcion{ display:inline-flex; flex-direction:column; justify-content:space-between; align-items:center; width:220px; height:300px; background:#8e24aa; color:#fff; border-radius:12px; padding:15px; gap:10px; flex-shrink:0; } .opcion h3, .opcion p{ margin:0; }
 
-.botonMusica:hover {
-  background: linear-gradient(135deg, #1e88e5, #1565c0);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
-}
+/* ============================ Helpers / Responsive ============================ */ @media (max-width:720px){ :root{ --header-h: 56px; } .contenido{ padding: 0 12px; } .contenedor-bonito{ padding:16px; } }
+
+/* Si necesitás ajustar la distancia entre secciones, cambia el "12px" en la propiedad margin-bottom de .contenido (línea donde se usa calc). Si el header cambia de tamaño, actualiza --header-h arriba. */
+
