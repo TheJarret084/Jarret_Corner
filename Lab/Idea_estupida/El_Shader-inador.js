@@ -1,5 +1,5 @@
-// El Shader-inador.js (Mobile-adapted)
-// Usa three.module.js desde CDN
+// El_Shader-inador.js (arreglado y con descarga)
+// Import three as module
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 /* ---------- UI hooks ---------- */
@@ -10,6 +10,7 @@ const fileImageInput = document.getElementById('imageInput');
 const fileShaderInput = document.getElementById('shaderInput');
 const applyShaderBtn = document.getElementById('applyShaderBtn');
 const removeShaderBtn = document.getElementById('removeShaderBtn');
+const downloadBtn = document.getElementById('downloadBtn');
 const intensitySlider = document.getElementById('intensitySlider');
 const loaderBar = document.getElementById('loaderBar');
 const statusText = document.getElementById('status-text');
@@ -17,11 +18,11 @@ const shaderListEl = document.getElementById('shaderList');
 const shaderCodeEl = document.getElementById('shaderCode');
 const dropHintBtn = document.getElementById('btnDropHint');
 
-/* ---------- Three.js setup (mobile-tuned) ---------- */
+/* ---------- Three.js setup ---------- */
 const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); // limit pixel ratio for perf
-const MAX_WIDTH = Math.min(window.innerWidth, 1000);
-renderer.setSize(MAX_WIDTH, Math.round(MAX_WIDTH * 0.56), false);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+const MAX_W = Math.min(window.innerWidth, 1000);
+renderer.setSize(MAX_W, Math.round(MAX_W * 0.56), false);
 
 const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera(-1,1,1,-1,0,10);
@@ -38,15 +39,15 @@ let selectedShaderId = null;
 let hasImage = false;
 let compiling = false;
 
-/* ---------- Helpers (UI) ---------- */
+/* ---------- Helpers ---------- */
 function setStatus(text, important=false){
     statusText.textContent = text;
     statusText.style.color = important ? '#fff' : '#d0d0e0';
 }
 function updateLoader(percent){ loaderBar.style.width = `${Math.max(0,Math.min(100,percent))}%`; }
-function enableApplyIfReady(){ applyShaderBtn.disabled = !(hasImage && selectedShaderId !== null); removeShaderBtn.disabled = !(selectedShaderId !== null); }
+function enableApplyIfReady(){ applyShaderBtn.disabled = !(hasImage && selectedShaderId !== null); removeShaderBtn.disabled = !(selectedShaderId !== null); downloadBtn.disabled = !hasImage; }
 
-/* ---------- Render shader list ---------- */
+/* ---------- UI: render shader list ---------- */
 function renderShaderList(){
     shaderListEl.innerHTML = '';
     shaders.forEach(s => {
@@ -106,9 +107,43 @@ function renderShaderList(){
     });
 }
 
-/* ---------- Create material (compile) ---------- */
-async function createMaterialFromCode(code){
-    // standard uniforms for common shaders
+/* ---------- Shader preamble & helpers ---------- */
+const FRAG_PREAMBLE = `\
+precision mediump float;
+varying vec2 vUv;
+uniform sampler2D bitmap;
+uniform float iTime;
+uniform float intensity;
+uniform vec2 openfl_TextureSize;
+#define openfl_TextureCoordv vUv
+#define fragColor gl_FragColor
+#define iChannel0 bitmap
+#define flixel_texture2D texture2D
+#define texture(a,b) texture2D(a,b)
+`;
+
+// Vertex shader sets vUv
+const VERTEX_SHADER = `
+varying vec2 vUv;
+void main(){
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+/* ---------- Create material from user code ---------- */
+async function createMaterialFromCode(userCode){
+    // prepare final fragment shader:
+    let frag = FRAG_PREAMBLE + "\n" + userCode + "\n";
+    // if user code defines mainImage(...) but not void main, add wrapper:
+    if(/mainImage\s*\(/.test(userCode) && !/void\s+main\s*\(/.test(userCode)){
+        // wrapper that calls mainImage (many shadertoy-like shaders use mainImage)
+        frag += `\nvoid main(){ mainImage(); }\n`;
+    } else if(!/void\s+main\s*\(/.test(userCode)){
+        // ensure a main exists; if not, create a safe main that samples bitmap
+        frag += `\nvoid main(){ fragColor = texture2D(bitmap, vUv); }\n`;
+    }
+
     const mat = new THREE.ShaderMaterial({
         uniforms: {
             bitmap: { value: baseTexture },
@@ -116,22 +151,21 @@ async function createMaterialFromCode(code){
             intensity: { value: parseFloat(intensitySlider.value) || 1.0 },
             openfl_TextureSize: { value: new THREE.Vector2(renderer.domElement.width, renderer.domElement.height) }
         },
-        fragmentShader: code,
+        vertexShader: VERTEX_SHADER,
+        fragmentShader: frag,
         transparent: true
     });
 
-    // try force compile by rendering once
+    // Force compile by rendering once (catch errors)
+    const old = mesh.material;
     try {
-        // assign temporarily and render to force compile errors
-        const old = mesh.material;
         mesh.material = mat;
         renderer.render(scene, camera);
-        // restore old only if compile succeeded
-        // (we keep mat assigned; if later error occurs it will be caught)
+        // keep mat assigned (successful compile)
         return mat;
     } catch (err) {
-        // restore fallback
-        mesh.material = new THREE.MeshBasicMaterial({ map: baseTexture });
+        // restore old and rethrow
+        mesh.material = old;
         throw err;
     }
 }
@@ -147,22 +181,20 @@ async function applyShaderById(id, options = { selectAfter:false }){
     try {
         const mat = await createMaterialFromCode(entry.code);
         updateLoader(60);
-        // store
         entry.material = mat;
         entry.lastError = null;
         setStatus(`Shader "${entry.name}" compilado correctamente.`, true);
         updateLoader(100);
-
         if(options.selectAfter){
             selectedShaderId = id;
             shaderCodeEl.textContent = entry.code;
         }
-
         enableApplyIfReady();
     } catch (err) {
-        entry.lastError = String(err.message || err);
+        entry.lastError = String(err && err.message ? err.message : err);
         shaderCodeEl.textContent = `ERROR: ${entry.lastError}\n\n--- Código del shader ---\n${entry.code}`;
-        setStatus(`Error compilando "${entry.name}": ${entry.lastError}`, true);
+        setStatus(`Error compilando "${entry.name}": revisa la consola y el panel.`, true);
+        console.error('Shader compile/render error:', err);
         updateLoader(0);
         mesh.material = new THREE.MeshBasicMaterial({ map: baseTexture });
     } finally {
@@ -171,7 +203,7 @@ async function applyShaderById(id, options = { selectAfter:false }){
     }
 }
 
-/* ---------- Apply selected shader (permanent) ---------- */
+/* ---------- Apply selected shader permanently ---------- */
 applyShaderBtn.addEventListener('click', async ()=>{
     if(!selectedShaderId) return;
     const entry = shaders.find(s => s.id === selectedShaderId);
@@ -186,6 +218,7 @@ applyShaderBtn.addEventListener('click', async ()=>{
             setStatus(`Shader "${entry.name}" aplicado.`, true);
             updateLoader(100);
             setTimeout(()=> updateLoader(0), 600);
+            downloadBtn.disabled = false;
         }
     } catch (err) {
         setStatus('Error al aplicar shader: ' + (err.message || err), true);
@@ -193,7 +226,25 @@ applyShaderBtn.addEventListener('click', async ()=>{
     }
 });
 
-/* ---------- File loading & drag/drop (mobile-aware) ---------- */
+/* ---------- Download canvas as PNG ---------- */
+downloadBtn.addEventListener('click', ()=>{
+    try {
+        // ensure rendering final frame
+        renderer.render(scene, camera);
+        const dataURL = renderer.domElement.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = dataURL;
+        a.download = 'El_Shader-inador.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setStatus('Descarga iniciada.', true);
+    } catch (err) {
+        setStatus('Error al descargar: ' + (err.message || err), true);
+    }
+});
+
+/* ---------- File loading & drag/drop ---------- */
 btnSelectImage.addEventListener('click', ()=> fileImageInput.click());
 btnSelectShader.addEventListener('click', ()=> fileShaderInput.click());
 
@@ -208,7 +259,7 @@ fileShaderInput.addEventListener('change', async (evt)=>{
     await addShaderFile(f);
 });
 
-// Drag & drop: desktop + some mobile browsers support
+// Drag & drop handlers (desktop + some mobile browsers)
 ['dragover','dragenter'].forEach(ev=>{
     document.body.addEventListener(ev, e=> { e.preventDefault(); dropHintBtn.style.opacity = '0.9'; }, {passive:false});
 });
@@ -221,7 +272,7 @@ document.body.addEventListener('drop', async e=>{
     for(const f of files){
         if(f.type.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(f.name)){
             await loadImageFile(f);
-        } else if(/\.frag$/i.test(f.name) || f.type.startsWith('text/')){
+        } else if(/\.frag$/i.test(f.name) || /\.(glsl|txt)$/i.test(f.name) || f.type.startsWith('text/')){
             await addShaderFile(f);
         } else {
             setStatus('Archivo no soportado: ' + f.name, true);
@@ -229,7 +280,7 @@ document.body.addEventListener('drop', async e=>{
     }
 });
 
-/* ---------- Load image helper ---------- */
+/* ---------- Load image ---------- */
 function loadImageFile(file){
     return new Promise((resolve,reject)=>{
         setStatus('Cargando imagen: ' + file.name);
@@ -243,7 +294,10 @@ function loadImageFile(file){
             baseTexture.minFilter = THREE.LinearFilter;
             baseTexture.magFilter = THREE.LinearFilter;
             baseTexture.needsUpdate = true;
-            mesh.material.map = baseTexture;
+            // update all compiled materials' bitmap uniform
+            shaders.forEach(s => { if(s.material && s.material.uniforms && s.material.uniforms.bitmap) s.material.uniforms.bitmap.value = baseTexture; });
+            // also update mesh basic material if used
+            if(mesh.material && mesh.material.map) mesh.material.map = baseTexture;
             mesh.material.needsUpdate = true;
             hasImage = true;
             setStatus('Imagen cargada: ' + file.name, true);
@@ -253,7 +307,7 @@ function loadImageFile(file){
             resolve();
         }, xhr=>{
             if(xhr && xhr.lengthComputable){
-                updateLoader(Math.round((xhr.loaded/xhr.total)*80));
+                updateLoader(Math.round((xhr.loaded/xhr.total)*90));
             }
         }, err=>{
             setStatus('Error cargando imagen', true);
@@ -263,7 +317,7 @@ function loadImageFile(file){
     });
 }
 
-/* ---------- Add shader helper ---------- */
+/* ---------- Add shader file ---------- */
 async function addShaderFile(file){
     setStatus('Leyendo shader: ' + file.name);
     updateLoader(3);
@@ -278,8 +332,7 @@ async function addShaderFile(file){
         renderShaderList();
         setStatus('Shader añadido: ' + file.name, true);
         updateLoader(100);
-
-        // compile in background (light delay)
+        // try compile in background to show possible errors
         setTimeout(()=> applyShaderById(id, { selectAfter:false }), 120);
     } catch(err){
         setStatus('Error leyendo shader: ' + (err.message || err), true);
@@ -321,11 +374,10 @@ function rafLoop(t){
 }
 requestAnimationFrame(rafLoop);
 
-/* ---------- Resize handling (mobile friendly) ---------- */
+/* ---------- Resize handling ---------- */
 function onResize(){
     const maxW = Math.min(window.innerWidth - 24, 1000);
     const h = Math.max(240, Math.round(maxW * 0.56));
-    // For mobile performance, lower resolution when small screen
     const pixelRatio = Math.min(window.devicePixelRatio || 1, (maxW < 480 ? 1.25 : 1.5));
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(maxW, h, false);
