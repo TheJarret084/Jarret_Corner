@@ -27,16 +27,15 @@
 
       <div class="btn-group">
         <button id="applyShaderBtn" class="primary large" disabled>Aplicar shader</button>
-
-<br>
-
         <button id="removeShaderBtn" class="danger large" disabled>Eliminar shader</button>
+        <button id="downloadBtn" class="primary large" disabled>Descargar imagen</button>
       </div>
     </div>
 
     <div class="control-row small">
+      <!-- NO capture attribute to avoid opening the camera -->
       <input id="imageInput" type="file" accept="image/*" hidden>
-      <input id="shaderInput" type="file" accept=".frag" hidden>
+      <input id="shaderInput" type="file" accept=".frag,.glsl,.txt" hidden>
       <div id="status-text">Sube una imagen y uno o varios shaders .frag</div>
     </div>
 
@@ -65,11 +64,9 @@
 
 <footer id="footer-placeholder" class="preview-container">
   <!-- Placeholder: reemplaza esto luego con tu footer -->
-        © 2025 Jarret Labs. <br> El material que pasa por la pagina no esta asociada a mi persona.
-     <p>No funciona? <br> Contáctame en Discord:</p>
-       <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
-          <i class="fab fa-discord"></i>
-       </a>
+  © 2025 Jarret Labs. El material que pasa por la página no está asociado a mi persona.
+  <p>No funciona? Contáctame en Discord:</p>
+  <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">Discord</a>
 </footer>
 
 <script type="module" src="El_Shader-inador.js"></script>
