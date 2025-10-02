@@ -93,6 +93,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  min-height: calc(100vh - 130px);
 }
 
 /* ============================
@@ -204,14 +205,14 @@ body {
 #opciones {
   display: flex;
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow-x: scroll; /* 🔑 siempre scroll horizontal */
   gap: 20px;
   padding: 20px;
   scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch; /* scroll inercial en iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Scrollbar Webkit (Chrome, Edge, Safari) */
+/* Scrollbar Webkit */
 #opciones::-webkit-scrollbar {
   height: 10px;
 }
