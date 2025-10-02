@@ -16,17 +16,13 @@
     font-family: 'Milky Nice', Arial, sans-serif;
 }
 
-/* ============================
-   Body y fondo
-============================ */
 body {
-    background: linear-gradient(135deg, #6a1b9a, #283593);
-    color: #fff;
+    background-color: #0f0f1a; /* cambia a tu gradiente si quieres */
+    color: white;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
 }
 
 /* ============================
@@ -38,18 +34,48 @@ body {
     left: 0;
     width: 100%;
     height: 60px;
-    background-color: #4a148c;
+    background: linear-gradient(90deg, #2b1055, #7597de);
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    z-index: 1000;
+    align-items: center;
+    padding: 0 1.5rem;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 #titulo-seccion {
-    font-weight: 400;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+/* ============================
+   Footer fijo
+============================ */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: linear-gradient(90deg, #2b1055, #7597de);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.95rem;
+    z-index: 100;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+}
+
+/* ============================
+   Contenido principal
+============================ */
+.contenido {
+    padding-top: 80px; /* espacio header */
+    padding-bottom: 80px; /* espacio footer */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 /* ============================
@@ -63,13 +89,14 @@ body {
 
 #nav-bar a,
 #nav-bar button {
-    padding: 8px 16px;
+    padding: 6px 14px;
     border-radius: 8px;
     background: rgba(255,255,255,0.2);
     color: #fff;
     text-decoration: none;
     cursor: pointer;
     font-weight: 400;
+    font-family: 'Milky Nice';
     transition: background 0.3s, transform 0.2s;
 }
 
@@ -80,75 +107,100 @@ body {
 }
 
 /* ============================
-   Footer fijo
+   Tarjetas / Contenedores
 ============================ */
-.footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 50px;
-    background-color: #1a237e;
+.cards-wrapper {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    z-index: 1000;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
-}
-
-/* ============================
-   Contenido principal
-============================ */
-.contenido {
-    padding-top: 80px;
-    padding-bottom: 70px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     gap: 20px;
+    padding: 1rem;
+    scroll-behavior: smooth;
+    min-height: calc(100vh - 140px); /* header + footer */
+    scrollbar-width: thin;
+    scrollbar-color: #42a5f5 rgba(255,255,255,0.1);
 }
 
-/* ============================
-   Contenedores bonitos
-============================ */
-.contenedor-bonito {
-    width: 100%;
-    max-width: 280px;
-    padding: 20px;
-    border-radius: 20px;
-    background: linear-gradient(145deg, #7b1fa2, #512da8);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+.cards-wrapper::-webkit-scrollbar {
+    height: 10px;
+}
+
+.cards-wrapper::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+}
+
+.cards-wrapper::-webkit-scrollbar-thumb {
+    background: #42a5f5;
+    border-radius: 5px;
+}
+
+.card-container {
+    display: flex;
+    gap: 20px;
+    min-width: max-content;
+}
+
+.card {
+    flex: 0 0 90vw;
+    min-width: 280px;
+    height: calc(100vh - 140px); /* header + footer */
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #7b1fa2, #512da8);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+    scroll-snap-align: start;
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.contenedor-bonito:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.6);
 }
 
-.contenedor-bonito h2 {
-    font-size: 1.6rem;
+.card-image {
+    height: 35%;
+    overflow: hidden;
 }
 
-.contenedor-bonito p {
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.card:hover .card-image img {
+    transform: scale(1.1);
+}
+
+.card-content {
+    height: 65%;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.card-title {
+    font-size: 1.4rem;
+    margin-bottom: 0.6rem;
+}
+
+.card-text {
     font-size: 1rem;
     line-height: 1.5;
-    color: #e1bee7;
 }
 
 /* ============================
    Botones
 ============================ */
 .boton, .boton2, .botonMusica {
-    padding: 10px 20px;
+    padding: 12px 20px;
     border-radius: 10px;
     border: none;
     cursor: pointer;
-    font-weight: 400;
+    font-family: 'Milky Nice';
     transition: all 0.2s;
 }
 
@@ -157,23 +209,18 @@ body {
     color: #fff;
 }
 
-.boton:hover {
-    background: #0288d1;
-}
-
 .boton2 {
     background: linear-gradient(135deg, #42a5f5, #1e88e5);
     color: #fff;
 }
 
 .boton2:hover {
-    background: linear-gradient(135deg, #1e88e5, #1565c0);
     transform: translateY(-2px);
 }
 
 .botonMusica {
     position: fixed;
-    bottom: 60px;
+    bottom: 90px;
     right: 20px;
     background: linear-gradient(135deg, #42a5f5, #1e88e5);
     color: #fff;
@@ -209,65 +256,13 @@ body {
 }
 
 /* ============================
-   Opciones scroll horizontal
+   Mobile vertical optimization
 ============================ */
-#opciones {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 20px;
-    padding: 20px;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Scrollbar Webkit */
-#opciones::-webkit-scrollbar {
-    height: 10px;
-}
-
-#opciones::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.1);
-    border-radius: 5px;
-}
-
-#opciones::-webkit-scrollbar-thumb {
-    background: #42a5f5;
-    border-radius: 5px;
-}
-
-/* Scrollbar Firefox */
-#opciones {
-    scrollbar-width: thin;
-    scrollbar-color: #42a5f5 rgba(255,255,255,0.1);
-}
-
-/* ============================
-   Mobile responsive
-============================ */
-@media (max-width: 768px) {
-    #titulo-seccion { font-size: 2rem; }
-    #nav-bar a, #nav-bar button { padding: 10px 18px; }
-    
-    .contenedor-bonito {
-        max-width: 90%;
-        min-width: 250px;
-        padding: 25px;
-    }
-
-    .contenedor-bonito h2 { font-size: 1.8rem; }
-    .contenedor-bonito p { font-size: 1.1rem; }
-
-    .boton, .boton2 { padding: 12px 22px; font-size: 1rem; }
-
-    #opciones { padding: 20px 10px; gap: 15px; }
-}
-
 @media (max-width: 480px) {
-    #titulo-seccion { font-size: 1.8rem; }
-    .contenedor-bonito { max-width: 95%; min-width: 220px; padding: 20px; }
-    .contenedor-bonito h2 { font-size: 1.6rem; }
-    .contenedor-bonito p { font-size: 1rem; }
-    .boton, .boton2 { font-size: 0.95rem; padding: 10px 20px; }
-    #opciones { padding: 15px 5px; gap: 12px; }
+    .cards-wrapper { gap: 15px; padding: 0.8rem; min-height: calc(100vh - 140px); }
+    .card { flex: 0 0 95vw; min-width: 260px; height: calc(100vh - 140px); }
+    .card-image { height: 30%; }
+    .card-content { height: 70%; font-size: 0.95rem; padding: 1.2rem; }
+    .card-title { font-size: 1.2rem; }
+    .card-text { font-size: 0.95rem; line-height: 1.4; }
 }
