@@ -10,6 +10,8 @@ body {
   padding: 0;
   text-align: center;
   color: #fff;
+  -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
+  overflow-x: hidden; /* evitar scroll lateral raro */
 }
 
 /* ============================
@@ -41,6 +43,7 @@ body {
 #nav-bar {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 #nav-bar a,
@@ -96,8 +99,9 @@ body {
    Contenedores bonitos
 ============================ */
 .contenedor-bonito {
-  width: 250px;
-  padding: 25px;
+  width: 100%;
+  max-width: 280px;
+  padding: 20px;
   border-radius: 20px;
   background: linear-gradient(145deg, #7b1fa2, #512da8);
   box-shadow: 0 8px 20px rgba(0,0,0,0.3);
@@ -194,25 +198,27 @@ body {
   100% { transform: rotate(360deg); }
 }
 
+/* ============================
+   Opciones scroll horizontal
+============================ */
 #opciones {
   display: flex;
   flex-wrap: nowrap;
-  overflow-x: scroll; /* en vez de auto */
+  overflow-x: auto;
   gap: 20px;
   padding: 20px;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* scroll inercial en iOS */
 }
 
-/* Scrollbar Webkit */
+/* Scrollbar Webkit (Chrome, Edge, Safari) */
 #opciones::-webkit-scrollbar {
   height: 10px;
 }
-
 #opciones::-webkit-scrollbar-track {
   background: rgba(255,255,255,0.1);
   border-radius: 5px;
 }
-
 #opciones::-webkit-scrollbar-thumb {
   background: #42a5f5;
   border-radius: 5px;
@@ -222,4 +228,37 @@ body {
 #opciones {
   scrollbar-width: thin;
   scrollbar-color: #42a5f5 rgba(255,255,255,0.1);
+}
+
+/* ============================
+   Mobile responsive
+============================ */
+@media (max-width: 768px) {
+  #titulo-seccion {
+    font-size: 1.2rem;
+  }
+
+  #nav-bar {
+    gap: 6px;
+  }
+
+  .contenedor-bonito {
+    max-width: 90%;
+  }
+
+  .header {
+    height: 50px;
+    padding: 0 10px;
+  }
+
+  .footer {
+    height: 45px;
+    font-size: 0.8rem;
+  }
+
+  .botonMusica {
+    bottom: 70px;
+    right: 15px;
+    padding: 8px 14px;
+  }
 }
