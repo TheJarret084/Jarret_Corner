@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto1 - Generador de Frames</title>
+<link rel="stylesheet" href="proyect.css">
+</head>
+<body>
+
+<header>
+  <h1>Generador de Frames/crea aninaciones,<br> con uno o dos imagenes que <br> ocupen movimiento</h1>
+</header>
+
+<main class="container">
+
+  <section class="controls">
+
+    <!-- Imagen 1 -->
+    <div class="card">
+      <h2>Imagen 1</h2>
+      <input type="file" id="img1" accept="image/*">
+      <div class="row">
+        <label>Dirección
+          <select id="dir1">
+            <option value="down">Desde arriba</option>
+            <option value="up">Desde abajo</option>
+            <option value="left">Desde la izquierda</option>
+            <option value="right">Desde la derecha</option>
+          </select>
+        </label>
+        <label>Comportamiento
+          <select id="beh1">
+            <option value="stopCenter">Se queda en el centro</option>
+            <option value="passThrough">Pasa al otro lado</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- Imagen 2 opcional -->
+    <div class="card">
+      <h2>Imagen 2 (opcional)</h2>
+      <input type="file" id="img2" accept="image/*">
+      <div class="row">
+        <label>Dirección
+          <select id="dir2">
+            <option value="none">Sin segunda</option>
+            <option value="down">Desde arriba</option>
+            <option value="up">Desde abajo</option>
+            <option value="left">Desde la izquierda</option>
+            <option value="right">Desde la derecha</option>
+          </select>
+        </label>
+        <label>Comportamiento
+          <select id="beh2">
+            <option value="stopCenter">Se queda en el centro</option>
+            <option value="passThrough">Pasa al otro lado</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- Controles de frames y botones -->
+    <div class="card">
+      <label>Frames totales
+        <input type="number" id="frames" value="20" min="2">
+      </label>
+      <div class="row">
+        <button id="generar">Generar Frames</button>
+        <button id="descargar">Descargar ZIP</button> <!-- Botón de descarga aquí -->
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Canvas donde se dibujan las imágenes -->
+  <canvas id="canvas" width="800" height="600"></canvas>
+
+  <!-- Miniaturas de los frames generados -->
+  <div id="resultados"></div>
+
+</main>
+
+ <footer>
+          © 2025 Jarret Labs. <br> El material que pasa por la pagina no esta asociada a mi persona.
+     <p>No funciona? <br> Contáctame en Discord:</p>
+       <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+          <i class="fab fa-discord"></i>
+       </a>
+ </footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+<script src="proyect.js"></script>
+</body>
+</html>
