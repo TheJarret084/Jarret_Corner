@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Funkier-Pacher!</title>
+ <link rel="stylesheet" href="Funkier-pacher!.css">
+ <link rel="icon" href="ico.ico" type="image/x-icon">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>Funkier-Pacher!</h1>
+
+    <!-- Inputs ocultos -->
+    <input type="file" id="image-input" accept=".png,.jpg,.jpeg,.webp" style="display:none;">
+    <input type="file" id="xml-input" accept=".xml" style="display:none;">
+    <input type="file" id="zip-input" accept=".zip" style="display:none;"> <!-- nuevo -->
+
+    <!-- Botones visibles -->
+    <button id="image-btn">Seleccionar Imagen</button>
+    <button id="xml-btn">Seleccionar XML</button>
+    <button id="zip-btn">Seleccionar ZIP</button>
+    <button id="generate-btn" disabled>Generar</button>
+
+    <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
+
+    <!-- Panel de resultados -->
+    <div id="result-panel"></div>
+
+    <!-- Librería JSZip (para generar ZIP) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- UI JS combinado -->
+    <script src="funkier-ui.js"></script>
+    <!-- FunkierPacker.js -->
+    <script src="Funkier-pacher!.js"></script>
+    <!-- FunkinToFunky.js -->
+    <script src="FunkinToFunky.js"></script>
+    <footer>
+        © 2025 Jarret Labs. Fragmentos de código originales de Funky Atlas © 2025. <br> Esta pagina para nada esta asociada a King GC y su juego, el material que pasa por la pagina tampoco esta asociada.
+     <p>No funciona? <br> Contáctame en Discord:</p>
+       <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+          <i class="fab fa-discord"></i>
+       </a>
+    </footer>
+</body>
+</html>
