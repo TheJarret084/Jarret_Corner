@@ -1,0 +1,58 @@
+{
+  "fichas": [
+    {
+      "titulo": "Foxy",
+      "descripcion": "Mi mejor amigo.",
+      "imagen": "images/icon-foxy.png",
+      "link": "https://discord.gg/v3ur6PesvA"
+    },
+    {
+      "titulo": "Carosbrine",
+      "descripcion": "Al principio si era medio random, pero es un buen amigo",
+      "imagen": "images/caros.webp",
+      "link": "https://www.youtube.com/@Carosbrine"
+    },
+    {
+      "titulo": "Edwin",
+      "descripcion": "Es el unico que conosco que programe bien.",
+      "imagen": "images/avatar-edwin.png",
+      "link": "https://edwinrccdev.github.io/"
+    },
+    {
+      "titulo": "5554Alan",
+      "descripcion": "Cuenta la leyenda que alan se estaba masturban cuando se le callo la pollas de tanto jalarsela, entonces muy enojado dijo que si el no tenia pollas, nadie tendria y empezo a arrancar pollas a mordiscos a lo loco.",
+      "imagen": "images/avatar-alan.png",
+      "link": "https://youtu.be/xvFZjo5PgG0?si=WQCtdqtt3TKPr06B"
+    },
+    {
+      "titulo": "Rushplay",
+      "descripcion": "Compañero del colegio, vende pan.",
+      "imagen": "images/Avatar-ELCOMEDORDEPAN.png",
+      "link": "https://youtu.be/071vdE5dRRY?si=IVKpH-wb7B-GLoTS"
+    },    
+    {
+      "titulo": "Error MANCO, Alias ¨Gordo¨",
+      "descripcion": "El gordo en mi grupo de amigos, (tranquilamente me puede matar de dos golpes) Palabras de el: veanse Jojos, es Meta.",
+      "imagen": "images/Avatar-ERRORMANCO.png",
+      "link": "https://youtu.be/AgzVliP-96Y?si=6cnVZ7OwRbhWo-C9"
+    },
+    {
+      "titulo": "LoquendoPro",
+      "descripcion": "El inteligente del grupo, sabe mucho, pero se equivoca como ser humano, palabras de el: Jojos es mejor que jojos.",
+      "imagen": "images/Avatar-LoquendoPro.png",
+      "link": "https://www.youtube.com/@loquendepro"
+    },
+    {
+      "titulo": "YoelPito",
+      "descripcion": "El que nos condena a la locura a todos, no le rebicen el celular porfavor, lo peor es que el puto me dira gracias por el link que lleva esto.",
+      "imagen": "images/Avatar-Pito.png",
+      "link": "https://youtu.be/3llgHgvYu9w?si=dtqGwZKEQYaWUIoc"
+    },
+    {
+      "titulo": "Alguien",
+      "descripcion": "Placeholder.",
+      "imagen": "images/avatar3.png",
+      "link": "https://youtu.be/xvFZjo5PgG0?si=WQCtdqtt3TKPr06B"
+    }
+  ]
+}
