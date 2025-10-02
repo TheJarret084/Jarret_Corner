@@ -1,0 +1,56 @@
+{
+  "nav": [
+    {
+      "titulo": "Youtube",
+      "tipo": "link",
+      "url": "https://www.youtube.com/@TheJarret084"
+    },
+    {
+      "titulo": "Funky Maker",
+      "tipo": "link",
+      "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084"
+    },
+    {
+      "titulo": "Amigos",
+      "tipo": "boton",
+      "url": "My-Friends/Amigos.html"
+    }
+  ],
+
+  "laboratorio": {
+    "contenido": [
+      "Bienvenido al Laboratorio de TheJarret084",
+      "Basura y más, creados la mayoría por IA, por ideas mías"
+    ],
+    "opciones": [
+      {
+        "titulo": "Funkier-pacher!",
+        "descripcion": "Antes llamado Macheteador de sprites, funcionaba con Python XD (y funcionaba muy bien).",
+        "tipo": "boton",
+        "url": "Material-Lab/Funkier-pacher!/Funkier-pacher!.html",
+        "botonTexto": "Funkier-pacher!"
+      },
+      {
+        "titulo": "RenownedBySprites",
+        "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
+        "tipo": "boton",
+        "url": "Material-Lab/RenownedBySprites/RenownedBySprites.html",
+        "botonTexto": "RenownedBySprites"
+      },
+      {
+        "titulo": "Proyect",
+        "descripcion": "Mucha pereza hacer 2000 frames iguales en paint.",
+        "tipo": "boton",
+        "url": "Material-Lab/Proyect/proyect.html",
+        "botonTexto": "Name-Not-Found"
+      },
+      {
+        "titulo": "Idea Estúpida",
+        "descripcion": "Idea estúpida, de un estúpido",
+        "tipo": "boton",
+        "url": "Material-Lab/Idea_estupida/El_Shader-inador.html",
+        "botonTexto": "Tunea-tu-imagen-inador!"
+      }
+    ]
+  }
+}
