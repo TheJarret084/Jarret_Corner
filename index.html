@@ -1,42 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Jarret-Corner</title>
-  <link rel="stylesheet" href="Corner.css">
-  <link rel="icon" href="a2.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <title>Jarret-Corner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="Corner.css">
+    <link rel="icon" href="a2.ico" type="image/x-icon">
 </head>
 <body>
 
-  <!-- Pantalla de carga -->
-  <div id="pantallaCarga">
-    <div class="loader"></div>
-  </div>
+    <!-- Pantalla de carga -->
+    <div id="pantallaCarga">
+        <div class="loader"></div>
+    </div>
 
-  <!-- Encabezado con barra -->
-  <header class="header">
-    <span id="titulo-seccion">Laboratorio de TheJarret084</span>
-    <nav id="nav-bar"></nav> <!-- 🔑 Aquí la barra -->
-  </header>
+    <!-- Header -->
+    <header class="header">
+        <div id="titulo-seccion">Laboratorio de TheJarret084</div>
+        <button class="hamburger">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        <nav id="nav-bar"></nav>
+    </header>
 
-  <!-- Contenido principal -->
-  <div class="contenido">
-    <div id="contenido"></div>
-    <div id="opciones"></div>
-  </div>
+    <!-- Contenido principal -->
+    <main class="contenido">
+        <div id="contenido"></div>
+        <div id="opciones-container">
+            <div id="opciones"></div>
+        </div>
+    </main>
 
-  <!-- Footer fijo -->
-  <footer class="footer">
-    © Jarret Labs 2025
-  </footer>
+    <!-- Footer -->
+    <footer class="footer">
+        © Jarret Labs 2025
+    </footer>
 
-    <!-- Scripts -->
-
- <script src="Corner.js" defer></script>
-
- <script>
-   window.jsonFile = 'Corner.json';
- </script>
-
+    <script src="Corner.js" defer></script>
 </body>
 </html>

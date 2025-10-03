@@ -1,120 +1,110 @@
 let dataGlobal = null;
-let seccionActual = 'laboratorio'; // 🔑 ahora inicia en laboratorio
+let seccionActual = 'laboratorio';
 
-// Muestra u oculta la pantalla de carga
+// Mostrar / ocultar pantalla de carga
 function mostrarCarga(visible) {
-  const carga = document.getElementById('pantallaCarga');
-  carga.style.display = visible ? 'flex' : 'none';
+    const carga = document.getElementById('pantallaCarga');
+    if (carga) carga.style.display = visible ? 'flex' : 'none';
 }
 
-// Cargar el JSON y renderizar la sección inicial
+// Cargar JSON
 async function cargarData() {
-  mostrarCarga(true);
-  try {
-    const resp = await fetch(window.jsonFile || 'Corner.json', { cache: 'no-cache' });
-    if (!resp.ok) throw new Error('No se pudo cargar el JSON');
-    dataGlobal = await resp.json();
-
-    renderizarNav();                  // 🔑 dibuja la barra arriba
-    renderizarSeccion(seccionActual); // 🔑 muestra laboratorio por defecto
-
-    setTimeout(() => mostrarCarga(false), 200);
-  } catch (e) {
-    console.error('Error cargando JSON:', e);
-    alert('Error cargando contenido. Revisa la consola.');
-    mostrarCarga(false);
-  }
+    mostrarCarga(true);
+    try {
+        const resp = await fetch(window.jsonFile || 'Corner.json', { cache: 'no-cache' });
+        if (!resp.ok) throw new Error('No se pudo cargar el JSON');
+        dataGlobal = await resp.json();
+        renderizarNav();
+        renderizarSeccion(seccionActual);
+        setTimeout(() => mostrarCarga(false), 200);
+    } catch(e) {
+        console.error('Error cargando JSON:', e);
+        alert('Error cargando contenido. Revisa la consola.');
+        mostrarCarga(false);
+    }
 }
 
-// Renderiza la barra de navegación desde dataGlobal.nav
+// Renderizar Navbar
 function renderizarNav() {
-  const navBar = document.getElementById('nav-bar');
-  navBar.innerHTML = '';
+    const navBar = document.getElementById('nav-bar');
+    if (!navBar || !dataGlobal) return;
+    navBar.innerHTML = '';
 
-  if (!dataGlobal || !dataGlobal.nav) return;
-
-  for (let item of dataGlobal.nav) {
-    const boton = document.createElement(item.tipo === 'link' ? 'a' : 'button');
-    boton.textContent = item.titulo;
-
-    if (item.tipo === 'link') {
-      boton.href = item.url;
-      boton.target = '_blank';
-    } else {
-      boton.addEventListener('click', () => {
-        if (item.url.startsWith('#')) {
-          renderizarSeccion(item.url.slice(1));
-        } else {
-          window.location.href = item.url;
+    dataGlobal.data.nav.forEach(item => {
+        if (item.tipo === 'dropdown') {
+            item.opciones.forEach(op => {
+                const a = document.createElement('a');
+                a.href = op.url;
+                a.textContent = op.texto;
+                a.target = '_blank';
+                navBar.appendChild(a);
+            });
         }
-      });
-    }
-
-    navBar.appendChild(boton);
-  }
+    });
 }
 
-// Renderiza cualquier sección definida en el JSON
+// Renderizar sección
 function renderizarSeccion(seccion) {
-  if (!dataGlobal || !dataGlobal[seccion]) return;
+    if (!dataGlobal) return;
 
-  seccionActual = seccion;
+    const cont = document.getElementById('contenido');
+    const opciones = document.getElementById('opciones');
+    cont.innerHTML = '';
+    opciones.innerHTML = '';
 
-  // Cambia el título dinámicamente
-  document.getElementById('titulo-seccion').textContent = 'Jarret Labs';
+    const datos = dataGlobal.data[seccion];
+    if (!datos) return;
 
+    // Contenido textual
+    datos.contenido.forEach(texto => {
+        const p = document.createElement('p');
+        p.textContent = texto;
+        cont.appendChild(p);
+    });
 
-  // Contenido textual
-  const contenidoDiv = document.getElementById('contenido');
-  contenidoDiv.innerHTML = '';
-  for (let texto of dataGlobal[seccion].contenido) {
-    const p = document.createElement('p');
-    p.textContent = texto;
-    contenidoDiv.appendChild(p);
-  }
+    // Tarjetas
+    datos.opciones.forEach(op => {
+        const card = document.createElement('div');
+        card.className = 'contenedor-bonito';
 
-  // Opciones como tarjetas
-  const opcionesDiv = document.getElementById('opciones');
-  opcionesDiv.innerHTML = '';
-  for (let item of dataGlobal[seccion].opciones) {
-    const cont = document.createElement('div');
-    cont.className = 'contenedor-bonito';
+        const h2 = document.createElement('h2');
+        h2.textContent = op.titulo;
 
-    const h = document.createElement('h2');
-    h.textContent = item.titulo;
-    cont.appendChild(h);
+        const p = document.createElement('p');
+        p.textContent = op.descripcion;
 
-    if (item.descripcion) {
-      const p = document.createElement('p');
-      p.textContent = item.descripcion;
-      cont.appendChild(p);
-    }
+        const btn = document.createElement('a');
+        btn.className = 'boton';
+        btn.href = op.url;
+        btn.textContent = op.botonTexto;
+        btn.target = '_blank';
 
-    const boton = document.createElement(item.tipo === 'link' ? 'a' : 'button');
-    boton.textContent = item.botonTexto || 'Ir';
+        card.appendChild(h2);
+        card.appendChild(p);
+        card.appendChild(btn);
 
-    if (item.tipo === 'link') {
-      boton.href = item.url;
-      boton.target = '_blank';
-      boton.className = 'boton';
-    } else {
-      boton.className = 'boton2';
-      boton.addEventListener('click', () => {
-        if (item.url.startsWith('#')) {
-          renderizarSeccion(item.url.slice(1));
-        } else {
-          window.location.href = item.url;
-        }
-      });
-    }
-
-    cont.appendChild(boton);
-    opcionesDiv.appendChild(cont);
-  }
+        opciones.appendChild(card);
+    });
 }
 
-// Inicialización al cargar la página
+// JSON file
+window.jsonFile = 'Corner.json';
+
+// Evento DOM
 document.addEventListener('DOMContentLoaded', () => {
-  cargarData();
-  montarControlMusica();
+    cargarData();
+
+    // Hamburger toggle
+    const hamburger = document.querySelector('.hamburger');
+    hamburger.addEventListener('click', () => {
+        document.querySelector('.header').classList.toggle('nav-open');
+    });
+
+    // Cierra menú si se hace click fuera
+    document.addEventListener('click', (e) => {
+        const header = document.querySelector('.header');
+        if (!header.contains(e.target)) {
+            header.classList.remove('nav-open');
+        }
+    });
 });
