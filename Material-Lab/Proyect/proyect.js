@@ -44,11 +44,14 @@ document.getElementById("generar").addEventListener("click", async () => {
     drawMovingImage(img1, dir1, beh1, f, totalFrames);
     if (img2 && dir2 !== "none") drawMovingImage(img2, dir2, beh2, f, totalFrames);
 
-    framesArray.push({ name: `subimagen${f.toString().padStart(4,"0")}`, dataURL: canvas.toDataURL("image/png") });
+    framesArray.push({
+      name: `subimagen${f.toString().padStart(4,"0")}`,
+      dataURL: canvas.toDataURL("image/png")
+    });
   }
 
   mostrarResultados(framesArray);
-  generarGIF(framesArray, 100); // Previsualización GIF
+  generarGIF(framesArray, 100); // Genera GIF de previsualización
 });
 
 // === Dibujar imagen en canvas con diagonales ===
@@ -129,14 +132,35 @@ function generarGIF(frames, delay = 100) {
     height: canvas.height
   });
 
-  frames.forEach(f => {
+  // Ordenar frames por nombre
+  const ordenados = [...frames].sort((a, b) => a.name.localeCompare(b.name));
+
+  ordenados.forEach(f => {
     const img = new Image();
     img.src = f.dataURL;
-    gif.addFrame(img, { delay: delay });
+    img.onload = () => {
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext("2d");
+
+      tempCtx.drawImage(img, 0, 0);
+      gif.addFrame(tempCtx, { delay: delay });
+    };
   });
 
-  gif.on('finished', function(blob) {
+  gif.on("finished", function(blob) {
     document.getElementById("previewGif").src = URL.createObjectURL(blob);
+
+    // Crear botón de descarga automática del GIF
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "animacion.gif";
+    link.textContent = "Descargar GIF";
+    link.style.display = "block";
+
+    const previewContainer = document.querySelector(".preview-container");
+    previewContainer.appendChild(link);
   });
 
   gif.render();
@@ -150,7 +174,10 @@ document.getElementById("descargar").addEventListener("click", async () => {
   const baseName = file1.name.replace(/\.[^/.]+$/, "");
   const zip = new JSZip();
 
-  framesArray.forEach((f, idx) => {
+  // Ordenar frames
+  const ordenados = [...framesArray].sort((a, b) => a.name.localeCompare(b.name));
+
+  ordenados.forEach((f, idx) => {
     const base64 = f.dataURL.split(",")[1];
     const frameName = `${baseName}_${idx.toString().padStart(4,"0")}.png`;
     zip.file(frameName, base64, { base64: true });
