@@ -48,6 +48,13 @@
           "tipo": "boton",
           "url": "Material-Lab/Idea_estupida/El_Shader-inador.html",
           "botonTexto": "Tunea-tu-imagen-inador!"
+        },
+        {
+          "titulo": "VidToSheet",
+          "descripcion": "Convierte videos en cuvierta para SpriteSheet.",
+          "tipo": "boton",
+          "url": "Material-Lab/VidToSheet/VidToSheet.html",
+          "botonTexto": "VidToSheet"
         }
       ]
     }
