@@ -1,3 +1,4 @@
+
 /* ======== Estilos generales ======== */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -182,4 +183,16 @@ footer p {
   #resultados img {
     width: 60px;
   }
+}
+
+/* Link de Discord */
+.discord-link {
+    color: #7289da;
+    font-size: 32px;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.discord-link:hover {
+    color: #99aab5;
 }

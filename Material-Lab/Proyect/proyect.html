@@ -3,13 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Proyecto1 - Generador de Frames</title>
-<link rel="stylesheet" href="proyect.css">
+<title>Proyect-0000</title>
+<link rel="stylesheet" href="Proyect.css">
+
+<!-- Font Awesome para el icono de Discord -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Librería para generar GIF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 </head>
 <body>
 
 <header>
-  <h1>Generador de Frames/crea aninaciones,<br> con uno o dos imagenes que <br> ocupen movimiento</h1>
+  <h1>Generador de Frames / Animaciones</h1>
 </header>
 
 <main class="container">
@@ -27,6 +33,10 @@
             <option value="up">Desde abajo</option>
             <option value="left">Desde la izquierda</option>
             <option value="right">Desde la derecha</option>
+            <option value="down-right">Desde esquina superior izquierda → inferior derecha</option>
+            <option value="down-left">Desde esquina superior derecha → inferior izquierda</option>
+            <option value="up-right">Desde esquina inferior izquierda → superior derecha</option>
+            <option value="up-left">Desde esquina inferior derecha → superior izquierda</option>
           </select>
         </label>
         <label>Comportamiento
@@ -50,6 +60,10 @@
             <option value="up">Desde abajo</option>
             <option value="left">Desde la izquierda</option>
             <option value="right">Desde la derecha</option>
+            <option value="down-right">Desde esquina superior izquierda → inferior derecha</option>
+            <option value="down-left">Desde esquina superior derecha → inferior izquierda</option>
+            <option value="up-right">Desde esquina inferior izquierda → superior derecha</option>
+            <option value="up-left">Desde esquina inferior derecha → superior izquierda</option>
           </select>
         </label>
         <label>Comportamiento
@@ -61,34 +75,39 @@
       </div>
     </div>
 
-    <!-- Controles de frames y botones -->
+    <!-- Frames y botones -->
     <div class="card">
       <label>Frames totales
         <input type="number" id="frames" value="20" min="2">
       </label>
       <div class="row">
         <button id="generar">Generar Frames</button>
-        <button id="descargar">Descargar ZIP</button> <!-- Botón de descarga aquí -->
+        <button id="descargar">Descargar ZIP</button>
       </div>
     </div>
 
   </section>
 
   <!-- Canvas donde se dibujan las imágenes -->
-  <canvas id="canvas" width="800" height="600"></canvas>
+  <canvas id="canvas"></canvas>
 
-  <!-- Miniaturas de los frames generados -->
+  <!-- Miniaturas de frames -->
   <div id="resultados"></div>
+
+  <!-- Previsualización GIF -->
+  <div class="preview-container">
+    <h2>Previsualización GIF</h2>
+    <img id="previewGif" alt="GIF de animación" />
+  </div>
 
 </main>
 
- <footer>
-          © 2025 Jarret Labs. <br> El material que pasa por la pagina no esta asociada a mi persona.
-     <p>No funciona? <br> Contáctame en Discord:</p>
-       <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
-          <i class="fab fa-discord"></i>
-       </a>
- </footer>
+<footer>
+  © 2025 Jarret Labs. <br> Contáctame en Discord:
+  <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+    <i class="fab fa-discord"></i>
+  </a>
+</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
 <script src="proyect.js"></script>

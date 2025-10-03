@@ -2,7 +2,7 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 let framesArray = [];
 
-// === cargar imagen desde file ===
+// === Cargar imagen desde file ===
 function loadImage(file) {
   return new Promise((res, rej) => {
     const reader = new FileReader();
@@ -16,7 +16,7 @@ function loadImage(file) {
   });
 }
 
-// === generar frames ===
+// === Generar frames ===
 document.getElementById("generar").addEventListener("click", async () => {
   const file1 = document.getElementById("img1").files[0];
   const file2 = document.getElementById("img2").files[0];
@@ -26,12 +26,14 @@ document.getElementById("generar").addEventListener("click", async () => {
   const beh2 = document.getElementById("beh2").value;
   const totalFrames = parseInt(document.getElementById("frames").value);
 
-  if (!file1) {
-    alert("Carga al menos la imagen 1");
-    return;
-  }
+  if (!file1) return alert("Carga al menos la imagen 1");
 
   const img1 = await loadImage(file1);
+
+  // Ajustar canvas al tamaño de la imagen 1
+  canvas.width = img1.width;
+  canvas.height = img1.height;
+
   const img2 = file2 ? await loadImage(file2) : null;
 
   framesArray = [];
@@ -40,18 +42,16 @@ document.getElementById("generar").addEventListener("click", async () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawMovingImage(img1, dir1, beh1, f, totalFrames);
-    if (img2 && dir2 !== "none") {
-      drawMovingImage(img2, dir2, beh2, f, totalFrames);
-    }
+    if (img2 && dir2 !== "none") drawMovingImage(img2, dir2, beh2, f, totalFrames);
 
-    const dataURL = canvas.toDataURL("image/png");
-    framesArray.push({ name: `subimagen${f.toString().padStart(4,"0")}`, dataURL });
+    framesArray.push({ name: `subimagen${f.toString().padStart(4,"0")}`, dataURL: canvas.toDataURL("image/png") });
   }
 
   mostrarResultados(framesArray);
+  generarGIF(framesArray, 100); // Previsualización GIF
 });
 
-// === dibujar imagen en canvas ===
+// === Dibujar imagen en canvas con diagonales ===
 function drawMovingImage(img, dir, behaviour, frame, total) {
   const progress = frame / (total - 1);
   let x = (canvas.width - img.width)/2;
@@ -63,6 +63,22 @@ function drawMovingImage(img, dir, behaviour, frame, total) {
       case "up": y = canvas.height - ((canvas.height - img.height)/2 + img.height)*progress; break;
       case "left": x = canvas.width - ((canvas.width - img.width)/2 + img.width)*progress; break;
       case "right": x = -img.width + ((canvas.width - img.width)/2 + img.width)*progress; break;
+      case "down-right":
+        x = -img.width + ((canvas.width - img.width)/2 + img.width)*progress;
+        y = -img.height + ((canvas.height - img.height)/2 + img.height)*progress;
+        break;
+      case "down-left":
+        x = canvas.width - ((canvas.width - img.width)/2 + img.width)*progress;
+        y = -img.height + ((canvas.height - img.height)/2 + img.height)*progress;
+        break;
+      case "up-right":
+        x = -img.width + ((canvas.width - img.width)/2 + img.width)*progress;
+        y = canvas.height - ((canvas.height - img.height)/2 + img.height)*progress;
+        break;
+      case "up-left":
+        x = canvas.width - ((canvas.width - img.width)/2 + img.width)*progress;
+        y = canvas.height - ((canvas.height - img.height)/2 + img.height)*progress;
+        break;
     }
   } else if (behaviour === "passThrough") {
     switch(dir) {
@@ -70,13 +86,29 @@ function drawMovingImage(img, dir, behaviour, frame, total) {
       case "up": y = canvas.height - (canvas.height + img.height)*progress; break;
       case "left": x = canvas.width - (canvas.width + img.width)*progress; break;
       case "right": x = -img.width + (canvas.width + img.width)*progress; break;
+      case "down-right":
+        x = -img.width + (canvas.width + img.width)*progress;
+        y = -img.height + (canvas.height + img.height)*progress;
+        break;
+      case "down-left":
+        x = canvas.width - (canvas.width + img.width)*progress;
+        y = -img.height + (canvas.height + img.height)*progress;
+        break;
+      case "up-right":
+        x = -img.width + (canvas.width + img.width)*progress;
+        y = canvas.height - (canvas.height + img.height)*progress;
+        break;
+      case "up-left":
+        x = canvas.width - (canvas.width + img.width)*progress;
+        y = canvas.height - (canvas.height + img.height)*progress;
+        break;
     }
   }
 
   ctx.drawImage(img, x, y);
 }
 
-// === mostrar miniaturas ===
+// === Mostrar miniaturas ===
 function mostrarResultados(frames) {
   const cont = document.getElementById("resultados");
   cont.innerHTML = "";
@@ -88,14 +120,34 @@ function mostrarResultados(frames) {
   });
 }
 
-// === descargar ZIP con nombres basados en la primera imagen ===
+// === Generar previsualización GIF ===
+function generarGIF(frames, delay = 100) {
+  const gif = new GIF({
+    workers: 2,
+    quality: 10,
+    width: canvas.width,
+    height: canvas.height
+  });
+
+  frames.forEach(f => {
+    const img = new Image();
+    img.src = f.dataURL;
+    gif.addFrame(img, { delay: delay });
+  });
+
+  gif.on('finished', function(blob) {
+    document.getElementById("previewGif").src = URL.createObjectURL(blob);
+  });
+
+  gif.render();
+}
+
+// === Descargar ZIP con frames ===
 document.getElementById("descargar").addEventListener("click", async () => {
   const file1 = document.getElementById("img1").files[0];
-  if (!framesArray.length || !file1) {
-    return alert("Genera primero los frames y carga la imagen 1");
-  }
+  if (!framesArray.length || !file1) return alert("Genera primero los frames y carga la imagen 1");
 
-  const baseName = file1.name.replace(/\.[^/.]+$/, ""); // elimina extensión
+  const baseName = file1.name.replace(/\.[^/.]+$/, "");
   const zip = new JSZip();
 
   framesArray.forEach((f, idx) => {
