@@ -1,10 +1,6 @@
-/* proyect.js
- - Genera frames en canvas, crea miniaturas, genera GIF (usando gif.js)
- - Descarga ZIP con PNGs (ordenados 0000...) y opcionalmente incluye GIF en el ZIP si ya está creado
- - Muestra enlace de descarga del GIF en la previsualización
-*/
+// proyect.js - genera frames, crea GIF y descarga ZIP con PNGs (y GIF si ya existe)
 
-// --- Referencias DOM
+// Referencias DOM
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const resultadosCont = document.getElementById('resultados');
@@ -16,10 +12,10 @@ const btnDescargar = document.getElementById('descargar');
 let framesArray = []; // { name: '0000', dataURL: 'data:image/png...' }
 let gifBlob = null;
 
-// Asegúrate de que gif.js tenga acceso al worker (CDN worker)
+// Ruta worker para gif.js (necesario)
 const GIF_WORKER_SCRIPT = 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js';
 
-// --- Carga File -> Image
+// --- Cargar File -> Image
 function loadImage(file) {
   return new Promise((res, rej) => {
     const reader = new FileReader();
@@ -33,7 +29,7 @@ function loadImage(file) {
   });
 }
 
-// --- Dibujar movimiento según dirección y comportamiento
+// --- Dibujar imagen con movimiento
 function drawMovingImage(img, dir, behaviour, frame, total) {
   const progress = (total <= 1) ? 1 : frame / (total - 1);
   let x = (canvas.width - img.width) / 2;
@@ -94,19 +90,18 @@ function drawMovingImage(img, dir, behaviour, frame, total) {
 function mostrarResultados(frames) {
   resultadosCont.innerHTML = '';
   frames.forEach(f => {
-    const img = new Image();
-    img.src = f.dataURL;
-    img.title = f.name;
-    resultadosCont.appendChild(img);
+    const thumb = new Image();
+    thumb.src = f.dataURL;
+    thumb.title = f.name;
+    resultadosCont.appendChild(thumb);
   });
 }
 
-// --- Generar GIF con gif.js; retorna Promise<Blob>
+// --- Generar GIF usando gif.js (devuelve Blob)
 function generarGIF(frames, delay = 100) {
   return new Promise((resolve, reject) => {
     if (!frames.length) return reject(new Error('No hay frames'));
 
-    // crear gif con ruta al worker para evitar fallos por CORS o path
     const gif = new GIF({
       workers: 2,
       quality: 10,
@@ -115,7 +110,6 @@ function generarGIF(frames, delay = 100) {
       workerScript: GIF_WORKER_SCRIPT
     });
 
-    // Ordenar por nombre (espera nombres tipo "0000", "0001", ...)
     const ordenados = [...frames].sort((a, b) => a.name.localeCompare(b.name));
 
     let loaded = 0;
@@ -123,7 +117,6 @@ function generarGIF(frames, delay = 100) {
       const img = new Image();
       img.src = f.dataURL;
       img.onload = () => {
-        // crear canvas temporal y añadirlo (usamos copy: true para seguridad)
         const temp = document.createElement('canvas');
         temp.width = canvas.width;
         temp.height = canvas.height;
@@ -147,24 +140,22 @@ function generarGIF(frames, delay = 100) {
   });
 }
 
-// --- Obtener base name del archivo 1 (sin extension)
+// --- Obtener baseName
 function getBaseName(file) {
   if (!file || !file.name) return 'frames';
   return file.name.replace(/\.[^/.]+$/, '');
 }
 
-// --- Descargar ZIP con imágenes (y opcionalmente GIF dentro del zip si ya existe)
+// --- Descargar ZIP (incluye PNGs con nombres base_0000.png, ...; incluye animacion.gif si existe)
 async function descargarZip(frames, baseName) {
   if (!frames.length) { alert('Genera primero los frames'); return; }
   const zip = new JSZip();
-  // ordenar por nombre
   const ordenados = [...frames].sort((a, b) => a.name.localeCompare(b.name));
   ordenados.forEach((f, idx) => {
     const base64 = f.dataURL.split(',')[1];
     const filename = `${baseName}_${idx.toString().padStart(4,'0')}.png`;
     zip.file(filename, base64, { base64: true });
   });
-  // si GIF ya fue generado, incluirlo también
   if (gifBlob) {
     zip.file('animacion.gif', gifBlob);
   }
@@ -177,12 +168,10 @@ async function descargarZip(frames, baseName) {
   link.remove();
 }
 
-// --- Crear enlace de descarga del GIF en la UI (debajo de la previsualización)
+// --- Mostrar link de descarga del GIF
 function showGifDownloadLink(blob) {
-  // elimina enlaces previos
   const existing = document.getElementById('gifDownloadLink');
   if (existing) existing.remove();
-
   if (!blob) return;
   const a = document.createElement('a');
   a.id = 'gifDownloadLink';
@@ -200,7 +189,7 @@ function showGifDownloadLink(blob) {
   document.querySelector('.preview-container').appendChild(a);
 }
 
-// --- Habilitar / deshabilitar botones mientras procesa
+// --- Habilitar/Deshabilitar botones
 function setButtonsDisabled(disabled) {
   btnGenerar.disabled = disabled;
   btnDescargar.disabled = disabled;
@@ -224,39 +213,41 @@ btnGenerar.addEventListener('click', async () => {
 
     if (!file1) { alert('Carga al menos la imagen 1'); setButtonsDisabled(false); return; }
 
-    // cargar imagen principal y ajustar canvas
     const img1 = await loadImage(file1);
+
+    // Asegurar que el canvas tenga el tamaño real de la imagen (no sólo CSS)
     canvas.width = img1.width;
     canvas.height = img1.height;
+    // Opcional: actualizar estilo para que se vea a escala correcta
+    canvas.style.maxWidth = '100%';
 
-    // imagen secundaria opcional
     const img2 = file2 ? await loadImage(file2) : null;
 
-    // generar frames en memoria
     for (let f = 0; f < totalFrames; f++) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // dibujar imagen 1 y 2 (si existe)
       drawMovingImage(img1, dir1, beh1, f, totalFrames);
       if (img2 && dir2 !== 'none') drawMovingImage(img2, dir2, beh2, f, totalFrames);
 
+      // obtener dataURL (PNG)
       const dataURL = canvas.toDataURL('image/png');
+
       // nombre simple '0000' para ordenar correctamente
       const name = f.toString().padStart(4, '0');
       framesArray.push({ name, dataURL });
     }
 
-    // mostrar miniaturas
+    // Mostrar miniaturas
     mostrarResultados(framesArray);
 
-    // generar GIF (espera a que termine)
+    // Crear GIF (esperar a que termine)
     try {
-      const blob = await generarGIF(framesArray, 100); // delay 100ms por frame (ajustable)
+      const blob = await generarGIF(framesArray, 100);
       previewGif.src = URL.createObjectURL(blob);
       showGifDownloadLink(blob);
-    } catch (gifErr) {
-      console.error('Error generando GIF:', gifErr);
-      alert('Se generaron los frames pero falló la creación del GIF. Revisa la consola.');
+    } catch (err) {
+      console.error('Error generando GIF:', err);
+      alert('Los frames se generaron, pero falló la creación del GIF. Mira la consola para más detalles.');
     }
   } catch (err) {
     console.error(err);
@@ -266,7 +257,7 @@ btnGenerar.addEventListener('click', async () => {
   }
 });
 
-// --- Evento: Descargar ZIP (contiene PNGs ordenados; incluye GIF si ya existe)
+// --- Evento: Descargar ZIP
 btnDescargar.addEventListener('click', async () => {
   if (!framesArray.length) { alert('Genera primero los frames'); return; }
   const file1 = document.getElementById('img1').files[0];
