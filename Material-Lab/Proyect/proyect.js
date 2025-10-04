@@ -1,92 +1,59 @@
-// proyect.js - genera frames, crea GIF y descarga ZIP con PNGs (y GIF si ya existe)
-
-// Referencias DOM
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const resultadosCont = document.getElementById('resultados');
 const previewGif = document.getElementById('previewGif');
-
+const gifProgress = document.getElementById('gifProgress');
+const progressText = document.getElementById('progressText');
+const gifActions = document.getElementById('gifActions');
 const btnGenerar = document.getElementById('generar');
 const btnDescargar = document.getElementById('descargar');
 
-let framesArray = []; // { name: '0000', dataURL: 'data:image/png...' }
+let framesArray = [];
 let gifBlob = null;
 
-// Ruta worker para gif.js (necesario)
-const GIF_WORKER_SCRIPT = 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js';
+// Crear un Worker local (evita errores CORS en móviles)
+const gifWorkerBlob = new Blob(
+  ["importScripts('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');"],
+  { type: 'application/javascript' }
+);
+const GIF_WORKER_URL = URL.createObjectURL(gifWorkerBlob);
 
-// --- Cargar File -> Image
+// === FUNCIONES BASE ===
+
 function loadImage(file) {
   return new Promise((res, rej) => {
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
       img.onload = () => res(img);
-      img.onerror = (err) => rej(err);
+      img.onerror = err => rej(err);
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   });
 }
 
-// --- Dibujar imagen con movimiento
 function drawMovingImage(img, dir, behaviour, frame, total) {
-  const progress = (total <= 1) ? 1 : frame / (total - 1);
+  const p = (total <= 1) ? 1 : frame / (total - 1);
   let x = (canvas.width - img.width) / 2;
   let y = (canvas.height - img.height) / 2;
+  const dx = canvas.width - img.width;
+  const dy = canvas.height - img.height;
 
-  if (behaviour === 'stopCenter') {
-    switch (dir) {
-      case 'down': y = -img.height + ((canvas.height - img.height) / 2 + img.height) * progress; break;
-      case 'up': y = canvas.height - ((canvas.height - img.height) / 2 + img.height) * progress; break;
-      case 'left': x = canvas.width - ((canvas.width - img.width) / 2 + img.width) * progress; break;
-      case 'right': x = -img.width + ((canvas.width - img.width) / 2 + img.width) * progress; break;
-      case 'down-right':
-        x = -img.width + ((canvas.width - img.width) / 2 + img.width) * progress;
-        y = -img.height + ((canvas.height - img.height) / 2 + img.height) * progress;
-        break;
-      case 'down-left':
-        x = canvas.width - ((canvas.width - img.width) / 2 + img.width) * progress;
-        y = -img.height + ((canvas.height - img.height) / 2 + img.height) * progress;
-        break;
-      case 'up-right':
-        x = -img.width + ((canvas.width - img.width) / 2 + img.width) * progress;
-        y = canvas.height - ((canvas.height - img.height) / 2 + img.height) * progress;
-        break;
-      case 'up-left':
-        x = canvas.width - ((canvas.width - img.width) / 2 + img.width) * progress;
-        y = canvas.height - ((canvas.height - img.height) / 2 + img.height) * progress;
-        break;
-    }
-  } else if (behaviour === 'passThrough') {
-    switch (dir) {
-      case 'down': y = -img.height + (canvas.height + img.height) * progress; break;
-      case 'up': y = canvas.height - (canvas.height + img.height) * progress; break;
-      case 'left': x = canvas.width - (canvas.width + img.width) * progress; break;
-      case 'right': x = -img.width + (canvas.width + img.width) * progress; break;
-      case 'down-right':
-        x = -img.width + (canvas.width + img.width) * progress;
-        y = -img.height + (canvas.height + img.height) * progress;
-        break;
-      case 'down-left':
-        x = canvas.width - (canvas.width + img.width) * progress;
-        y = -img.height + (canvas.height + img.height) * progress;
-        break;
-      case 'up-right':
-        x = -img.width + (canvas.width + img.width) * progress;
-        y = canvas.height - (canvas.height + img.height) * progress;
-        break;
-      case 'up-left':
-        x = canvas.width - (canvas.width + img.width) * progress;
-        y = canvas.height - (canvas.height + img.height) * progress;
-        break;
-    }
-  }
-
+  const move = {
+    down:   () => y = -img.height + (dy + img.height) * p,
+    up:     () => y = canvas.height - (dy + img.height) * p,
+    left:   () => x = canvas.width - (dx + img.width) * p,
+    right:  () => x = -img.width + (dx + img.width) * p,
+    'down-right': () => { x = -img.width + (dx + img.width) * p; y = -img.height + (dy + img.height) * p; },
+    'down-left':  () => { x = canvas.width - (dx + img.width) * p; y = -img.height + (dy + img.height) * p; },
+    'up-right':   () => { x = -img.width + (dx + img.width) * p; y = canvas.height - (dy + img.height) * p; },
+    'up-left':    () => { x = canvas.width - (dx + img.width) * p; y = canvas.height - (dy + img.height) * p; },
+  };
+  move[dir]?.();
   ctx.drawImage(img, x, y);
 }
 
-// --- Mostrar miniaturas
 function mostrarResultados(frames) {
   resultadosCont.innerHTML = '';
   frames.forEach(f => {
@@ -97,178 +64,130 @@ function mostrarResultados(frames) {
   });
 }
 
-// --- Generar GIF usando gif.js (devuelve Blob)
-function generarGIF(frames, delay = 100) {
-  return new Promise((resolve, reject) => {
-    if (!frames.length) return reject(new Error('No hay frames'));
+async function generarGIF(frames, delay = 100) {
+  if (!frames.length) throw new Error('No hay frames');
+  const gif = new GIF({
+    workers: 2, quality: 10,
+    width: canvas.width, height: canvas.height,
+    workerScript: GIF_WORKER_URL
+  });
 
-    const gif = new GIF({
-      workers: 2,
-      quality: 10,
-      width: canvas.width,
-      height: canvas.height,
-      workerScript: GIF_WORKER_SCRIPT
+  const ordenados = [...frames].sort((a,b)=>a.name.localeCompare(b.name));
+  const imgs = await Promise.all(ordenados.map(f => new Promise((res, rej)=>{
+    const img = new Image();
+    img.onload = ()=>res(img);
+    img.onerror = rej;
+    img.src = f.dataURL;
+  })));
+
+  imgs.forEach(img => {
+    const temp = document.createElement('canvas');
+    temp.width = canvas.width; temp.height = canvas.height;
+    const tctx = temp.getContext('2d');
+    tctx.drawImage(img, 0, 0);
+    gif.addFrame(tctx, { delay, copy: true });
+  });
+
+  // Mostrar progreso del renderizado
+  return new Promise((resolve, reject)=>{
+    gif.on('progress', p => {
+      const percent = Math.round(p * 100);
+      progressText.textContent = `🌀 Generando GIF... ${percent}%`;
     });
-
-    const ordenados = [...frames].sort((a, b) => a.name.localeCompare(b.name));
-
-    let loaded = 0;
-    ordenados.forEach(f => {
-      const img = new Image();
-      img.src = f.dataURL;
-      img.onload = () => {
-        const temp = document.createElement('canvas');
-        temp.width = canvas.width;
-        temp.height = canvas.height;
-        const tctx = temp.getContext('2d');
-        tctx.clearRect(0, 0, temp.width, temp.height);
-        tctx.drawImage(img, 0, 0);
-        gif.addFrame(temp, { delay: delay, copy: true });
-        loaded++;
-        if (loaded === ordenados.length) {
-          gif.on('finished', blob => {
-            gifBlob = blob;
-            resolve(blob);
-          });
-          gif.on('abort', () => reject(new Error('GIF abortado')));
-          gif.on('error', err => reject(err));
-          gif.render();
-        }
-      };
-      img.onerror = () => reject(new Error('Error cargando frame para GIF'));
-    });
+    gif.on('finished', blob => resolve(blob));
+    gif.on('abort', ()=>reject(new Error('GIF abortado')));
+    gif.on('error', reject);
+    gif.render();
   });
 }
 
-// --- Obtener baseName
-function getBaseName(file) {
-  if (!file || !file.name) return 'frames';
-  return file.name.replace(/\.[^/.]+$/, '');
-}
-
-// --- Descargar ZIP (incluye PNGs con nombres base_0000.png, ...; incluye animacion.gif si existe)
 async function descargarZip(frames, baseName) {
-  if (!frames.length) { alert('Genera primero los frames'); return; }
   const zip = new JSZip();
-  const ordenados = [...frames].sort((a, b) => a.name.localeCompare(b.name));
-  ordenados.forEach((f, idx) => {
+  const ordenados = [...frames].sort((a,b)=>a.name.localeCompare(b.name));
+  ordenados.forEach((f,i)=>{
     const base64 = f.dataURL.split(',')[1];
-    const filename = `${baseName}_${idx.toString().padStart(4,'0')}.png`;
-    zip.file(filename, base64, { base64: true });
+    zip.file(`${baseName}_${i.toString().padStart(4,'0')}.png`, base64, {base64:true});
   });
-  if (gifBlob) {
-    zip.file('animacion.gif', gifBlob);
-  }
-  const content = await zip.generateAsync({ type: 'blob' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(content);
-  link.download = `${baseName}_frames.zip`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-}
-
-// --- Mostrar link de descarga del GIF
-function showGifDownloadLink(blob) {
-  const existing = document.getElementById('gifDownloadLink');
-  if (existing) existing.remove();
-  if (!blob) return;
+  if (gifBlob) zip.file('animacion.gif', gifBlob);
+  const blob = await zip.generateAsync({type:'blob'});
   const a = document.createElement('a');
-  a.id = 'gifDownloadLink';
   a.href = URL.createObjectURL(blob);
-  a.download = 'animacion.gif';
-  a.textContent = 'Descargar GIF';
-  a.style.display = 'inline-block';
-  a.style.marginTop = '8px';
-  a.style.padding = '8px 12px';
-  a.style.background = '#333366';
-  a.style.color = '#fff';
-  a.style.borderRadius = '8px';
-  a.style.textDecoration = 'none';
-  a.style.fontWeight = '700';
-  document.querySelector('.preview-container').appendChild(a);
+  a.download = `${baseName}_frames.zip`;
+  a.click();
 }
 
-// --- Habilitar/Deshabilitar botones
-function setButtonsDisabled(disabled) {
-  btnGenerar.disabled = disabled;
-  btnDescargar.disabled = disabled;
-}
+// === EVENTOS ===
 
-// --- Evento: Generar frames
 btnGenerar.addEventListener('click', async () => {
   try {
-    setButtonsDisabled(true);
-    framesArray = [];
-    gifBlob = null;
+    btnGenerar.disabled = true;
+    btnDescargar.disabled = true;
+    resultadosCont.innerHTML = '';
+    gifActions.innerHTML = '';
     previewGif.src = '';
+    gifBlob = null;
+    gifProgress.classList.remove('hidden');
 
     const file1 = document.getElementById('img1').files[0];
     const file2 = document.getElementById('img2').files[0];
-    const dir1 = document.getElementById('dir1').value;
-    const dir2 = document.getElementById('dir2').value;
-    const beh1 = document.getElementById('beh1').value;
-    const beh2 = document.getElementById('beh2').value;
-    const totalFrames = Math.max(2, parseInt(document.getElementById('frames').value || '20'));
+    const dir1El = document.getElementById('dir1');
+    const dir2El = document.getElementById('dir2');
+    const beh1El = document.getElementById('beh1');
+    const beh2El = document.getElementById('beh2');
+    const framesEl = document.getElementById('frames');
 
-    if (!file1) { alert('Carga al menos la imagen 1'); setButtonsDisabled(false); return; }
+    if (!file1) return alert('Carga al menos la imagen 1');
+
+    const dir1 = dir1El.value, dir2 = dir2El.value;
+    const beh1 = beh1El.value, beh2 = beh2El.value;
+    const totalFrames = Math.max(2, parseInt(framesEl.value || '20'));
 
     const img1 = await loadImage(file1);
-
-    // Asegurar que el canvas tenga el tamaño real de la imagen (no sólo CSS)
-    canvas.width = img1.width;
-    canvas.height = img1.height;
-    // Opcional: actualizar estilo para que se vea a escala correcta
-    canvas.style.maxWidth = '100%';
-
     const img2 = file2 ? await loadImage(file2) : null;
 
-    for (let f = 0; f < totalFrames; f++) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = img1.width;
+    canvas.height = img1.height;
 
+    framesArray = [];
+
+    for (let f = 0; f < totalFrames; f++) {
+      progressText.textContent = `🌀 Generando frame ${f + 1}/${totalFrames}`;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawMovingImage(img1, dir1, beh1, f, totalFrames);
       if (img2 && dir2 !== 'none') drawMovingImage(img2, dir2, beh2, f, totalFrames);
+      const frameData = canvas.toDataURL('image/png');
+      framesArray.push({ name: f.toString().padStart(4, '0'), dataURL: frameData });
 
-      // obtener dataURL (PNG)
-      const dataURL = canvas.toDataURL('image/png');
-
-      // nombre simple '0000' para ordenar correctamente
-      const name = f.toString().padStart(4, '0');
-      framesArray.push({ name, dataURL });
+      // Espera mínima para refrescar texto en UI
+      await new Promise(r => setTimeout(r, 10));
     }
 
-    // Mostrar miniaturas
     mostrarResultados(framesArray);
+    progressText.textContent = '🌀 Generando GIF... (iniciando)';
 
-    // Crear GIF (esperar a que termine)
-    try {
-      const blob = await generarGIF(framesArray, 100);
-      previewGif.src = URL.createObjectURL(blob);
-      showGifDownloadLink(blob);
-    } catch (err) {
-      console.error('Error generando GIF:', err);
-      alert('Los frames se generaron, pero falló la creación del GIF. Mira la consola para más detalles.');
-    }
+    gifBlob = await generarGIF(framesArray, 100);
+    previewGif.src = URL.createObjectURL(gifBlob);
+
+    gifActions.innerHTML = `
+      <a href="${URL.createObjectURL(gifBlob)}" download="animacion.gif" class="gifBtn">
+        Descargar GIF (opcional)
+      </a>
+    `;
+
+    progressText.textContent = '✅ GIF listo y frames generados';
   } catch (err) {
     console.error(err);
-    alert('Ocurrió un error: ' + (err.message || err));
+    alert('Error: ' + err.message);
   } finally {
-    setButtonsDisabled(false);
+    gifProgress.classList.add('hidden');
+    btnGenerar.disabled = false;
+    btnDescargar.disabled = false;
   }
 });
 
-// --- Evento: Descargar ZIP
 btnDescargar.addEventListener('click', async () => {
-  if (!framesArray.length) { alert('Genera primero los frames'); return; }
+  if (!framesArray.length) return alert('Genera primero los frames');
   const file1 = document.getElementById('img1').files[0];
-  const baseName = getBaseName(file1) || 'frames';
-  setButtonsDisabled(true);
-  try {
-    await descargarZip(framesArray, baseName);
-  } catch (err) {
-    console.error('Error creando ZIP:', err);
-    alert('Error creando ZIP. Revisa la consola.');
-  } finally {
-    setButtonsDisabled(false);
-  }
+  const baseName = file1 ? file1.name.replace(/\.[^/.]+$/, '') : 'frames';
+  await descargarZip(framesArray, baseName);
 });
