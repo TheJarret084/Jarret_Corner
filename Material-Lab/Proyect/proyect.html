@@ -6,10 +6,11 @@
 <title>Proyect-0000</title>
 <link rel="stylesheet" href="proyect.css">
 
-<!-- Font Awesome para el icono de Discord -->
+<!-- Font Awesome para iconos -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<!-- Librería para generar GIF (core) -->
+<!-- Librerías -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 </head>
 <body>
@@ -33,10 +34,10 @@
             <option value="up">Desde abajo</option>
             <option value="left">Desde la izquierda</option>
             <option value="right">Desde la derecha</option>
-            <option value="down-right">Desde esquina superior izquierda → inferior derecha</option>
-            <option value="down-left">Desde esquina superior derecha → inferior izquierda</option>
-            <option value="up-right">Desde esquina inferior izquierda → superior derecha</option>
-            <option value="up-left">Desde esquina inferior derecha → superior izquierda</option>
+            <option value="down-right">Diagonal ↘</option>
+            <option value="down-left">Diagonal ↙</option>
+            <option value="up-right">Diagonal ↗</option>
+            <option value="up-left">Diagonal ↖</option>
           </select>
         </label>
         <label>Comportamiento
@@ -48,7 +49,7 @@
       </div>
     </div>
 
-    <!-- Imagen 2 opcional -->
+    <!-- Imagen 2 -->
     <div class="card">
       <h2>Imagen 2 (opcional)</h2>
       <input type="file" id="img2" accept="image/*">
@@ -60,10 +61,10 @@
             <option value="up">Desde abajo</option>
             <option value="left">Desde la izquierda</option>
             <option value="right">Desde la derecha</option>
-            <option value="down-right">Desde esquina superior izquierda → inferior derecha</option>
-            <option value="down-left">Desde esquina superior derecha → inferior izquierda</option>
-            <option value="up-right">Desde esquina inferior izquierda → superior derecha</option>
-            <option value="up-left">Desde esquina inferior derecha → superior izquierda</option>
+            <option value="down-right">Diagonal ↘</option>
+            <option value="down-left">Diagonal ↙</option>
+            <option value="up-right">Diagonal ↗</option>
+            <option value="up-left">Diagonal ↖</option>
           </select>
         </label>
         <label>Comportamiento
@@ -88,31 +89,32 @@
 
   </section>
 
-  <!-- Canvas donde se dibujan las imágenes -->
+  <!-- Canvas -->
   <canvas id="canvas"></canvas>
 
-  <!-- Miniaturas de frames -->
+  <!-- Miniaturas -->
   <div id="resultados"></div>
 
-  <!-- Previsualización GIF -->
+  <!-- Preview GIF -->
   <div class="preview-container card">
     <h2>Previsualización GIF</h2>
+    <div id="gifProgress" class="progress hidden">
+      <div class="spinner"></div>
+      <span id="progressText">Generando GIF...</span>
+    </div>
     <img id="previewGif" alt="GIF de animación" />
-    <!-- Aquí se añadirá un link para descargar el GIF -->
+    <div id="gifActions"></div>
   </div>
 
 </main>
 
 <footer>
-  © 2025 Jarret Labs. <br> Contáctame en Discord:
+  © 2025 Jarret Labs. <br> No funciona?<br> Contáctame en Discord:
   <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
     <i class="fab fa-discord"></i>
   </a>
 </footer>
 
-<!-- JSZip para crear ZIP -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
-<!-- Nuestro script -->
 <script src="proyect.js"></script>
 </body>
 </html>
