@@ -11,7 +11,7 @@
         "opciones": [
           { "texto": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
           { "texto": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" },
-          { "texto": "Amigos", "url": "My-Friends/Amigos.html" }
+          { "texto": "Amigos", "url": "My-friends/Amigos.html" }
         ]
       }
     ],
