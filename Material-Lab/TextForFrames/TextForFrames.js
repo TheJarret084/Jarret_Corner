@@ -1,9 +1,12 @@
-// script.js - Actualizado: soporte para imagen de fondo con modos (cover/contain/center/tile)
+// script.js - Actualizado: toggle de separador para modo BG (coma / punto / ambos)
+// Inserta automáticamente un select en la UI si no existe.
+// Basado en la versión previa (font loading, bg image, InsertTextAnimator, BGTextAnimator, export ZIP, preview).
+
 const $ = id => document.getElementById(id);
 const logEl = $('log');
 const log = (m) => {
   const t = new Date().toLocaleTimeString();
-  logEl.textContent = `${t} — ${m}\n` + logEl.textContent;
+  if (logEl) logEl.textContent = `${t} — ${m}\n` + logEl.textContent;
 };
 const pad = (n, w = 4) => String(n).padStart(w, '0');
 
@@ -16,24 +19,55 @@ let uploadedBgImage = null; // { img: Image, url: objectURL }
 const canvas = $('previewCanvas');
 const ctx = canvas.getContext('2d');
 
+// --- Ensure canvas size sync
 function setCanvasSizeFromInputs() {
-  const w = Math.max(1, +$('canvasW').value);
-  const h = Math.max(1, +$('canvasH').value);
+  const w = Math.max(1, +($('canvasW')?.value || 512));
+  const h = Math.max(1, +($('canvasH')?.value || 128));
   canvas.width = w;
   canvas.height = h;
 }
 setCanvasSizeFromInputs();
-$('canvasW').onchange = setCanvasSizeFromInputs;
-$('canvasH').onchange = setCanvasSizeFromInputs;
+if ($('canvasW')) $('canvasW').onchange = setCanvasSizeFromInputs;
+if ($('canvasH')) $('canvasH').onchange = setCanvasSizeFromInputs;
 
 function clearPreview() {
-  if (!$('transparentBg').checked) {
-    ctx.fillStyle = $('bgColor').value;
+  if (!$('transparentBg')?.checked) {
+    ctx.fillStyle = $('bgColor')?.value || '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 }
+
+// ---------------- Inject BG separator selector into UI if missing ----------------
+(function ensureBGSeparatorControl() {
+  // if there's already an element with id 'bgSeparator', do nothing
+  if ($('bgSeparator')) return;
+  // find sidebar to insert into
+  const sidebar = document.querySelector('.sidebar') || document.body;
+  // create container
+  const wrapper = document.createElement('div');
+  wrapper.style.marginTop = '8px';
+  wrapper.style.fontSize = '13px';
+  wrapper.style.color = '#a9c0d9';
+  wrapper.innerHTML = `<label for="bgSeparator" style="display:block;margin-top:10px">Separador (modo BG)</label>`;
+  const select = document.createElement('select');
+  select.id = 'bgSeparator';
+  select.style.width = '100%';
+  select.style.padding = '8px';
+  select.innerHTML = `
+    <option value="comma">Coma (',') — nueva línea por coma</option>
+    <option value="dot">Punto ('.') — nueva línea por punto</option>
+    <option value="both">Ambos (',' y '.')</option>
+  `;
+  wrapper.appendChild(select);
+  // try to place it after bgPreviewInfo if exists
+  const ref = document.getElementById('bgPreviewInfo');
+  if (ref && ref.parentNode) ref.parentNode.insertBefore(wrapper, ref.nextSibling);
+  else sidebar.appendChild(wrapper);
+  // default to comma
+  select.value = 'comma';
+})();
 
 // ---------------- Font loading ----------------
 async function loadFontFromFile(file) {
@@ -52,44 +86,52 @@ async function loadFontFromFile(file) {
     return null;
   }
 }
-$('fontFile').onchange = async (e) => {
-  const f = e.target.files[0];
-  if (!f) { uploadedFontFamily = null; return; }
-  uploadedFontFamily = await loadFontFromFile(f);
-};
+if ($('fontFile')) {
+  $('fontFile').onchange = async (e) => {
+    const f = e.target.files[0];
+    if (!f) { uploadedFontFamily = null; return; }
+    uploadedFontFamily = await loadFontFromFile(f);
+  };
+}
 
 // ---------------- Background image loading ----------------
-$('bgImageFile').onchange = async (e) => {
-  const f = e.target.files[0];
-  if (!f) { uploadedBgImage = null; updateBgPreviewInfo(); return; }
-  const url = URL.createObjectURL(f);
-  const img = new Image();
-  img.src = url;
-  img.onload = () => {
-    // store with url so we can revoke later
+if ($('bgImageFile')) {
+  $('bgImageFile').onchange = async (e) => {
+    const f = e.target.files[0];
+    if (!f) {
+      if (uploadedBgImage && uploadedBgImage.url) URL.revokeObjectURL(uploadedBgImage.url);
+      uploadedBgImage = null; updateBgPreviewInfo(); return;
+    }
+    const url = URL.createObjectURL(f);
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      if (uploadedBgImage && uploadedBgImage.url) URL.revokeObjectURL(uploadedBgImage.url);
+      uploadedBgImage = { img, url };
+      updateBgPreviewInfo();
+      log(`Imagen de fondo cargada: ${f.name}`);
+      showFrame(currentFrame);
+    };
+    img.onerror = () => {
+      log('Error cargando la imagen de fondo.');
+      if (url) URL.revokeObjectURL(url);
+    };
+  };
+}
+
+if ($('clearBgBtn')) {
+  $('clearBgBtn').onclick = () => {
     if (uploadedBgImage && uploadedBgImage.url) URL.revokeObjectURL(uploadedBgImage.url);
-    uploadedBgImage = { img, url };
+    uploadedBgImage = null;
+    if ($('bgImageFile')) $('bgImageFile').value = '';
     updateBgPreviewInfo();
-    log(`Imagen de fondo cargada: ${f.name}`);
-    // draw preview with new bg
     showFrame(currentFrame);
   };
-  img.onerror = () => {
-    log('Error cargando la imagen de fondo.');
-    if (url) URL.revokeObjectURL(url);
-  };
-};
-
-$('clearBgBtn').onclick = () => {
-  if (uploadedBgImage && uploadedBgImage.url) URL.revokeObjectURL(uploadedBgImage.url);
-  uploadedBgImage = null;
-  $('bgImageFile').value = '';
-  updateBgPreviewInfo();
-  showFrame(currentFrame);
-};
+}
 
 function updateBgPreviewInfo() {
   const el = $('bgPreviewInfo');
+  if (!el) return;
   if (uploadedBgImage && uploadedBgImage.img) {
     el.textContent = `Imagen de fondo: ${uploadedBgImage.img.width}x${uploadedBgImage.img.height}`;
   } else {
@@ -99,13 +141,12 @@ function updateBgPreviewInfo() {
 
 // draw background image according to mode
 function drawBackgroundImage(mode) {
-  if (!uploadedBgImage || !$('bgImageFile').files.length) return;
-  if ($('transparentBg').checked) return; // ignore if transparent requested
+  if (!uploadedBgImage || !uploadedBgImage.img) return;
+  if ($('transparentBg') && $('transparentBg').checked) return; // ignore if transparent requested
   const img = uploadedBgImage.img;
   const w = canvas.width, h = canvas.height;
 
   if (mode === 'cover') {
-    // scale to fill (cover) keeping aspect ratio
     const scale = Math.max(w / img.width, h / img.height);
     const iw = img.width * scale, ih = img.height * scale;
     const x = (w - iw) / 2, y = (h - ih) / 2;
@@ -119,13 +160,12 @@ function drawBackgroundImage(mode) {
     const x = (w - img.width) / 2, y = (h - img.height) / 2;
     ctx.drawImage(img, x, y);
   } else if (mode === 'tile') {
-    // tile image to fill canvas
     const pattern = ctx.createPattern(img, 'repeat');
+    ctx.save();
     ctx.fillStyle = pattern;
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = $('textColor').value; // restore fillStyle (text)
+    ctx.restore();
   } else {
-    // fallback to cover
     const scale = Math.max(w / img.width, h / img.height);
     const iw = img.width * scale, ih = img.height * scale;
     const x = (w - iw) / 2, y = (h - ih) / 2;
@@ -138,11 +178,21 @@ function getSelectedEffects() {
   return [...document.querySelectorAll('.fx:checked')].map(i => i.value);
 }
 
+// ---------- parseLinesForBG ahora soporta separador dinámico (coma / punto / ambos) ----------
 function parseLinesForBG(raw) {
+  const sepControl = $('bgSeparator');
+  const sep = sepControl ? sepControl.value : 'comma';
   const paragraphs = raw.split(/\r?\n/);
   const lines = [];
   for (const p of paragraphs) {
-    const parts = p.split('.').map(s => s.trim()).filter(Boolean);
+    let parts = [];
+    if (sep === 'comma') {
+      parts = p.split(',').map(s => s.trim()).filter(Boolean);
+    } else if (sep === 'dot') {
+      parts = p.split('.').map(s => s.trim()).filter(Boolean);
+    } else { // both
+      parts = p.split(/[.,]/).map(s => s.trim()).filter(Boolean);
+    }
     for (const part of parts) lines.push(part);
   }
   return lines;
@@ -153,12 +203,11 @@ function parseLinesSimple(raw) {
 }
 
 function drawLines(lines, fontFamily) {
-  // background image or color/transparent handled before calling drawLines
-  const fontSize = Math.max(8, +$('fontSize').value);
+  const fontSize = Math.max(8, +($('fontSize')?.value || 36));
   const family = fontFamily || uploadedFontFamily || 'Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = $('textColor').value;
+  ctx.fillStyle = $('textColor')?.value || '#fff';
   ctx.font = `${fontSize}px '${family}'`;
   for (const l of lines) {
     ctx.save();
@@ -177,7 +226,7 @@ async function canvasToBlob() {
 }
 
 function measureMaxTextWidth(lines, fontFamily) {
-  const fontSize = Math.max(8, +$('fontSize').value);
+  const fontSize = Math.max(8, +($('fontSize')?.value || 36));
   ctx.font = `${fontSize}px '${fontFamily || uploadedFontFamily || 'Arial'}'`;
   let max = 0;
   for (const t of lines) {
@@ -232,7 +281,7 @@ class InsertTextAnimator {
   async generate() {
     const results = [];
     const w = this.canvas.width, h = this.canvas.height;
-    const fontSize = Math.max(8, +$('fontSize').value);
+    const fontSize = Math.max(8, +($('fontSize')?.value || 36));
     this.ctx.font = `${fontSize}px '${this.fontFamily}'`;
 
     const maxTextW = measureMaxTextWidth(this.lines, this.fontFamily);
@@ -245,15 +294,13 @@ class InsertTextAnimator {
     // Phase 1: entrada
     for (let f = 0; f < this.framesPerPhase; f++) {
       const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      // draw background first
-      if (!$('transparentBg').checked) {
-        ctx.fillStyle = $('bgColor').value;
+      if (!$('transparentBg')?.checked) {
+        ctx.fillStyle = $('bgColor')?.value || '#000';
         ctx.fillRect(0, 0, w, h);
       } else {
         ctx.clearRect(0, 0, w, h);
       }
-      // draw background image if available
-      if (uploadedBgImage && $('bgImageFile').files.length) drawBackgroundImage($('bgImageMode').value);
+      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
 
       const baseLines = this.lines.map((t, i) => {
         const targetY = centerY + (i * lineSpacing) - ((this.lines.length - 1) * lineSpacing / 2);
@@ -271,13 +318,13 @@ class InsertTextAnimator {
     let lastCycleLayout = [];
     for (let f = 0; f < this.framesPerPhase; f++) {
       const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg').checked) {
-        ctx.fillStyle = $('bgColor').value;
+      if (!$('transparentBg')?.checked) {
+        ctx.fillStyle = $('bgColor')?.value || '#000';
         ctx.fillRect(0, 0, w, h);
       } else {
         ctx.clearRect(0, 0, w, h);
       }
-      if (uploadedBgImage && $('bgImageFile').files.length) drawBackgroundImage($('bgImageMode').value);
+      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
 
       const baseLines = this.lines.map((t, i) => {
         const targetY = centerY + (i * lineSpacing) - ((this.lines.length - 1) * lineSpacing / 2);
@@ -292,16 +339,16 @@ class InsertTextAnimator {
     }
 
     // Phase 3: salida
-    const endX = (this.dir === 'left') ? w + maxTextW + offGap : -maxTextW - offGap;
+    const endX = (this.dir === 'left') ? w + measureMaxTextWidth(this.lines, this.fontFamily) + offGap : -measureMaxTextWidth(this.lines, this.fontFamily) - offGap;
     for (let f = 0; f < this.framesPerPhase; f++) {
       const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg').checked) {
-        ctx.fillStyle = $('bgColor').value;
+      if (!$('transparentBg')?.checked) {
+        ctx.fillStyle = $('bgColor')?.value || '#000';
         ctx.fillRect(0, 0, w, h);
       } else {
         ctx.clearRect(0, 0, w, h);
       }
-      if (uploadedBgImage && $('bgImageFile').files.length) drawBackgroundImage($('bgImageMode').value);
+      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
 
       const frameLines = lastCycleLayout.map((base, i) => {
         const x = base.x + (endX - base.x) * p;
@@ -331,7 +378,7 @@ class BGTextAnimator {
   async generate() {
     const results = [];
     const w = this.canvas.width, h = this.canvas.height;
-    const fontSize = Math.max(8, +$('fontSize').value);
+    const fontSize = Math.max(8, +($('fontSize')?.value || 36));
     this.ctx.font = `${fontSize}px '${this.fontFamily}'`;
 
     const maxTextW = measureMaxTextWidth(this.lines, this.fontFamily);
@@ -343,13 +390,13 @@ class BGTextAnimator {
     // Entry: fade in
     for (let f = 0; f < this.framesPerPhase; f++) {
       const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg').checked) {
-        ctx.fillStyle = $('bgColor').value;
+      if (!$('transparentBg')?.checked) {
+        ctx.fillStyle = $('bgColor')?.value || '#000';
         ctx.fillRect(0, 0, w, h);
       } else {
         ctx.clearRect(0, 0, w, h);
       }
-      if (uploadedBgImage && $('bgImageFile').files.length) drawBackgroundImage($('bgImageMode').value);
+      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
       const baseLines = this.lines.map((t, i) => {
         const x = centerX;
         const y = h / 2 + (i * lineSpacing) - ((this.lines.length - 1) * lineSpacing / 2);
@@ -365,13 +412,13 @@ class BGTextAnimator {
     // Cycle: horizontal wrap & alternate directions
     for (let f = 0; f < this.framesPerPhase; f++) {
       const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg').checked) {
-        ctx.fillStyle = $('bgColor').value;
+      if (!$('transparentBg')?.checked) {
+        ctx.fillStyle = $('bgColor')?.value || '#000';
         ctx.fillRect(0, 0, w, h);
       } else {
         ctx.clearRect(0, 0, w, h);
       }
-      if (uploadedBgImage && $('bgImageFile').files.length) drawBackgroundImage($('bgImageMode').value);
+      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
 
       const frameLines = this.lines.map((t, i) => {
         const dir = (i % 2 === 0) ? 1 : -1;
@@ -400,13 +447,13 @@ class BGTextAnimator {
 
     for (let f = 0; f < this.framesPerPhase; f++) {
       const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg').checked) {
-        ctx.fillStyle = $('bgColor').value;
+      if (!$('transparentBg')?.checked) {
+        ctx.fillStyle = $('bgColor')?.value || '#000';
         ctx.fillRect(0, 0, w, h);
       } else {
         ctx.clearRect(0, 0, w, h);
       }
-      if (uploadedBgImage && $('bgImageFile').files.length) drawBackgroundImage($('bgImageMode').value);
+      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
 
       const frameLines = basePositions.map(base => {
         const alpha = base.alpha * (1 - p);
@@ -425,24 +472,24 @@ class BGTextAnimator {
 // ---------------- UI wiring ----------------
 async function generateAllFrames() {
   frames = [];
-  const baseName = $('baseName').value.trim() || 'text';
-  const mode = $('mode').value;
-  const framesPerPhase = Math.max(1, +$('framesCount').value);
+  const baseName = ($('baseName')?.value || '').trim() || 'text';
+  const mode = $('mode')?.value || 'insert';
+  const framesPerPhase = Math.max(1, +($('framesCount')?.value || 24));
   const effects = getSelectedEffects();
   const fontFamily = uploadedFontFamily || null;
 
   let lines = [];
-  if (mode === 'bg') lines = parseLinesForBG($('inputText').value);
-  else lines = parseLinesSimple($('inputText').value);
+  if (mode === 'bg') lines = parseLinesForBG($('inputText')?.value || '');
+  else lines = parseLinesSimple($('inputText')?.value || '');
 
   if (!lines.length) { log('No hay texto para generar.'); return; }
 
-  ctx.font = `${Math.max(8, +$('fontSize').value)}px '${fontFamily || uploadedFontFamily || 'Arial'}'`;
+  ctx.font = `${Math.max(8, +($('fontSize')?.value || 36))}px '${fontFamily || uploadedFontFamily || 'Arial'}'`;
 
   log(`Generando modo "${mode}" — ${framesPerPhase} frames/phase — efectos: ${effects.join(', ') || 'ninguno'}`);
 
   if (mode === 'insert') {
-    const dir = $('insertDir').value || 'left';
+    const dir = $('insertDir')?.value || 'left';
     const gen = new InsertTextAnimator({ canvas, ctx, lines, framesPerPhase, dir, effects, baseName, fontFamily });
     const res = await gen.generate();
     frames.push(...res);
@@ -457,68 +504,75 @@ async function generateAllFrames() {
   log(`Generación completada. Frames: ${frames.length}`);
 }
 
-$('generateBtn').onclick = async () => {
-  // ensure font loaded if selected
-  if ($('fontFile').files && $('fontFile').files[0]) {
-    uploadedFontFamily = await loadFontFromFile($('fontFile').files[0]);
-  }
-  await generateAllFrames();
-};
+if ($('generateBtn')) {
+  $('generateBtn').onclick = async () => {
+    if ($('fontFile') && $('fontFile').files && $('fontFile').files[0]) {
+      uploadedFontFamily = await loadFontFromFile($('fontFile').files[0]);
+    }
+    await generateAllFrames();
+  };
+}
 
 function showFrame(i) {
-  if (!frames.length) { clearPreview(); $('frameInfo').textContent = 'Frame 0 / 0'; return; }
+  if (!frames.length) { clearPreview(); if ($('frameInfo')) $('frameInfo').textContent = 'Frame 0 / 0'; return; }
   const obj = frames[i];
   const img = new Image();
   img.src = URL.createObjectURL(obj.blob);
   img.onload = () => {
-    // draw bg color or transparent
-    if (!$('transparentBg').checked) {
-      ctx.fillStyle = $('bgColor').value;
+    if (!$('transparentBg')?.checked) {
+      ctx.fillStyle = $('bgColor')?.value || '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     } else {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    // draw bg image if exists
-    if (uploadedBgImage && $('bgImageFile').files.length) drawBackgroundImage($('bgImageMode').value);
+    if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
     ctx.drawImage(img, 0, 0);
     URL.revokeObjectURL(img.src);
   };
-  $('frameInfo').textContent = `Frame ${i + 1} / ${frames.length} — ${obj.name}`;
+  if ($('frameInfo')) $('frameInfo').textContent = `Frame ${i + 1} / ${frames.length} — ${obj.name}`;
 }
 
-$('nextFrame').onclick = () => {
-  if (!frames.length) return;
-  currentFrame = (currentFrame + 1) % frames.length;
-  showFrame(currentFrame);
-};
-$('prevFrame').onclick = () => {
-  if (!frames.length) return;
-  currentFrame = (currentFrame - 1 + frames.length) % frames.length;
-  showFrame(currentFrame);
-};
+if ($('nextFrame')) {
+  $('nextFrame').onclick = () => {
+    if (!frames.length) return;
+    currentFrame = (currentFrame + 1) % frames.length;
+    showFrame(currentFrame);
+  };
+}
+if ($('prevFrame')) {
+  $('prevFrame').onclick = () => {
+    if (!frames.length) return;
+    currentFrame = (currentFrame - 1 + frames.length) % frames.length;
+    showFrame(currentFrame);
+  };
+}
 
-$('playPause').onclick = () => {
-  if (!frames.length) return;
-  if (playInterval) { clearInterval(playInterval); playInterval = null; $('playPause').textContent = 'Play'; }
-  else {
-    $('playPause').textContent = 'Pausa';
-    playInterval = setInterval(() => {
-      currentFrame = (currentFrame + 1) % frames.length;
-      showFrame(currentFrame);
-    }, 100);
-  }
-};
+if ($('playPause')) {
+  $('playPause').onclick = () => {
+    if (!frames.length) return;
+    if (playInterval) { clearInterval(playInterval); playInterval = null; $('playPause').textContent = 'Play'; }
+    else {
+      $('playPause').textContent = 'Pausa';
+      playInterval = setInterval(() => {
+        currentFrame = (currentFrame + 1) % frames.length;
+        showFrame(currentFrame);
+      }, 100);
+    }
+  };
+}
 
-$('downloadZipBtn').onclick = async () => {
-  if (!frames.length) { log('No hay frames para descargar.'); return; }
-  const zip = new JSZip();
-  for (const f of frames) zip.file(f.name, f.blob);
-  const blob = await zip.generateAsync({ type: 'blob' });
-  saveAs(blob, `${$('baseName').value || 'text'}_frames.zip`);
-  log('ZIP generado y listo para descargar.');
-};
+if ($('downloadZipBtn')) {
+  $('downloadZipBtn').onclick = async () => {
+    if (!frames.length) { log('No hay frames para descargar.'); return; }
+    const zip = new JSZip();
+    for (const f of frames) zip.file(f.name, f.blob);
+    const blob = await zip.generateAsync({ type: 'blob' });
+    saveAs(blob, `${$('baseName')?.value || 'text'}_frames.zip`);
+    log('ZIP generado y listo para descargar.');
+  };
+}
 
 // initialize
 clearPreview();
 updateBgPreviewInfo();
-log('Script cargado — listo.');
+log('Script cargado — listo. Selector BG separador activado (coma, punto o ambos).');
