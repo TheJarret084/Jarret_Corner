@@ -50,6 +50,13 @@
           "botonTexto": "Tunea-tu-imagen-inador!"
         },
         {
+          "titulo": "TextForFrames",
+          "descripcion": "No se la verdad, aprende usarlo",
+          "tipo": "boton",
+          "url": "Material-Lab/TextForFrames/TextForFrames.html",
+          "botonTexto": "TextForFrames!"
+        },
+        {
           "titulo": "VidToSheet",
           "descripcion": "Convierte videos en cuvierta para SpriteSheet.",
           "tipo": "boton",
