@@ -1,7 +1,4 @@
-// script.js - Actualizado: toggle de separador para modo BG (coma / punto / ambos)
-// Inserta automáticamente un select en la UI si no existe.
-// Basado en la versión previa (font loading, bg image, InsertTextAnimator, BGTextAnimator, export ZIP, preview).
-
+// script.js - BG usa '|' como separador, ciclo cubre todo el lienzo con wrap-around
 const $ = id => document.getElementById(id);
 const logEl = $('log');
 const log = (m) => {
@@ -14,12 +11,11 @@ let frames = [];
 let currentFrame = 0;
 let playInterval = null;
 let uploadedFontFamily = null;
-let uploadedBgImage = null; // { img: Image, url: objectURL }
+let uploadedBgImage = null; // { img, url }
 
 const canvas = $('previewCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- Ensure canvas size sync
 function setCanvasSizeFromInputs() {
   const w = Math.max(1, +($('canvasW')?.value || 512));
   const h = Math.max(1, +($('canvasH')?.value || 128));
@@ -39,45 +35,15 @@ function clearPreview() {
   }
 }
 
-// ---------------- Inject BG separator selector into UI if missing ----------------
-(function ensureBGSeparatorControl() {
-  // if there's already an element with id 'bgSeparator', do nothing
-  if ($('bgSeparator')) return;
-  // find sidebar to insert into
-  const sidebar = document.querySelector('.sidebar') || document.body;
-  // create container
-  const wrapper = document.createElement('div');
-  wrapper.style.marginTop = '8px';
-  wrapper.style.fontSize = '13px';
-  wrapper.style.color = '#a9c0d9';
-  wrapper.innerHTML = `<label for="bgSeparator" style="display:block;margin-top:10px">Separador (modo BG)</label>`;
-  const select = document.createElement('select');
-  select.id = 'bgSeparator';
-  select.style.width = '100%';
-  select.style.padding = '8px';
-  select.innerHTML = `
-    <option value="comma">Coma (',') — nueva línea por coma</option>
-    <option value="dot">Punto ('.') — nueva línea por punto</option>
-    <option value="both">Ambos (',' y '.')</option>
-  `;
-  wrapper.appendChild(select);
-  // try to place it after bgPreviewInfo if exists
-  const ref = document.getElementById('bgPreviewInfo');
-  if (ref && ref.parentNode) ref.parentNode.insertBefore(wrapper, ref.nextSibling);
-  else sidebar.appendChild(wrapper);
-  // default to comma
-  select.value = 'comma';
-})();
-
-// ---------------- Font loading ----------------
+// ---------- Font loading ----------
 async function loadFontFromFile(file) {
   if (!file) return null;
   const name = 'UploadedFont_' + Date.now();
   const url = URL.createObjectURL(file);
   try {
-    const fontFace = new FontFace(name, `url(${url})`);
-    await fontFace.load();
-    document.fonts.add(fontFace);
+    const ff = new FontFace(name, `url(${url})`);
+    await ff.load();
+    document.fonts.add(ff);
     await document.fonts.ready;
     log(`Fuente cargada: ${file.name} (${name})`);
     return name;
@@ -89,117 +55,93 @@ async function loadFontFromFile(file) {
 if ($('fontFile')) {
   $('fontFile').onchange = async (e) => {
     const f = e.target.files[0];
-    if (!f) { uploadedFontFamily = null; return; }
-    uploadedFontFamily = await loadFontFromFile(f);
+    uploadedFontFamily = f ? await loadFontFromFile(f) : null;
   };
 }
 
-// ---------------- Background image loading ----------------
+// ---------- Background image ----------
 if ($('bgImageFile')) {
-  $('bgImageFile').onchange = async (e) => {
+  $('bgImageFile').onchange = (e) => {
     const f = e.target.files[0];
     if (!f) {
-      if (uploadedBgImage && uploadedBgImage.url) URL.revokeObjectURL(uploadedBgImage.url);
-      uploadedBgImage = null; updateBgPreviewInfo(); return;
+      if (uploadedBgImage?.url) URL.revokeObjectURL(uploadedBgImage.url);
+      uploadedBgImage = null; updateBgPreviewInfo(); showFrame(currentFrame);
+      return;
     }
     const url = URL.createObjectURL(f);
     const img = new Image();
-    img.src = url;
     img.onload = () => {
-      if (uploadedBgImage && uploadedBgImage.url) URL.revokeObjectURL(uploadedBgImage.url);
+      if (uploadedBgImage?.url) URL.revokeObjectURL(uploadedBgImage.url);
       uploadedBgImage = { img, url };
       updateBgPreviewInfo();
       log(`Imagen de fondo cargada: ${f.name}`);
       showFrame(currentFrame);
     };
     img.onerror = () => {
-      log('Error cargando la imagen de fondo.');
-      if (url) URL.revokeObjectURL(url);
+      log('Error cargando imagen de fondo.');
+      URL.revokeObjectURL(url);
     };
+    img.src = url;
   };
 }
-
 if ($('clearBgBtn')) {
   $('clearBgBtn').onclick = () => {
-    if (uploadedBgImage && uploadedBgImage.url) URL.revokeObjectURL(uploadedBgImage.url);
+    if (uploadedBgImage?.url) URL.revokeObjectURL(uploadedBgImage.url);
     uploadedBgImage = null;
     if ($('bgImageFile')) $('bgImageFile').value = '';
-    updateBgPreviewInfo();
-    showFrame(currentFrame);
+    updateBgPreviewInfo(); showFrame(currentFrame);
   };
 }
-
 function updateBgPreviewInfo() {
   const el = $('bgPreviewInfo');
   if (!el) return;
-  if (uploadedBgImage && uploadedBgImage.img) {
-    el.textContent = `Imagen de fondo: ${uploadedBgImage.img.width}x${uploadedBgImage.img.height}`;
-  } else {
-    el.textContent = 'Imagen de fondo: (ninguna)';
-  }
+  if (uploadedBgImage?.img) el.textContent = `Imagen de fondo: ${uploadedBgImage.img.width}x${uploadedBgImage.img.height}`;
+  else el.textContent = 'Imagen de fondo: (ninguna)';
 }
-
-// draw background image according to mode
 function drawBackgroundImage(mode) {
-  if (!uploadedBgImage || !uploadedBgImage.img) return;
-  if ($('transparentBg') && $('transparentBg').checked) return; // ignore if transparent requested
+  if (!uploadedBgImage?.img) return;
+  if ($('transparentBg')?.checked) return;
   const img = uploadedBgImage.img;
   const w = canvas.width, h = canvas.height;
-
   if (mode === 'cover') {
     const scale = Math.max(w / img.width, h / img.height);
     const iw = img.width * scale, ih = img.height * scale;
-    const x = (w - iw) / 2, y = (h - ih) / 2;
-    ctx.drawImage(img, x, y, iw, ih);
+    ctx.drawImage(img, (w - iw) / 2, (h - ih) / 2, iw, ih);
   } else if (mode === 'contain') {
     const scale = Math.min(w / img.width, h / img.height);
     const iw = img.width * scale, ih = img.height * scale;
-    const x = (w - iw) / 2, y = (h - ih) / 2;
-    ctx.drawImage(img, x, y, iw, ih);
+    ctx.drawImage(img, (w - iw) / 2, (h - ih) / 2, iw, ih);
   } else if (mode === 'center') {
-    const x = (w - img.width) / 2, y = (h - img.height) / 2;
-    ctx.drawImage(img, x, y);
+    ctx.drawImage(img, (w - img.width) / 2, (h - img.height) / 2);
   } else if (mode === 'tile') {
-    const pattern = ctx.createPattern(img, 'repeat');
-    ctx.save();
-    ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, w, h);
-    ctx.restore();
+    const p = ctx.createPattern(img, 'repeat');
+    ctx.save(); ctx.fillStyle = p; ctx.fillRect(0, 0, w, h); ctx.restore();
   } else {
+    // fallback cover
     const scale = Math.max(w / img.width, h / img.height);
     const iw = img.width * scale, ih = img.height * scale;
-    const x = (w - iw) / 2, y = (h - ih) / 2;
-    ctx.drawImage(img, x, y, iw, ih);
+    ctx.drawImage(img, (w - iw) / 2, (h - ih) / 2, iw, ih);
   }
 }
 
-// ---------------- Helpers de texto y efectos ----------------
+// ---------- Helpers: parse lines, draw, effects ----------
 function getSelectedEffects() {
   return [...document.querySelectorAll('.fx:checked')].map(i => i.value);
 }
 
-// ---------- parseLinesForBG ahora soporta separador dinámico (coma / punto / ambos) ----------
+// NEW: BG separator is pipe '|'
 function parseLinesForBG(raw) {
-  const sepControl = $('bgSeparator');
-  const sep = sepControl ? sepControl.value : 'comma';
-  const paragraphs = raw.split(/\r?\n/);
+  const paragraphs = (raw || '').split(/\r?\n/);
   const lines = [];
   for (const p of paragraphs) {
-    let parts = [];
-    if (sep === 'comma') {
-      parts = p.split(',').map(s => s.trim()).filter(Boolean);
-    } else if (sep === 'dot') {
-      parts = p.split('.').map(s => s.trim()).filter(Boolean);
-    } else { // both
-      parts = p.split(/[.,]/).map(s => s.trim()).filter(Boolean);
-    }
+    // split by pipe '|' and ignore empty pieces. pipe is not printed.
+    const parts = p.split('|').map(s => s.trim()).filter(Boolean);
     for (const part of parts) lines.push(part);
   }
   return lines;
 }
-
 function parseLinesSimple(raw) {
-  return raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  return (raw || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
 }
 
 function drawLines(lines, fontFamily) {
@@ -224,7 +166,6 @@ function drawLines(lines, fontFamily) {
 async function canvasToBlob() {
   return await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
 }
-
 function measureMaxTextWidth(lines, fontFamily) {
   const fontSize = Math.max(8, +($('fontSize')?.value || 36));
   ctx.font = `${fontSize}px '${fontFamily || uploadedFontFamily || 'Arial'}'`;
@@ -239,37 +180,25 @@ function measureMaxTextWidth(lines, fontFamily) {
 function applyEffects(base, effects, p, mode) {
   const t = p * Math.PI * 2;
   const out = { ...base };
-  out.x = out.x ?? 0;
-  out.y = out.y ?? 0;
-  out.scale = out.scale ?? 1;
-  out.alpha = out.alpha ?? 1;
-  out.rotate = out.rotate ?? 0;
-
+  out.x = out.x ?? 0; out.y = out.y ?? 0; out.scale = out.scale ?? 1; out.alpha = out.alpha ?? 1; out.rotate = out.rotate ?? 0;
   for (const e of effects) {
     switch (e) {
       case 'shake':
-        out.x += Math.sin(t * 10) * 4;
-        out.y += Math.cos(t * 9) * 4;
-        break;
+        out.x += Math.sin(t * 10) * 4; out.y += Math.cos(t * 9) * 4; break;
       case 'pulse':
-        out.scale = out.scale * (1 + 0.08 * Math.sin(t * 2));
-        break;
+        out.scale = out.scale * (1 + 0.08 * Math.sin(t * 2)); break;
       case 'bounce':
-        if (mode === 'insert') {
-          out.x += Math.sin(t * 3) * 12 * (0.5 + 0.5 * (1 - Math.abs(2 * p - 1)));
-        } else {
-          out.y += Math.sin(t * 2) * 6;
-        }
+        if (mode === 'insert') out.x += Math.sin(t * 3) * 12 * (0.5 + 0.5 * (1 - Math.abs(2 * p - 1)));
+        else out.y += Math.sin(t * 2) * 6;
         break;
       case 'fade':
-        out.alpha = out.alpha * (0.6 + 0.4 * (Math.sin(t * 2) * 0.5 + 0.5));
-        break;
+        out.alpha = out.alpha * (0.6 + 0.4 * (Math.sin(t * 2) * 0.5 + 0.5)); break;
     }
   }
   return out;
 }
 
-// ---------------- InsertTextAnimator ----------------
+// ---------- InsertTextAnimator (unchanged behavior, horizontal movement) ----------
 class InsertTextAnimator {
   constructor({ canvas, ctx, lines, framesPerPhase, dir = 'left', effects = [], baseName = 'text', fontFamily = null }) {
     this.canvas = canvas; this.ctx = ctx; this.lines = lines;
@@ -277,95 +206,68 @@ class InsertTextAnimator {
     this.effects = effects; this.baseName = baseName;
     this.fontFamily = fontFamily || uploadedFontFamily || 'Arial';
   }
-
   async generate() {
-    const results = [];
-    const w = this.canvas.width, h = this.canvas.height;
-    const fontSize = Math.max(8, +($('fontSize')?.value || 36));
-    this.ctx.font = `${fontSize}px '${this.fontFamily}'`;
-
+    const res = []; const w = this.canvas.width, h = this.canvas.height;
+    const fontSize = Math.max(8, +($('fontSize')?.value || 36)); this.ctx.font = `${fontSize}px '${this.fontFamily}'`;
     const maxTextW = measureMaxTextWidth(this.lines, this.fontFamily);
     const offGap = 60;
     const startX = (this.dir === 'left') ? -maxTextW - offGap : w + maxTextW + offGap;
-    const centerX = w / 2;
-    const centerY = h / 2;
-    const lineSpacing = fontSize + 6;
+    const centerX = w / 2, centerY = h / 2, lineSpacing = fontSize + 6;
 
-    // Phase 1: entrada
-    for (let f = 0; f < this.framesPerPhase; f++) {
-      const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg')?.checked) {
-        ctx.fillStyle = $('bgColor')?.value || '#000';
-        ctx.fillRect(0, 0, w, h);
-      } else {
-        ctx.clearRect(0, 0, w, h);
-      }
-      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
-
-      const baseLines = this.lines.map((t, i) => {
-        const targetY = centerY + (i * lineSpacing) - ((this.lines.length - 1) * lineSpacing / 2);
+    // entrada
+    for (let f=0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase===1)?1:(f/(this.framesPerPhase-1));
+      if (!$('transparentBg')?.checked) { ctx.fillStyle = $('bgColor')?.value || '#000'; ctx.fillRect(0,0,w,h); } else ctx.clearRect(0,0,w,h);
+      if (uploadedBgImage?.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
+      const baseLines = this.lines.map((t,i) => {
+        const y = centerY + (i * lineSpacing) - ((this.lines.length-1)*lineSpacing/2);
         const x = startX + (centerX - startX) * p;
-        return { text: t, x, y: targetY, alpha: 1, scale: 1 };
+        return { text: t, x, y, alpha: 1, scale: 1 };
       });
-      const effLines = baseLines.map(b => applyEffects(b, this.effects, p, 'insert'));
-      drawLines(effLines, this.fontFamily);
+      const eff = baseLines.map(b => applyEffects(b, this.effects, p, 'insert'));
+      drawLines(eff, this.fontFamily);
       const blob = await canvasToBlob();
-      const name = `${this.baseName}-insert_entrada${pad(f)}.png`;
-      results.push({ blob, name });
+      res.push({ blob, name: `${this.baseName}-insert_entrada${pad(f)}.png` });
     }
 
-    // Phase 2: ciclo
-    let lastCycleLayout = [];
-    for (let f = 0; f < this.framesPerPhase; f++) {
-      const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg')?.checked) {
-        ctx.fillStyle = $('bgColor')?.value || '#000';
-        ctx.fillRect(0, 0, w, h);
-      } else {
-        ctx.clearRect(0, 0, w, h);
-      }
-      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
-
-      const baseLines = this.lines.map((t, i) => {
-        const targetY = centerY + (i * lineSpacing) - ((this.lines.length - 1) * lineSpacing / 2);
-        return { text: t, x: centerX, y: targetY, alpha: 1, scale: 1 };
+    // ciclo
+    let lastLayout = [];
+    for (let f=0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase===1)?1:(f/(this.framesPerPhase-1));
+      if (!$('transparentBg')?.checked) { ctx.fillStyle = $('bgColor')?.value || '#000'; ctx.fillRect(0,0,w,h); } else ctx.clearRect(0,0,w,h);
+      if (uploadedBgImage?.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
+      const baseLines = this.lines.map((t,i) => {
+        const y = centerY + (i * lineSpacing) - ((this.lines.length-1)*lineSpacing/2);
+        return { text: t, x: centerX, y, alpha: 1, scale: 1 };
       });
-      const effLines = baseLines.map(b => applyEffects(b, this.effects, p, 'insert'));
-      drawLines(effLines, this.fontFamily);
+      const eff = baseLines.map(b => applyEffects(b, this.effects, p, 'insert'));
+      drawLines(eff, this.fontFamily);
       const blob = await canvasToBlob();
-      const name = `${this.baseName}-insert_ciclo${pad(f)}.png`;
-      results.push({ blob, name });
-      if (f === this.framesPerPhase - 1) lastCycleLayout = effLines.map(x => ({ ...x }));
+      res.push({ blob, name: `${this.baseName}-insert_ciclo${pad(f)}.png` });
+      if (f === this.framesPerPhase - 1) lastLayout = eff.map(x => ({ ...x }));
     }
 
-    // Phase 3: salida
+    // salida
     const endX = (this.dir === 'left') ? w + measureMaxTextWidth(this.lines, this.fontFamily) + offGap : -measureMaxTextWidth(this.lines, this.fontFamily) - offGap;
-    for (let f = 0; f < this.framesPerPhase; f++) {
-      const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg')?.checked) {
-        ctx.fillStyle = $('bgColor')?.value || '#000';
-        ctx.fillRect(0, 0, w, h);
-      } else {
-        ctx.clearRect(0, 0, w, h);
-      }
-      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
-
-      const frameLines = lastCycleLayout.map((base, i) => {
+    for (let f=0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase===1)?1:(f/(this.framesPerPhase-1));
+      if (!$('transparentBg')?.checked) { ctx.fillStyle = $('bgColor')?.value || '#000'; ctx.fillRect(0,0,w,h); } else ctx.clearRect(0,0,w,h);
+      if (uploadedBgImage?.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
+      const frameLines = lastLayout.map((base,i) => {
         const x = base.x + (endX - base.x) * p;
         const alpha = base.alpha * (this.effects.includes('fade') ? (1 - 0.8 * p) : base.alpha);
         return { text: base.text, x, y: base.y, alpha, scale: base.scale };
       }).map(b => applyEffects(b, this.effects, p, 'insert'));
       drawLines(frameLines, this.fontFamily);
       const blob = await canvasToBlob();
-      const name = `${this.baseName}-insert_salida${pad(f)}.png`;
-      results.push({ blob, name });
+      res.push({ blob, name: `${this.baseName}-insert_salida${pad(f)}.png` });
     }
 
-    return results;
+    return res;
   }
 }
 
-// ---------------- BGTextAnimator ----------------
+// ---------- BGTextAnimator (new tiling-wrap behavior) ----------
 class BGTextAnimator {
   constructor({ canvas, ctx, lines, framesPerPhase, effects = [], baseName = 'text', fontFamily = null }) {
     this.canvas = canvas; this.ctx = ctx; this.lines = lines;
@@ -376,100 +278,98 @@ class BGTextAnimator {
   }
 
   async generate() {
-    const results = [];
+    const res = [];
     const w = this.canvas.width, h = this.canvas.height;
     const fontSize = Math.max(8, +($('fontSize')?.value || 36));
     this.ctx.font = `${fontSize}px '${this.fontFamily}'`;
 
-    const maxTextW = measureMaxTextWidth(this.lines, this.fontFamily);
-    const travel = w + maxTextW + 200;
-    const centerX = w / 2;
-    const startX = -maxTextW - 100;
     const lineSpacing = fontSize + 6;
-
-    // Entry: fade in
-    for (let f = 0; f < this.framesPerPhase; f++) {
-      const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg')?.checked) {
-        ctx.fillStyle = $('bgColor')?.value || '#000';
-        ctx.fillRect(0, 0, w, h);
-      } else {
-        ctx.clearRect(0, 0, w, h);
-      }
-      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
-      const baseLines = this.lines.map((t, i) => {
-        const x = centerX;
-        const y = h / 2 + (i * lineSpacing) - ((this.lines.length - 1) * lineSpacing / 2);
-        return { text: t, x, y, alpha: p, scale: 1 };
-      });
-      const effLines = baseLines.map(b => applyEffects(b, this.effects, p, 'bg'));
-      drawLines(effLines, this.fontFamily);
-      const blob = await canvasToBlob();
-      const name = `${this.baseName}-bg_entrada${pad(f)}.png`;
-      results.push({ blob, name });
-    }
-
-    // Cycle: horizontal wrap & alternate directions
-    for (let f = 0; f < this.framesPerPhase; f++) {
-      const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg')?.checked) {
-        ctx.fillStyle = $('bgColor')?.value || '#000';
-        ctx.fillRect(0, 0, w, h);
-      } else {
-        ctx.clearRect(0, 0, w, h);
-      }
-      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
-
-      const frameLines = this.lines.map((t, i) => {
-        const dir = (i % 2 === 0) ? 1 : -1;
-        const offset = dir * (travel * (p - 0.5));
-        const range = travel;
-        const rawX = centerX + offset;
-        let rel = (rawX - startX) % range;
-        if (rel < 0) rel += range;
-        const x = startX + rel;
-        const y = h / 2 + (i * lineSpacing) - ((this.lines.length - 1) * lineSpacing / 2);
-        return { text: t, x, y, alpha: 1, scale: 1 };
-      }).map(b => applyEffects(b, this.effects, p, 'bg'));
-
-      drawLines(frameLines, this.fontFamily);
-      const blob = await canvasToBlob();
-      const name = `${this.baseName}-bg_ciclo${pad(f)}.png`;
-      results.push({ blob, name });
-      if (f === this.framesPerPhase - 1) this.lastCyclePositions = frameLines.map(l => ({ ...l }));
-    }
-
-    // Exit: fade out from lastCyclePositions
-    const basePositions = this.lastCyclePositions || this.lines.map((t, i) => {
-      const y = h / 2 + (i * lineSpacing) - ((this.lines.length - 1) * lineSpacing / 2);
-      return { text: t, x: centerX, y, alpha: 1, scale: 1 };
+    // For each line, precompute its text width and step spacing
+    const linesMeta = this.lines.map(t => {
+      const tw = ctx.measureText(t).width;
+      const gap = Math.max(40, Math.round(fontSize * 0.5));
+      const step = tw + gap;
+      // loops = how many steps needed to cover canvas width (+ buffer)
+      const loops = Math.max(2, Math.ceil((w + step * 2) / step));
+      return { text: t, tw, step, gap, loops };
     });
 
-    for (let f = 0; f < this.framesPerPhase; f++) {
-      const p = (this.framesPerPhase === 1) ? 1 : f / (this.framesPerPhase - 1);
-      if (!$('transparentBg')?.checked) {
-        ctx.fillStyle = $('bgColor')?.value || '#000';
-        ctx.fillRect(0, 0, w, h);
-      } else {
-        ctx.clearRect(0, 0, w, h);
-      }
-      if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
-
-      const frameLines = basePositions.map(base => {
-        const alpha = base.alpha * (1 - p);
-        return { text: base.text, x: base.x, y: base.y, alpha, scale: base.scale };
+    // Phase 1: entry (fade-in)
+    for (let f=0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase===1)?1:(f/(this.framesPerPhase-1));
+      if (!$('transparentBg')?.checked) { ctx.fillStyle = $('bgColor')?.value || '#000'; ctx.fillRect(0,0,w,h); } else ctx.clearRect(0,0,w,h);
+      if (uploadedBgImage?.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
+      const baseLines = linesMeta.map((m, i) => {
+        const x = w/2;
+        const y = h/2 + (i * lineSpacing) - ((linesMeta.length-1) * lineSpacing / 2);
+        return { text: m.text, x, y, alpha: p, scale: 1 };
       }).map(b => applyEffects(b, this.effects, p, 'bg'));
-      drawLines(frameLines, this.fontFamily);
+      drawLines(baseLines, this.fontFamily);
       const blob = await canvasToBlob();
-      const name = `${this.baseName}-bg_salida${pad(f)}.png`;
-      results.push({ blob, name });
+      res.push({ blob, name: `${this.baseName}-bg_entrada${pad(f)}.png` });
     }
 
-    return results;
+    // Phase 2: ciclo (tiling + wrap-around)
+    // We'll make each line repeat 'loops' times across width and shift offset across frames.
+    for (let f=0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase===1)?1:(f/(this.framesPerPhase-1));
+      if (!$('transparentBg')?.checked) { ctx.fillStyle = $('bgColor')?.value || '#000'; ctx.fillRect(0,0,w,h); } else ctx.clearRect(0,0,w,h);
+      if (uploadedBgImage?.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
+
+      const frameLines = [];
+      for (let i=0; i < linesMeta.length; i++) {
+        const m = linesMeta[i];
+        const dir = (i % 2 === 0) ? 1 : -1; // alternate directions
+        const step = m.step;
+        const loops = m.loops;
+        // rawOffset makes the text shift by loops*step across the framesPerPhase; mapping p in [0..1] to movement across loops*step
+        const rawOffset = p * step * loops;
+        // mod within step to create smooth tile movement
+        const offsetMod = rawOffset % step;
+        // compute leftmost anchor so the repeated tiles cover canvas centered
+        const leftMost = (w/2) - (loops * step) / 2;
+        // apply direction: if dir===1 add offsetMod, else subtract
+        const dirOffset = dir === 1 ? offsetMod : -offsetMod;
+        // now place each copy j of the text
+        for (let j = 0; j < loops; j++) {
+          const x = leftMost + j * step + dirOffset;
+          const y = h/2 + (i * lineSpacing) - ((linesMeta.length-1) * lineSpacing / 2);
+          frameLines.push({ text: m.text, x, y, alpha: 1, scale: 1 });
+        }
+      }
+
+      // apply effects per frame (effects apply to each copy individually)
+      const effApplied = frameLines.map(b => applyEffects(b, this.effects, p, 'bg'));
+      drawLines(effApplied, this.fontFamily);
+      const blob = await canvasToBlob();
+      res.push({ blob, name: `${this.baseName}-bg_ciclo${pad(f)}.png` });
+      if (f === this.framesPerPhase - 1) this.lastCyclePositions = effApplied.map(l => ({ ...l }));
+    }
+
+    // Phase 3: salida (fade out using last cycle positions)
+    const basePositions = this.lastCyclePositions || this.lines.map((t,i) => {
+      const y = h/2 + (i * lineSpacing) - ((this.lines.length-1) * lineSpacing / 2);
+      return { text: t, x: w/2, y, alpha: 1, scale: 1 };
+    });
+
+    for (let f=0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase===1)?1:(f/(this.framesPerPhase-1));
+      if (!$('transparentBg')?.checked) { ctx.fillStyle = $('bgColor')?.value || '#000'; ctx.fillRect(0,0,w,h); } else ctx.clearRect(0,0,w,h);
+      if (uploadedBgImage?.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
+
+      // basePositions may contain many repeated copies; fade all out uniformly
+      const frameLines = basePositions.map(base => ({ text: base.text, x: base.x, y: base.y, alpha: base.alpha * (1 - p), scale: base.scale }));
+      const eff = frameLines.map(b => applyEffects(b, this.effects, p, 'bg'));
+      drawLines(eff, this.fontFamily);
+      const blob = await canvasToBlob();
+      res.push({ blob, name: `${this.baseName}-bg_salida${pad(f)}.png` });
+    }
+
+    return res;
   }
 }
 
-// ---------------- UI wiring ----------------
+// ---------- UI wiring ----------
 async function generateAllFrames() {
   frames = [];
   const baseName = ($('baseName')?.value || '').trim() || 'text';
@@ -501,7 +401,7 @@ async function generateAllFrames() {
 
   currentFrame = 0;
   showFrame(0);
-  log(`Generación completada. Frames: ${frames.length}`);
+  log(`Generación completada. Frames totales: ${frames.length}`);
 }
 
 if ($('generateBtn')) {
@@ -519,47 +419,21 @@ function showFrame(i) {
   const img = new Image();
   img.src = URL.createObjectURL(obj.blob);
   img.onload = () => {
-    if (!$('transparentBg')?.checked) {
-      ctx.fillStyle = $('bgColor')?.value || '#000';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    } else {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    if (uploadedBgImage && uploadedBgImage.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
+    if (!$('transparentBg')?.checked) { ctx.fillStyle = $('bgColor')?.value || '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); } else ctx.clearRect(0,0,canvas.width,canvas.height);
+    if (uploadedBgImage?.img) drawBackgroundImage($('bgImageMode')?.value || 'cover');
     ctx.drawImage(img, 0, 0);
     URL.revokeObjectURL(img.src);
   };
   if ($('frameInfo')) $('frameInfo').textContent = `Frame ${i + 1} / ${frames.length} — ${obj.name}`;
 }
 
-if ($('nextFrame')) {
-  $('nextFrame').onclick = () => {
-    if (!frames.length) return;
-    currentFrame = (currentFrame + 1) % frames.length;
-    showFrame(currentFrame);
-  };
-}
-if ($('prevFrame')) {
-  $('prevFrame').onclick = () => {
-    if (!frames.length) return;
-    currentFrame = (currentFrame - 1 + frames.length) % frames.length;
-    showFrame(currentFrame);
-  };
-}
-
-if ($('playPause')) {
-  $('playPause').onclick = () => {
-    if (!frames.length) return;
-    if (playInterval) { clearInterval(playInterval); playInterval = null; $('playPause').textContent = 'Play'; }
-    else {
-      $('playPause').textContent = 'Pausa';
-      playInterval = setInterval(() => {
-        currentFrame = (currentFrame + 1) % frames.length;
-        showFrame(currentFrame);
-      }, 100);
-    }
-  };
-}
+if ($('nextFrame')) $('nextFrame').onclick = () => { if (!frames.length) return; currentFrame = (currentFrame + 1) % frames.length; showFrame(currentFrame); };
+if ($('prevFrame')) $('prevFrame').onclick = () => { if (!frames.length) return; currentFrame = (currentFrame - 1 + frames.length) % frames.length; showFrame(currentFrame); };
+if ($('playPause')) $('playPause').onclick = () => {
+  if (!frames.length) return;
+  if (playInterval) { clearInterval(playInterval); playInterval = null; $('playPause').textContent = 'Play'; }
+  else { $('playPause').textContent = 'Pausa'; playInterval = setInterval(()=>{ currentFrame = (currentFrame + 1) % frames.length; showFrame(currentFrame); }, 100); }
+};
 
 if ($('downloadZipBtn')) {
   $('downloadZipBtn').onclick = async () => {
@@ -568,11 +442,11 @@ if ($('downloadZipBtn')) {
     for (const f of frames) zip.file(f.name, f.blob);
     const blob = await zip.generateAsync({ type: 'blob' });
     saveAs(blob, `${$('baseName')?.value || 'text'}_frames.zip`);
-    log('ZIP generado y listo para descargar.');
+    log('ZIP generado y listo.');
   };
 }
 
-// initialize
+// init
 clearPreview();
 updateBgPreviewInfo();
-log('Script cargado — listo. Selector BG separador activado (coma, punto o ambos).');
+log('Script listo — modo BG ahora usa \"|\" como separador y el ciclo cubre todo el lienzo con wrap-around.');
