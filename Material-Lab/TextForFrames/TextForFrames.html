@@ -3,22 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TextForFrames</title>
+  <title>TextForFrames — Generador de Sprites</title>
   <link rel="stylesheet" href="TextForFrames.css" />
 </head>
 <body>
   <div class="sidebar">
     <h1>TextForFrames</h1>
     <div class="pill">Salida fija: sprites individuales (PNG)</div>
-    <p class="muted">
-      Genera texto animado con entrada, ciclo y salida. Soporta fuentes personalizadas, fondo transparente y efectos.
-    </p>
+    <p class="muted">Entrada/Ciclo/Salida — Insert (lateral) y Background (fade + scroll). Fuentes .ttf, fondo transparente y efectos combinables.</p>
 
     <label>Nombre base</label>
     <input type="text" id="baseName" value="text1">
 
-    <label>Texto</label>
-    <textarea id="inputText">Texto de ejemplo. Aparece, se anima y sale.</textarea>
+    <label>Texto (cada línea = una línea)</label>
+    <textarea id="inputText">Línea 1\nLínea 2</textarea>
 
     <label>Modo</label>
     <select id="mode">
@@ -39,7 +37,7 @@
 
     <div class="row">
       <div class="col">
-        <label>Tamaño fuente</label>
+        <label>Tamaño fuente (px)</label>
         <input type="number" id="fontSize" value="36">
       </div>
       <div class="col">
@@ -64,11 +62,11 @@
 
     <label>Dirección (solo modo Insert)</label>
     <select id="insertDir">
-      <option value="left">← Izquierda a centro</option>
-      <option value="right">→ Derecha a centro</option>
+      <option value="left">← Entra desde izquierda, sale por derecha</option>
+      <option value="right">→ Entra desde derecha, sale por izquierda</option>
     </select>
 
-    <label>Efectos opcionales</label>
+    <label>Efectos (puedes marcar varios)</label>
     <div class="effects-grid">
       <label><input type="checkbox" class="fx" value="shake"> Temblor</label>
       <label><input type="checkbox" class="fx" value="pulse"> Pulso</label>
@@ -84,11 +82,11 @@
       <button id="downloadZipBtn" class="secondary small">ZIP</button>
     </div>
 
-    <div class="footer-note">Genera: entrada → ciclo → salida</div>
+    <div class="footer-note">Salida: {base}-insert_entrada0000.png, {base}-insert_ciclo0000.png, {base}-insert_salida0000.png (o -bg_...)</div>
   </div>
 
   <main>
-    <h2>Vista previa</h2>
+    <h2>Preview</h2>
     <div class="preview"><canvas id="previewCanvas" width="512" height="128"></canvas></div>
 
     <div class="frame-controls">
@@ -107,4 +105,3 @@
   <script src="TextForFrames.js"></script>
 </body>
 </html>
-
