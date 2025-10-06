@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TextForFrames</title>
+  <link rel="stylesheet" href="TextForFrames.css" />
+</head>
+<body>
+  <div class="sidebar">
+    <h1>TextForFrames</h1>
+    <div class="pill">Salida fija: sprites individuales (PNG)</div>
+    <p class="muted">
+      Genera texto animado con entrada, ciclo y salida. Soporta fuentes personalizadas, fondo transparente y efectos.
+    </p>
+
+    <label>Nombre base</label>
+    <input type="text" id="baseName" value="text1">
+
+    <label>Texto</label>
+    <textarea id="inputText">Texto de ejemplo. Aparece, se anima y sale.</textarea>
+
+    <label>Modo</label>
+    <select id="mode">
+      <option value="insert">Insert Text (créditos)</option>
+      <option value="bg">Background Text</option>
+    </select>
+
+    <div class="row">
+      <div class="col">
+        <label>Ancho (px)</label>
+        <input type="number" id="canvasW" value="512">
+      </div>
+      <div class="col">
+        <label>Alto (px)</label>
+        <input type="number" id="canvasH" value="128">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Tamaño fuente</label>
+        <input type="number" id="fontSize" value="36">
+      </div>
+      <div class="col">
+        <label>Color texto</label>
+        <input type="color" id="textColor" value="#ffffff">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Color fondo</label>
+        <input type="color" id="bgColor" value="#000000">
+      </div>
+      <div class="col check-row">
+        <input type="checkbox" id="transparentBg">
+        <label for="transparentBg">Fondo transparente</label>
+      </div>
+    </div>
+
+    <label>Fuente (.ttf opcional)</label>
+    <input type="file" id="fontFile" accept=".ttf">
+
+    <label>Dirección (solo modo Insert)</label>
+    <select id="insertDir">
+      <option value="left">← Izquierda a centro</option>
+      <option value="right">→ Derecha a centro</option>
+    </select>
+
+    <label>Efectos opcionales</label>
+    <div class="effects-grid">
+      <label><input type="checkbox" class="fx" value="shake"> Temblor</label>
+      <label><input type="checkbox" class="fx" value="pulse"> Pulso</label>
+      <label><input type="checkbox" class="fx" value="bounce"> Rebote</label>
+      <label><input type="checkbox" class="fx" value="fade"> Desvanecer</label>
+    </div>
+
+    <label>Frames por fase</label>
+    <input type="number" id="framesCount" value="24">
+
+    <div class="row">
+      <button id="generateBtn">Generar</button>
+      <button id="downloadZipBtn" class="secondary small">ZIP</button>
+    </div>
+
+    <div class="footer-note">Genera: entrada → ciclo → salida</div>
+  </div>
+
+  <main>
+    <h2>Vista previa</h2>
+    <div class="preview"><canvas id="previewCanvas" width="512" height="128"></canvas></div>
+
+    <div class="frame-controls">
+      <button id="prevFrame" class="small">◀</button>
+      <div id="frameInfo" class="muted">Frame 0 / 0</div>
+      <button id="playPause" class="small">Play</button>
+      <button id="nextFrame" class="small">▶</button>
+    </div>
+
+    <div class="log-title">Log:</div>
+    <pre id="log">Listo.</pre>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="TextForFrames.js"></script>
+</body>
+</html>
+
