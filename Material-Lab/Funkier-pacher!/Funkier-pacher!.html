@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Funkier-Packer</title>
+    <link rel="stylesheet" href="Funkier-pacher!.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <h1>Funkier-Packer</h1>
+
+    <!-- Inputs ocultos -->
+    <input type="file" id="image-input" accept=".png,.jpg,.jpeg" style="display:none;">
+    <input type="file" id="xml-input" accept=".xml" style="display:none;">
+    <input type="file" id="zip-input" accept=".zip" style="display:none;">
+
+    <!-- Botones visibles -->
+    <button id="image-btn">Seleccionar Imagen</button>
+    <button id="xml-btn">Seleccionar XML</button>
+    <button id="zip-btn">Seleccionar ZIP</button>
+    <button id="generate-btn" disabled>Generar</button>
+
+    <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
+
+    <!-- Panel de resultados -->
+    <div id="result-panel"></div>
+
+    <!-- Librería JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- JS unificado -->
+    <script src="funkier-pacher!.js"></script>
+
+    <!-- Footer intacto -->
+    <footer>
+        © 2025 Jarret Labs. Pagina basada en FunkinToFunky!. <br> Esta pagina para nada esta asociada a King GC y su juego, el material que pasa por la pagina tampoco esta asociada.
+        <p>No funciona? <br> Contáctame en Discord:</p>
+        <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+            <i class="fab fa-discord"></i>
+        </a>
+    </footer>
+</body>
+</html>
