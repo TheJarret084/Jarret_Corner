@@ -3,54 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <title>Funkier-Pacher!</title>
-  <link rel="stylesheet" href="Funkier-pacher!.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- FontAwesome para iconos -->
+  <link rel="stylesheet" href="Funkier-pacher!.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <h1>Funkier-Pacher</h1>
+  <h1>Funkier-Pacher!</h1>
 
-  <!-- Inputs ocultos -->
-  <input type="file" id="image-input" accept=".png,.jpg,.jpeg" style="display:none;">
-  <input type="file" id="xml-input" accept=".xml" style="display:none;">
-  <input type="file" id="zip-input" accept=".zip" style="display:none;">
+  <!-- Inputs reales ocultos -->
+  <input type="file" id="image-input" accept=".png,.jpg,.jpeg" hidden>
+  <input type="file" id="xml-input" accept=".xml" hidden>
+  <input type="file" id="zip-input" accept=".zip" hidden>
 
   <!-- Botones visibles -->
   <div id="controls">
-    <button id="image-btn">Seleccionar Imagen</button>
-    <button id="xml-btn">Seleccionar XML</button>
-    <button id="zip-btn">Seleccionar ZIP</button>
-    <button id="generate-btn" disabled>Generar</button>
-    <button id="download-again" style="display:none;">Descargar última</button>
+    <button id="image-btn">📁 Seleccionar Imagen</button>
+    <button id="xml-btn">📄 Seleccionar XML</button>
+    <button id="zip-btn">🗜 Seleccionar ZIP</button>
+    <button id="generate-btn" disabled>⚙️ Generar Spritesheet</button>
   </div>
 
-  <br>
-  <label style="margin-top:10px;">
+  <label>
     <input type="checkbox" id="remove-duplicates"> Quitar frames duplicados
   </label>
 
-  <!-- Texto de estado -->
-  <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
+  <p id="status-text">Selecciona tus archivos para comenzar.</p>
 
-  <!-- Panel de resultados -->
   <div id="result-panel" style="display:none;">
     <div id="result-content"></div>
+    <button id="download-again" style="display:none;">⬇️ Descargar otra vez</button>
   </div>
 
-  <!-- Librería JSZip -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- Script principal -->
-  <script src="funkier-pacher!.js"></script>
-
-  <!-- Footer -->
   <footer>
-    © 2025 Jarret Labs. Página basada en FunkinToFunky!.<br>
-    Esta página para nada está asociada a King GC ni a su juego, el material que pasa por la página tampoco está asociado.
+    © 2025 Jarret Labs — Basado en FunkinToFunky!  
+    <br>Esta página no está asociada a King GC ni su juego.
     <p>No funciona?<br>Contáctame en Discord:</p>
     <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
       <i class="fab fa-discord"></i>
     </a>
   </footer>
+
+  <!-- Librería JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- Script principal -->
+  <script src="Funkier-pacher!.js"></script>
+
+  <!-- Conexión segura con los inputs -->
+  <script>
+    document.getElementById('image-btn').addEventListener('click', () => {
+      document.getElementById('image-input').click();
+    });
+
+    document.getElementById('xml-btn').addEventListener('click', () => {
+      document.getElementById('xml-input').click();
+    });
+
+    document.getElementById('zip-btn').addEventListener('click', () => {
+      document.getElementById('zip-input').click();
+    });
+
+    // Mostrar nombres de archivo seleccionados
+    const status = document.getElementById('status-text');
+    ['image-input', 'xml-input', 'zip-input'].forEach(id => {
+      document.getElementById(id).addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          status.textContent = `Archivo cargado: ${e.target.files[0].name}`;
+        }
+      });
+    });
+  </script>
 </body>
 </html>
