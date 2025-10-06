@@ -3,80 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <title>Funkier-Pacher!</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="Funkier-pacher!.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- FontAwesome para iconos -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <h1>Funkier-Pacher!</h1>
+  <h1>Funkier-Pacher</h1>
 
+  <!-- Inputs ocultos -->
+  <input type="file" id="image-input" accept=".png,.jpg,.jpeg" style="display:none;">
+  <input type="file" id="xml-input" accept=".xml" style="display:none;">
+  <input type="file" id="zip-input" accept=".zip" style="display:none;">
+
+  <!-- Botones visibles -->
   <div id="controls">
-    <!-- Entradas reales -->
-    <input type="file" id="image-input" accept=".png,.jpg,.jpeg" hidden>
-    <input type="file" id="xml-input" accept=".xml" hidden>
-    <input type="file" id="zip-input" accept=".zip" hidden>
-
-    <!-- Botones visibles -->
-    <button id="image-btn">📁 Imagen</button>
-    <button id="xml-btn">📄 XML</button>
-    <button id="zip-btn">🗜 ZIP</button>
-    <button id="generate-btn" disabled>⚙️ Generar Spritesheet</button>
+    <button id="image-btn">Seleccionar Imagen</button>
+    <button id="xml-btn">Seleccionar XML</button>
+    <button id="zip-btn">Seleccionar ZIP</button>
+    <button id="generate-btn" disabled>Generar</button>
+    <button id="download-again" style="display:none;">Descargar última</button>
   </div>
 
-  <!-- Opciones -->
-  <label id="options">
+  <br>
+  <label style="margin-top:10px;">
     <input type="checkbox" id="remove-duplicates"> Quitar frames duplicados
   </label>
 
-  <!-- Drop Zone -->
-  <div id="drop-zone">
-    Arrastra aquí tus archivos (imagen + XML o ZIP con PNGs)
-  </div>
-
-  <!-- Barra de progreso -->
-  <div id="progress-container" style="display:none;">
-    <div id="progress-bar"></div>
-  </div>
-
-  <p id="status-text">Esperando archivos...</p>
+  <!-- Texto de estado -->
+  <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
 
   <!-- Panel de resultados -->
   <div id="result-panel" style="display:none;">
     <div id="result-content"></div>
-    <button id="download-again" style="display:none;">⬇️ Descargar otra vez</button>
   </div>
-
-  <!-- Footer -->
-  <footer>
-    © 2025 Jarret Labs — Basado en FunkinToFunky!  
-    <br>Esta página no está asociada a King GC ni su juego.
-    <p>No funciona?<br>Contáctame en Discord:</p>
-    <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
-      <i class="fab fa-discord"></i>
-    </a>
-  </footer>
 
   <!-- Librería JSZip -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <!-- Script principal -->
   <script src="funkier-pacher!.js"></script>
 
-  <script>
-    // Vincular botones visibles con inputs reales
-    document.getElementById('image-btn').onclick = () => document.getElementById('image-input').click();
-    document.getElementById('xml-btn').onclick = () => document.getElementById('xml-input').click();
-    document.getElementById('zip-btn').onclick = () => document.getElementById('zip-input').click();
-
-    // Efecto visual para el dropzone
-    const drop = document.getElementById('drop-zone');
-    ['dragover','dragenter'].forEach(evn => drop.addEventListener(evn, e=>{
-      e.preventDefault();
-      drop.style.backgroundColor = 'rgba(80,80,160,0.3)';
-    }));
-    ['dragleave','drop'].forEach(evn => drop.addEventListener(evn, e=>{
-      e.preventDefault();
-      drop.style.backgroundColor = 'transparent';
-    }));
-  </script>
+  <!-- Footer -->
+  <footer>
+    © 2025 Jarret Labs. Página basada en FunkinToFunky!.<br>
+    Esta página para nada está asociada a King GC ni a su juego, el material que pasa por la página tampoco está asociado.
+    <p>No funciona?<br>Contáctame en Discord:</p>
+    <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+      <i class="fab fa-discord"></i>
+    </a>
+  </footer>
 </body>
 </html>

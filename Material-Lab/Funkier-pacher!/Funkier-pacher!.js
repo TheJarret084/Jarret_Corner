@@ -1,6 +1,5 @@
 // funkier-pacher!.js
 // Procesa: (1) imagen + XML -> frames -> spritesheet; (2) ZIP de PNGs -> agrupa secuencias -> spritesheets.
-// SOLO cintas (spritesheets). Opción: quitar frames duplicados.
 // Requiere: JSZip (ya incluido en el HTML).
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,22 +14,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const xmlInput = document.getElementById('xml-input');
   const zipInput = document.getElementById('zip-input');
 
-  const dropZone = document.getElementById('drop-zone');
+  // Nota: no usamos drop-zone aquí (lo quitaste), así que no lo buscamos.
   const statusText = document.getElementById('status-text');
-  const progressContainer = document.getElementById('progress-container');
-  const progressBar = document.getElementById('progress-bar');
+  const progressContainer = document.getElementById('progress-container'); // opcional
+  const progressBar = document.getElementById('progress-bar'); // opcional
 
   const resultPanel = document.getElementById('result-panel');
   const resultContent = document.getElementById('result-content');
 
   const removeDuplicatesCheckbox = document.getElementById('remove-duplicates');
 
-  // Validaciones básicas — si falta algo, mostrar error en consola y en UI
-  const needed = { imageBtn, xmlBtn, zipBtn, generateBtn, imageInput, xmlInput, zipInput, dropZone, statusText, progressContainer, progressBar, resultPanel, resultContent, downloadAgainBtn, removeDuplicatesCheckbox };
+  // Comprobación de elementos importantes
+  const needed = { imageBtn, xmlBtn, zipBtn, generateBtn, imageInput, xmlInput, zipInput, statusText, resultPanel, resultContent, downloadAgainBtn };
   for (const [k, v] of Object.entries(needed)) {
-    if (!v) {
-      console.warn(`Funkier: elemento DOM faltante: ${k}`);
-    }
+    if (!v) console.warn(`Funkier: elemento DOM faltante o null: ${k}`);
   }
 
   /* ===== Estado ===== */
@@ -120,10 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const processor = new FunkierPacker();
 
-  /* ===== Bind botones ===== */
-  imageBtn.addEventListener('click', ()=> imageInput.click());
-  xmlBtn.addEventListener('click', ()=> xmlInput.click());
-  zipBtn.addEventListener('click', ()=> zipInput.click());
+  /* ===== Bind botones (funcionales) ===== */
+  if (imageBtn && imageInput) imageBtn.addEventListener('click', ()=> imageInput.click());
+  if (xmlBtn && xmlInput) xmlBtn.addEventListener('click', ()=> xmlInput.click());
+  if (zipBtn && zipInput) zipBtn.addEventListener('click', ()=> zipInput.click());
 
   imageInput.addEventListener('change', ()=>{
     if(imageInput.files.length>0){ state.imageFile = imageInput.files[0]; statusText.textContent = `Imagen: ${state.imageFile.name}`; updateGenerateState(); }
@@ -133,45 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   zipInput.addEventListener('change', ()=>{
     if(zipInput.files.length>0){ state.zipFile = zipInput.files[0]; statusText.textContent = `ZIP: ${state.zipFile.name}`; updateGenerateState(); }
-  });
-
-  // Escucha el custom event 'funkier-drop' desde el HTML (para compatibilidad)
-  document.addEventListener('funkier-drop', (e) => {
-    const files = e.detail;
-    if(files && files.length>0){
-      // intentamos asignar al input zip para mantener UI coherente
-      try {
-        const dt = new DataTransfer();
-        dt.items.add(files[0]);
-        zipInput.files = dt.files;
-      } catch(e){
-        // no crítico; guardamos en estado
-      }
-      state.zipFile = files[0];
-      statusText.textContent = `ZIP: ${state.zipFile.name}`;
-      updateGenerateState();
-    }
-  });
-
-  /* Drag & drop (por si alguien no usa el HTML custom) */
-  ['dragover','dragenter'].forEach(e => dropZone.addEventListener(e, (ev)=>{ ev.preventDefault(); dropZone.classList.add('dragover'); }));
-  ['dragleave','dragend'].forEach(e => dropZone.addEventListener(e, (ev)=>{ ev.preventDefault(); dropZone.classList.remove('dragover'); }));
-  dropZone.addEventListener('drop', (ev)=>{
-    ev.preventDefault();
-    dropZone.classList.remove('dragover');
-    const files = ev.dataTransfer.files;
-    if(files.length>0 && files[0].name.toLowerCase().endsWith('.zip')){
-      try {
-        const dt = new DataTransfer();
-        dt.items.add(files[0]);
-        zipInput.files = dt.files;
-      } catch(e){}
-      state.zipFile = files[0];
-      statusText.textContent = `ZIP: ${state.zipFile.name}`;
-      updateGenerateState();
-    } else {
-      statusText.textContent = 'Arrastra un ZIP válido.';
-    }
   });
 
   generateBtn.addEventListener('click', async ()=>{
