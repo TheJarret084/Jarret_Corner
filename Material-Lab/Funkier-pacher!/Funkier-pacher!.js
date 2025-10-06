@@ -1,12 +1,15 @@
-// funkier-combined.js (solo JS, sin UI, auto-contenido)
-// Requiere JSZip para la manipulación de ZIP (si no se usa ZIP, es opcional)
+//Combina FunkierPacher + UI + procesamiento ZIP y PNG+XML
+// Contiene: FunkierPacker (rotated support) + UI para seleccionar archivos + quitar frames duplicados + creación de ZIP final
 
+/* =========================
+   FunkierPacker_rotated.js
+   ========================= */
 class FunkierPacker {
     constructor() {
-        this.frames = []; // { name, blob }
+        this.frames = [];
     }
 
-    // ======== Procesar imagen + XML (soporta rotated="true") ========
+    // ======== Procesar imagen y XML ========
     async processFiles(imageFile, xmlFile, options = {}, onProgress = ()=>{}) {
         this.frames = [];
         const img = await this._loadImage(imageFile);
@@ -19,99 +22,34 @@ class FunkierPacker {
             const frameCanvas = this._cutFrame(img, f);
             const blob = await this._canvasToBlob(frameCanvas);
 
+            // Limpiar nombre: si termina en .png, quitarlo
             let name = f.name;
-            if (name && name.toLowerCase().endsWith('.png')) name = name.slice(0, -4);
+            if(name.toLowerCase().endsWith('.png')) name = name.slice(0, -4);
 
-            this.frames.push({ name: name || `frame_${i}`, blob });
+            this.frames.push({ name, blob });
             onProgress((i+1)/total);
         }
 
         return this.frames;
     }
 
-    // ======== Procesar ZIP de frames ========
-    async processZip(zipFile, options = {}, onProgress = ()=>{}) {
-        if (!window.JSZip) throw new Error("JSZip no está cargado");
-        const zip = await JSZip.loadAsync(zipFile);
-        const framesList = [];
-
-        for (const filename of Object.keys(zip.files)) {
-            if (!filename.toLowerCase().endsWith('.png')) continue;
-            framesList.push({ name: filename.slice(0, -4), entry: zip.files[filename] });
-        }
-
-        const animGroups = {};
-        for (const f of framesList) {
-            const match = f.name.match(/^(.*?)(\d+)$/);
-            if (!match) {
-                const baseName = f.name;
-                if (!animGroups[baseName]) animGroups[baseName] = [];
-                animGroups[baseName].push({ name: f.name, frameNumber: 0, entry: f.entry });
-                continue;
-            }
-            const baseName = match[1].trim();
-            const frameNumber = parseInt(match[2], 10);
-            if (!animGroups[baseName]) animGroups[baseName] = [];
-            animGroups[baseName].push({ name: f.name, frameNumber, entry: f.entry });
-        }
-
-        // Convertir a blobs
-        const resultGroups = {};
-        for (const [name, frames] of Object.entries(animGroups)) {
-            resultGroups[name] = await Promise.all(frames.map(async f => {
-                if (f.blob) return f;
-                if (f.entry) {
-                    const blob = await f.entry.async('blob');
-                    return { name: f.name, frameNumber: f.frameNumber || 0, blob };
-                }
-                return f;
-            }));
-        }
-
-        return resultGroups;
-    }
-
-    // ======== Crear tiras horizontales (Blobs) ========
-    async createStrips(animGroups, options = {}) {
-        const maxPerStrip = options.maxPerStrip || 0;
-        const removeDuplicates = options.removeDuplicates !== false; // default true
-
-        const stripsResult = {};
-
-        for (const [name, framesArr] of Object.entries(animGroups)) {
-            let blobs = framesArr.map(f => f.blob);
-            if (removeDuplicates) blobs = await this._removeDuplicateBlobs(blobs);
-
-            const strips = (maxPerStrip > 0) ? this._chunkArray(blobs, maxPerStrip) : [blobs];
-
-            stripsResult[name] = [];
-            for (let i = 0; i < strips.length; i++) {
-                const stripBlob = await this._createStrip(strips[i]);
-                const stripName = strips.length > 1 ? `${name}_part${i+1}.png` : `${name}.png`;
-                stripsResult[name].push({ name: stripName, blob: stripBlob });
-            }
-        }
-
-        return stripsResult; // { animName: [{name, blob}, ...], ... }
-    }
-
-    // ======== Generar ZIP final ========
-    async generateZip(stripsResult, zipName = 'frames.zip') {
-        if (!window.JSZip) throw new Error("JSZip no está cargado");
+    // ======== Generar ZIP de frames ========
+    async generateZip() {
+        if(this.frames.length === 0) throw new Error("No hay frames procesados");
         const zip = new JSZip();
-        for (const strips of Object.values(stripsResult)) {
-            for (const s of strips) zip.file(s.name, s.blob);
-        }
+        this.frames.forEach(f => {
+            zip.file(f.name + '.png', f.blob);
+        });
         const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-        return { blob, fileName: zipName };
+        return { blob, fileName: 'frames.zip' };
     }
 
-    // ======== Internas ========
+    // ======== Funciones internas ========
     _loadImage(file) {
         return new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve(img);
-            img.onerror = (e) => reject(new Error("No se pudo cargar la imagen: " + (e?.message || 'error')));
+            img.onerror = reject;
             img.src = URL.createObjectURL(file);
         });
     }
@@ -121,15 +59,23 @@ class FunkierPacker {
         const xml = parser.parseFromString(xmlText, "text/xml");
         const frameNodes = Array.from(xml.querySelectorAll('SubTexture'));
 
-        const parseIntOr0 = v => (v === null || v === undefined || v === '') ? 0 : (Number.isNaN(parseInt(v,10)) ? 0 : parseInt(v,10));
-        const parseBool = v => v ? (v.toString().toLowerCase() === 'true' || v.toString() === '1') : false;
+        const parseIntOr0 = (v) => {
+            if (v === null || v === undefined || v === '') return 0;
+            const n = parseInt(v, 10);
+            return Number.isNaN(n) ? 0 : n;
+        };
+        const parseBool = (v) => {
+            if (!v) return false;
+            v = v.toString().toLowerCase();
+            return (v === 'true' || v === '1');
+        };
 
         return {
             frames: frameNodes.map(n => {
-                let name = n.getAttribute('name') || 'unnamed';
-                if (name.toLowerCase().endsWith('.png')) name = name.slice(0,-4);
+                let name = n.getAttribute('name');
+                if(name && name.toLowerCase().endsWith('.png')) name = name.slice(0,-4); // limpiar .png extra
                 return {
-                    name,
+                    name: name || 'unnamed',
                     x: parseIntOr0(n.getAttribute('x')),
                     y: parseIntOr0(n.getAttribute('y')),
                     width: parseIntOr0(n.getAttribute('width')),
@@ -145,89 +91,397 @@ class FunkierPacker {
     }
 
     _cutFrame(img, frame) {
-        const srcCanvas = document.createElement('canvas');
-        srcCanvas.width = frame.width;
-        srcCanvas.height = frame.height;
-        const sctx = srcCanvas.getContext('2d');
-        sctx.drawImage(img, frame.x, frame.y, frame.width, frame.height, 0, 0, frame.width, frame.height);
+        // src rectangle in atlas
+        const srcW = frame.width;
+        const srcH = frame.height;
 
+        // extraer el rect original tal como está en el atlas (sin "des-rotar")
+        const srcCanvas = document.createElement('canvas');
+        srcCanvas.width = srcW;
+        srcCanvas.height = srcH;
+        const sctx = srcCanvas.getContext('2d');
+        sctx.drawImage(
+            img,
+            frame.x, frame.y, srcW, srcH,
+            0, 0, srcW, srcH
+        );
+
+        // canvas final con las dimensiones de la "frameWidth/frameHeight" (tam original antes de trimming)
+        const finalW = frame.frameWidth;
+        const finalH = frame.frameHeight;
         const canvas = document.createElement('canvas');
-        canvas.width = frame.frameWidth;
-        canvas.height = frame.frameHeight;
+        canvas.width = finalW;
+        canvas.height = finalH;
         const ctx = canvas.getContext('2d');
 
+        const offsetX = frame.frameX; // normalmente negativo si el sprite fue recortado
+        const offsetY = frame.frameY;
+
         if (!frame.rotated) {
-            ctx.drawImage(srcCanvas, -frame.frameX, -frame.frameY);
+            // dibujo directo: la posición dentro del canvas final debe compensar frameX/frameY
+            ctx.drawImage(srcCanvas, -offsetX, -offsetY);
             return canvas;
         }
 
-        // rotado -90° para corregir
+        // Si está rotado en el atlas, debemos rotarlo -90 grados (contra las manecillas) para restaurar la orientación.
+        // Primero creamos un canvas intermedio con la imagen rotada -90deg.
         const rotatedCanvas = document.createElement('canvas');
-        rotatedCanvas.width = frame.height;
-        rotatedCanvas.height = frame.width;
+        // al rotar -90°, las dimensiones se invierten
+        rotatedCanvas.width = srcH;
+        rotatedCanvas.height = srcW;
         const rctx = rotatedCanvas.getContext('2d');
-        rctx.translate(0, frame.width);
-        rctx.rotate(-Math.PI/2);
+
+        // trasladar + rotar (-90 grados)
+        rctx.translate(0, srcW);
+        rctx.rotate(-Math.PI / 2);
         rctx.drawImage(srcCanvas, 0, 0);
 
-        ctx.drawImage(rotatedCanvas, -frame.frameX, -frame.frameY);
+        // Ahora rotatedCanvas contiene la imagen en orientación correcta (como era originalmente)
+        // Dibujamos la imagen rotada en la posición que corresponde dentro del canvas final, compensando frameX/frameY
+        ctx.drawImage(rotatedCanvas, -offsetX, -offsetY);
+
         return canvas;
     }
 
     _canvasToBlob(canvas) {
         return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     }
-
-    _createStrip(blobs) {
-        return new Promise(async resolve => {
-            if (!blobs || blobs.length === 0) {
-                const c = document.createElement('canvas'); c.width=1;c.height=1;
-                return resolve(await this._canvasToBlob(c));
-            }
-            const images = await Promise.all(blobs.map(b => createImageBitmap(b)));
-            const maxWidth = Math.max(...images.map(img => img.width));
-            const maxHeight = Math.max(...images.map(img => img.height));
-            const canvas = document.createElement('canvas');
-            canvas.width = maxWidth * images.length;
-            canvas.height = maxHeight;
-            const ctx = canvas.getContext('2d');
-            images.forEach((img,i) => {
-                const x = i*maxWidth + (maxWidth - img.width)/2;
-                const y = (maxHeight - img.height)/2;
-                ctx.drawImage(img,x,y);
-            });
-            resolve(await this._canvasToBlob(canvas));
-        });
-    }
-
-    _chunkArray(arr, size) {
-        if (size <= 0) return [arr.slice()];
-        const out = [];
-        for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i,i+size));
-        return out;
-    }
-
-    async _removeDuplicateBlobs(blobs) {
-        if (!blobs || blobs.length<=1) return blobs;
-        const checksums = [], results = [];
-        for (const blob of blobs) {
-            try {
-                const bmp = await createImageBitmap(blob);
-                const c = document.createElement('canvas'); c.width=bmp.width;c.height=bmp.height;
-                const ctx=c.getContext('2d'); ctx.drawImage(bmp,0,0);
-                const data = ctx.getImageData(0,0,c.width,c.height).data;
-                let s=0; for (let i=0;i<data.length;i+=4) s=(s+data[i]+data[i+1]*3+data[i+2]*7+data[i+3]*11)>>>0;
-                if (!checksums.includes(s)) { checksums.push(s); results.push(blob); }
-                bmp.close?.();
-            } catch(e){ results.push(blob); }
-        }
-        return results;
-    }
 }
 
-// export / global
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FunkierPacker;
 } else {
     window.FunkierPacker = FunkierPacker;
 }
+
+/* =========================
+   UI + lógica de procesamiento
+   ========================= */
+document.addEventListener('DOMContentLoaded', () => {
+    // Referencias DOM
+    const imageBtn = document.getElementById('image-btn');
+    const xmlBtn = document.getElementById('xml-btn');
+    const zipBtn = document.getElementById('zip-btn');
+    const generateBtn = document.getElementById('generate-btn');
+    const statusText = document.getElementById('status-text');
+    const resultPanel = document.getElementById('result-panel');
+
+    const imageInput = document.getElementById('image-input');
+    const xmlInput = document.getElementById('xml-input');
+    const zipInput = document.getElementById('zip-input');
+
+    const removeDuplicatesCheckbox = document.getElementById('remove-duplicates');
+    const outputGifCheckbox = document.getElementById('output-gif');
+
+    let state = { mode: 'packer', imageFile: null, xmlFile: null, zipFile: null };
+
+    const packer = new FunkierPacker();
+
+    // ======== Botones ========
+    imageBtn.addEventListener('click', () => imageInput.click());
+    xmlBtn.addEventListener('click', () => xmlInput.click());
+    zipBtn?.addEventListener('click', () => zipInput.click());
+
+    // ======== Inputs ========
+    imageInput.addEventListener('change', () => {
+        if (imageInput.files.length > 0) {
+            state.imageFile = imageInput.files[0];
+            checkReady();
+        }
+    });
+
+    xmlInput.addEventListener('change', () => {
+        if (xmlInput.files.length > 0) {
+            state.xmlFile = xmlInput.files[0];
+            checkReady();
+        }
+    });
+
+    zipInput?.addEventListener('change', () => {
+        if (zipInput.files.length > 0) {
+            state.mode = 'zip';
+            state.zipFile = zipInput.files[0];
+            generateBtn.disabled = false;
+            statusText.textContent = "ZIP seleccionado: " + state.zipFile.name;
+        }
+    });
+
+    // ======== Chequeo de disponibilidad ========
+    function checkReady() {
+        if (state.imageFile && state.xmlFile) {
+            state.mode = 'packer';
+            generateBtn.disabled = false;
+            statusText.textContent = `Listo para generar: ${state.imageFile.name} + ${state.xmlFile.name}`;
+        } else {
+            generateBtn.disabled = true;
+            if (state.imageFile && !state.xmlFile) statusText.textContent = "Falta el XML";
+            if (state.xmlFile && !state.imageFile) statusText.textContent = "Falta la imagen";
+        }
+    }
+
+    // ======== Generar ========
+    generateBtn.addEventListener('click', async () => {
+        resultPanel.innerHTML = '';
+        // leer opción de quitar duplicados
+        const removeDuplicates = !!removeDuplicatesCheckbox?.checked;
+        const outputGif = !!outputGifCheckbox?.checked;
+
+        if (state.mode === 'packer') await runPacker(removeDuplicates);
+        else await runZip(removeDuplicates, outputGif);
+    });
+
+    // ======== Funciones principales ========
+    async function runPacker(removeDuplicates = false) {
+        try {
+            statusText.textContent = "Procesando PNG + XML...";
+            const frames = await packer.processFiles(state.imageFile, state.xmlFile);
+            const animGroups = groupFrames(frames);
+            await createTiras(animGroups, state.imageFile.name, removeDuplicates, false);
+        } catch (err) {
+            statusText.textContent = 'Error: ' + (err && err.message ? err.message : err);
+            console.error(err);
+        }
+    }
+
+    async function runZip(removeDuplicates = false, outputGif = false) {
+        try {
+            statusText.textContent = "Procesando ZIP de frames...";
+            const zip = await JSZip.loadAsync(state.zipFile);
+            const framesList = [];
+
+            for (const [filename, entry] of Object.entries(zip.files)) {
+                if (!filename.toLowerCase().endsWith('.png')) continue;
+                framesList.push({ name: filename.slice(0, -4), entry });
+            }
+
+            const animGroups = {};
+            for (const f of framesList) {
+                const match = f.name.match(/^(.*?)(\d+)$/);
+                if (!match) continue;
+                const baseName = match[1].trim();
+                const frameNumber = parseInt(match[2]);
+                if (!animGroups[baseName]) animGroups[baseName] = [];
+                animGroups[baseName].push({ name: f.name, frameNumber, entry: f.entry });
+            }
+
+            await createTiras(animGroups, state.zipFile.name, removeDuplicates, outputGif);
+        } catch (err) {
+            statusText.textContent = 'Error: ' + (err && err.message ? err.message : err);
+            console.error(err);
+        }
+    }
+
+    // ======== Crear tiras y mostrar previews ========
+    async function createTiras(animGroups, originalName, removeDuplicates = false, outputGif = false) {
+        const zip = new JSZip();
+        const sortedNames = Object.keys(animGroups).sort();
+
+        let total = sortedNames.length;
+        let processed = 0;
+
+        for (const animName of sortedNames) {
+            statusText.textContent = `Procesando: ${animName} (${processed+1}/${total})`;
+            let framesArr = animGroups[animName];
+            // si vienen desde packer, framesArr items tienen .name and .blob (no frameNumber)
+            // si vienen de zip, tienen entry+frameNumber
+            framesArr.sort((a, b) => (a.frameNumber || 0) - (b.frameNumber || 0));
+
+            // Convertir a blobs (si ya tienen blob, usarlo)
+            let blobs = await Promise.all(framesArr.map(async f => {
+                if (f.blob) return f.blob;
+                return await f.entry.async('blob');
+            }));
+
+            // Quitar frames duplicados si se pidió
+            if (removeDuplicates && blobs.length > 1) {
+                const uniqueBlobs = [blobs[0]];
+                for (let i = 1; i < blobs.length; i++) {
+                    const curBmp = await createImageBitmap(blobs[i]);
+                    const prevBmp = await createImageBitmap(uniqueBlobs[uniqueBlobs.length - 1]);
+                    const equal = await areImagesEqual(curBmp, prevBmp);
+                    // liberar bitmaps si el navegador los admite
+                    if (!equal) uniqueBlobs.push(blobs[i]);
+                }
+                blobs = uniqueBlobs;
+            }
+
+            // Si se pidió GIF y hay más de 1 frame, crear GIF (placeholder simple)
+            if (outputGif && blobs.length > 1) {
+                try {
+                    const bitmaps = await Promise.all(blobs.map(b => createImageBitmap(b)));
+                    const gifBlob = await createGif(bitmaps);
+                    zip.file(`${animName}.gif`, gifBlob);
+                    // preview como imagen fija con etiqueta GIF
+                    const previewBlob = await makeLabeledBlob(bitmaps[0], `${animName} (GIF)`, bitmaps[0].width, bitmaps[0].height);
+                    const previewUrl = URL.createObjectURL(previewBlob);
+                    addPreview(animName + ' (GIF)', [previewBlob]);
+                } catch (e) {
+                    // si falla la creación de GIF, hacemos spritesheet en su lugar
+                    const strip = await createStrip(blobs);
+                    zip.file(`${animName}.png`, strip);
+                    addPreview(animName, blobs);
+                }
+            } else {
+                // Crear tira (spritesheet)
+                const stripBlob = await createStrip(blobs);
+                zip.file(`${animName}.png`, stripBlob);
+                addPreview(animName, blobs);
+            }
+
+            processed++;
+        }
+
+        // Botón de descarga
+        const finalBlob = await zip.generateAsync({ type: 'blob' });
+        const baseName = originalName.replace(/\.(png|jpg|jpeg|zip)$/i, '');
+        const finalName = `TJ-${baseName}.zip`;
+        addDownloadButton(finalBlob, finalName);
+
+        statusText.textContent = "¡Procesamiento completado!";
+    }
+
+    // ======== Crear tira desde blobs (centra cada frame en celda) ========
+    async function createStrip(blobs) {
+        if (!blobs || blobs.length === 0) {
+            const c = document.createElement('canvas');
+            c.width = 1; c.height = 1;
+            return new Promise(res => c.toBlob(res, 'image/png'));
+        }
+        const images = await Promise.all(blobs.map(b => createImageBitmap(b)));
+        const maxWidth = Math.max(...images.map(img => img.width));
+        const maxHeight = Math.max(...images.map(img => img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = maxWidth * images.length;
+        canvas.height = maxHeight;
+        const ctx = canvas.getContext('2d');
+
+        images.forEach((img, i) => {
+            const x = i * maxWidth + (maxWidth - img.width) / 2;
+            const y = (maxHeight - img.height) / 2;
+            ctx.drawImage(img, x, y);
+        });
+
+        return new Promise(resolve => canvas.toBlob(resolve));
+    }
+
+    // ======== Mostrar previews por animación ========
+    function addPreview(name, blobsArray) {
+        const container = document.createElement('div');
+        container.className = 'preview-container';
+
+        // Nombre de la animación
+        const title = document.createElement('div');
+        title.className = 'preview-title';
+        title.textContent = name;
+        container.appendChild(title);
+
+        // Contenedor horizontal de frames
+        const stripWrapper = document.createElement('div');
+        stripWrapper.className = 'preview-strip-wrapper';
+        blobsArray.forEach(blob => {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            stripWrapper.appendChild(img);
+        });
+        container.appendChild(stripWrapper);
+
+        // Número de frames
+        const label = document.createElement('div');
+        label.className = 'preview-label';
+        label.textContent = `${blobsArray.length} frame${blobsArray.length > 1 ? 's' : ''}`;
+        container.appendChild(label);
+
+        resultPanel.appendChild(container);
+    }
+
+    // ======== Botón de descarga ========
+    function addDownloadButton(blob, fileName) {
+        const btn = document.createElement('button');
+        btn.className = 'download-btn';
+        btn.textContent = "Descargar ZIP";
+        btn.addEventListener('click', () => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+        resultPanel.appendChild(btn);
+    }
+
+    // ======== Agrupar frames por animación (para packer output) ========
+    function groupFrames(frames) {
+        const animGroups = {};
+        for (const f of frames) {
+            // f.name puede venir sin número (single) o con número (walk0001)
+            const match = f.name.match(/^(.*?)(\d+)$/);
+            if (!match) {
+                // si no tiene número, usar todo el nombre como base y poner 0
+                const baseName = f.name.trim();
+                if (!animGroups[baseName]) animGroups[baseName] = [];
+                animGroups[baseName].push({ name: f.name, frameNumber: 0, blob: f.blob });
+                continue;
+            }
+            const baseName = match[1].trim();
+            const frameNumber = parseInt(match[2]);
+            if (!animGroups[baseName]) animGroups[baseName] = [];
+            animGroups[baseName].push({ name: f.name, frameNumber, blob: f.blob });
+        }
+        return animGroups;
+    }
+
+    // ======== Comparar imágenes para duplicados ========
+    async function areImagesEqual(img1, img2) {
+        // img1, img2: ImageBitmap or HTMLImageElement
+        if (img1.width !== img2.width || img1.height !== img2.height) return false;
+        const [data1, data2] = await Promise.all([getImageData(img1), getImageData(img2)]);
+        for (let i = 0; i < data1.length; i += 4) {
+            if (data1[i] !== data2[i] || data1[i+1] !== data2[i+1] || data1[i+2] !== data2[i+2] || data1[i+3] !== data2[i+3]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function getImageData(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        return ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    }
+
+    // ======== GIF creation (simplified placeholder) ========
+    async function createGif(images) {
+        // images: array of ImageBitmap
+        // Esto es un placeholder simple: creamos un PNG del primer frame y lo devolvemos como "gif"
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const { width, height } = images[0];
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(images[0], 0, 0);
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    }
+
+    async function makeLabeledBlob(imageBitmap, label, width, height) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(imageBitmap, 0, 0);
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, canvas.height - 24, canvas.width, 24);
+        ctx.font = 'bold 12px Arial';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, canvas.width/2, canvas.height - 8);
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    }
+
+    // Fin DOMContentLoaded
+});
+
+// Good morning abelito V2

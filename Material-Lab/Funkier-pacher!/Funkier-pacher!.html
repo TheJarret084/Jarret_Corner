@@ -1,76 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Funkier-Pacher!</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="Funkier-pacher!.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <title>Funkier-Pacher!</title>
+    <link rel="stylesheet" href="Funkier-pacher!.css">
+    <link rel="icon" href="ico.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <h1>Funkier-Pacher!</h1>
+    <h1>Funkier-Pacher!</h1>
 
-  <!-- Inputs reales ocultos -->
-  <input type="file" id="image-input" accept=".png,.jpg,.jpeg" hidden>
-  <input type="file" id="xml-input" accept=".xml" hidden>
-  <input type="file" id="zip-input" accept=".zip" hidden>
+    <!-- Inputs ocultos -->
+    <input type="file" id="image-input" accept=".png,.jpg,.jpeg,.webp" style="display:none;">
+    <input type="file" id="xml-input" accept=".xml" style="display:none;">
+    <input type="file" id="zip-input" accept=".zip" style="display:none;">
 
-  <!-- Botones visibles -->
-  <div id="controls">
-    <button id="image-btn">📁 Seleccionar Imagen</button>
-    <button id="xml-btn">📄 Seleccionar XML</button>
-    <button id="zip-btn">🗜 Seleccionar ZIP</button>
-    <button id="generate-btn" disabled>⚙️ Generar Spritesheet</button>
-  </div>
+    <!-- Botones visibles -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+        <button id="image-btn">Seleccionar Imagen (PNG)</button>
+        <button id="xml-btn">Seleccionar XML</button>
+        <button id="zip-btn">Seleccionar ZIP</button>
+        <button id="generate-btn" disabled>Generar</button>
+    </div>
 
-  <label>
-    <input type="checkbox" id="remove-duplicates"> Quitar frames duplicados
-  </label>
+    <!-- Opciones -->
+    <div style="margin-top:12px; display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap;">
+        <label style="display:flex; gap:8px; align-items:center;">
+            <input type="checkbox" id="remove-duplicates"> Quitar frames duplicados
+        </label>
+        <label style="display:flex; gap:8px; align-items:center;">
+            <input type="checkbox" id="output-gif"> Salida GIF cuando aplique
+        </label>
+    </div>
 
-  <p id="status-text">Selecciona tus archivos para comenzar.</p>
+    <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
 
-  <div id="result-panel" style="display:none;">
-    <div id="result-content"></div>
-    <button id="download-again" style="display:none;">⬇️ Descargar otra vez</button>
-  </div>
+    <!-- Panel de resultados -->
+    <div id="result-panel"></div>
 
-  <footer>
-    © 2025 Jarret Labs — Basado en FunkinToFunky!  
-    <br>Esta página no está asociada a King GC ni su juego.
-    <p>No funciona?<br>Contáctame en Discord:</p>
-    <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
-      <i class="fab fa-discord"></i>
-    </a>
-  </footer>
+    <footer>
+        © 2025 Jarret Labs. Basado en FunkinToFunky!. <br> Esta pagina para nada esta asociada a King GC y su juego, el material que pasa por la pagina tampoco esta asociada.
+        <p>No funciona? <br> Contáctame en Discord:</p>
+        <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+            <i class="fab fa-discord"></i>
+        </a>
+    </footer>
 
-  <!-- Librería JSZip -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- Script principal -->
-  <script src="Funkier-pacher!.js"></script>
+    <!-- Librería JSZip (para leer y crear ZIPs) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-  <!-- Conexión segura con los inputs -->
-  <script>
-    document.getElementById('image-btn').addEventListener('click', () => {
-      document.getElementById('image-input').click();
-    });
-
-    document.getElementById('xml-btn').addEventListener('click', () => {
-      document.getElementById('xml-input').click();
-    });
-
-    document.getElementById('zip-btn').addEventListener('click', () => {
-      document.getElementById('zip-input').click();
-    });
-
-    // Mostrar nombres de archivo seleccionados
-    const status = document.getElementById('status-text');
-    ['image-input', 'xml-input', 'zip-input'].forEach(id => {
-      document.getElementById(id).addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-          status.textContent = `Archivo cargado: ${e.target.files[0].name}`;
-        }
-      });
-    });
-  </script>
+    <!-- Script principal -->
+    <script src="Funkier-pacher!.js"></script>
 </body>
 </html>
