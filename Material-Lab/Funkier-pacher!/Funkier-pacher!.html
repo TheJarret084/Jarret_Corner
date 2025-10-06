@@ -1,44 +1,104 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Funkier-Packer</title>
-    <link rel="stylesheet" href="Funkier-pacher!.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- FontAwesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <title>Funkier-Packer</title>
+  <link rel="stylesheet" href="Funkier-pacher!.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- FontAwesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <h1>Funkier-Packer</h1>
+  <h1>Funkier-Packer</h1>
 
-    <!-- Inputs ocultos -->
-    <input type="file" id="image-input" accept=".png,.jpg,.jpeg" style="display:none;">
-    <input type="file" id="xml-input" accept=".xml" style="display:none;">
-    <input type="file" id="zip-input" accept=".zip" style="display:none;">
+  <!-- Inputs ocultos -->
+  <input type="file" id="image-input" accept=".png,.jpg,.jpeg" style="display:none;">
+  <input type="file" id="xml-input" accept=".xml" style="display:none;">
+  <input type="file" id="zip-input" accept=".zip" style="display:none;">
 
-    <!-- Botones visibles -->
-    <button id="image-btn">Seleccionar Imagen</button>
-    <button id="xml-btn">Seleccionar XML</button>
-    <button id="zip-btn">Seleccionar ZIP</button>
-    <button id="generate-btn" disabled>Generar</button>
+  <!-- Botones visibles -->
+  <button id="image-btn">Seleccionar Imagen</button>
+  <button id="xml-btn">Seleccionar XML</button>
+  <button id="zip-btn">Seleccionar ZIP</button>
+  <button id="generate-btn" disabled>Generar</button>
+  <button id="download-again" style="display:none;">Descargar última</button>
 
-    <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
+  <br>
+  <label style="margin-top:10px;">
+    <input type="checkbox" id="remove-duplicates"> Quitar frames duplicados
+  </label>
 
-    <!-- Panel de resultados -->
-    <div id="result-panel"></div>
+  <!-- Área drag & drop -->
+  <div id="drop-zone" style="
+      border: 2px dashed #555;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      width: 90%;
+      max-width: 800px;
+      text-align: center;
+      color: #ccc;
+      transition: background 0.2s, color 0.2s;">
+    Arrastra aquí tu ZIP o selecciona archivos arriba.
+  </div>
 
-    <!-- Librería JSZip -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- JS unificado -->
-    <script src="funkier-pacher!.js"></script>
+  <!-- Progreso -->
+  <div id="progress-container" style="width:90%;max-width:800px;margin-top:25px;display:none;">
+    <div id="progress-bar" style="
+      width:0%;
+      height:10px;
+      background:#4e4ecb;
+      border-radius:5px;
+      transition:width 0.3s;"></div>
+  </div>
 
-    <!-- Footer intacto -->
-    <footer>
-        © 2025 Jarret Labs. Pagina basada en FunkinToFunky!. <br> Esta pagina para nada esta asociada a King GC y su juego, el material que pasa por la pagina tampoco esta asociada.
-        <p>No funciona? <br> Contáctame en Discord:</p>
-        <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
-            <i class="fab fa-discord"></i>
-        </a>
-    </footer>
+  <!-- Texto de estado -->
+  <p id="status-text">Selecciona los archivos necesarios para continuar.</p>
+
+  <!-- Panel de resultados -->
+  <div id="result-panel" style="display:none;">
+    <div id="result-content"></div>
+  </div>
+
+  <!-- Librería JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- JS principal (asegúrate de que este archivo exista con este nombre en tu repo) -->
+  <script src="funkier-pacher!.js"></script>
+
+  <!-- Footer -->
+  <footer>
+    © 2025 Jarret Labs. Página basada en FunkinToFunky!.<br>
+    Esta página para nada está asociada a King GC ni a su juego, el material que pasa por la página tampoco está asociado.
+    <p>No funciona?<br>Contáctame en Discord:</p>
+    <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+      <i class="fab fa-discord"></i>
+    </a>
+  </footer>
+
+  <script>
+    // Efecto visual para drag-over (solo visual)
+    const drop = document.getElementById('drop-zone');
+    ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => {
+      e.preventDefault();
+      drop.style.background = 'rgba(70,70,130,0.25)';
+      drop.style.color = '#fff';
+    }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+      e.preventDefault();
+      drop.style.background = 'transparent';
+      drop.style.color = '#ccc';
+    }));
+
+    // Manejo de drop: dejamos que el script principal lo procese también via estado
+    drop.addEventListener('drop', (ev) => {
+      ev.preventDefault();
+      const files = ev.dataTransfer.files;
+      if(files && files.length > 0) {
+        // emitimos un evento custom para que el script principal lo capture si lo necesita
+        const event = new CustomEvent('funkier-drop', { detail: files });
+        document.dispatchEvent(event);
+      }
+    });
+  </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
-// funkier-combined.js
+// funkier-pacher!.js
 // Procesa: (1) imagen + XML -> frames -> spritesheet; (2) ZIP de PNGs -> agrupa secuencias -> spritesheets.
 // SOLO cintas (spritesheets). Opción: quitar frames duplicados.
-// Requiere: JSZip (ya incluido en HTML).
+// Requiere: JSZip (ya incluido en el HTML).
 
 document.addEventListener('DOMContentLoaded', () => {
   /* ===== DOM ===== */
@@ -24,6 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultContent = document.getElementById('result-content');
 
   const removeDuplicatesCheckbox = document.getElementById('remove-duplicates');
+
+  // Validaciones básicas — si falta algo, mostrar error en consola y en UI
+  const needed = { imageBtn, xmlBtn, zipBtn, generateBtn, imageInput, xmlInput, zipInput, dropZone, statusText, progressContainer, progressBar, resultPanel, resultContent, downloadAgainBtn, removeDuplicatesCheckbox };
+  for (const [k, v] of Object.entries(needed)) {
+    if (!v) {
+      console.warn(`Funkier: elemento DOM faltante: ${k}`);
+    }
+  }
 
   /* ===== Estado ===== */
   const state = {
@@ -48,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const canvas = this._cutFrame(img, f);
         const blob = await this._canvasToBlob(canvas);
         this.frames.push({ name: f.name, blob, width:canvas.width, height:canvas.height });
-        onProgress((i+1)/total);
+        try { onProgress((i+1)/total); } catch(e){}
       }
       return this.frames;
     }
@@ -83,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return new Promise((res,rej)=>{
         const i = new Image();
         i.onload = ()=>res(i);
-        i.onerror = rej;
+        i.onerror = (e)=>rej(new Error('No se pudo cargar la imagen: ' + (e?.message||e)));
         i.src = URL.createObjectURL(file);
       });
     }
@@ -101,8 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     _cutFrame(img, frame){
       const c = document.createElement('canvas');
-      c.width = frame.width;
-      c.height = frame.height;
+      c.width = Math.max(1, frame.width);
+      c.height = Math.max(1, frame.height);
       const ctx = c.getContext('2d');
       ctx.drawImage(img, frame.x, frame.y, frame.width, frame.height, 0,0, frame.width, frame.height);
       return c;
@@ -127,23 +135,49 @@ document.addEventListener('DOMContentLoaded', () => {
     if(zipInput.files.length>0){ state.zipFile = zipInput.files[0]; statusText.textContent = `ZIP: ${state.zipFile.name}`; updateGenerateState(); }
   });
 
-  /* Drag & drop */
-  ['dragover','dragenter'].forEach(e => dropZone.addEventListener(e, (ev)=>{ ev.preventDefault(); dropZone.classList.add('dragover'); }));
-  ['dragleave','dragend','drop'].forEach(e => dropZone.addEventListener(e, (ev)=>{ ev.preventDefault(); dropZone.classList.remove('dragover'); }));
-  dropZone.addEventListener('drop', (ev)=>{
-    const files = ev.dataTransfer.files;
-    if(files.length>0 && files[0].name.toLowerCase().endsWith('.zip')){
-      zipInput.files = files;
+  // Escucha el custom event 'funkier-drop' desde el HTML (para compatibilidad)
+  document.addEventListener('funkier-drop', (e) => {
+    const files = e.detail;
+    if(files && files.length>0){
+      // intentamos asignar al input zip para mantener UI coherente
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        zipInput.files = dt.files;
+      } catch(e){
+        // no crítico; guardamos en estado
+      }
       state.zipFile = files[0];
       statusText.textContent = `ZIP: ${state.zipFile.name}`;
       updateGenerateState();
     }
   });
 
+  /* Drag & drop (por si alguien no usa el HTML custom) */
+  ['dragover','dragenter'].forEach(e => dropZone.addEventListener(e, (ev)=>{ ev.preventDefault(); dropZone.classList.add('dragover'); }));
+  ['dragleave','dragend'].forEach(e => dropZone.addEventListener(e, (ev)=>{ ev.preventDefault(); dropZone.classList.remove('dragover'); }));
+  dropZone.addEventListener('drop', (ev)=>{
+    ev.preventDefault();
+    dropZone.classList.remove('dragover');
+    const files = ev.dataTransfer.files;
+    if(files.length>0 && files[0].name.toLowerCase().endsWith('.zip')){
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        zipInput.files = dt.files;
+      } catch(e){}
+      state.zipFile = files[0];
+      statusText.textContent = `ZIP: ${state.zipFile.name}`;
+      updateGenerateState();
+    } else {
+      statusText.textContent = 'Arrastra un ZIP válido.';
+    }
+  });
+
   generateBtn.addEventListener('click', async ()=>{
     clearResults();
-    progressContainer.style.display = 'block';
-    progressBar.style.width = '0%';
+    if(progressContainer) progressContainer.style.display = 'block';
+    if(progressBar) progressBar.style.width = '0%';
     try{
       if(state.zipFile){
         await processZipFile(state.zipFile);
@@ -174,10 +208,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function clearResults(){
-    resultContent.innerHTML = '';
-    resultPanel.style.display = 'none';
+    if(resultContent) resultContent.innerHTML = '';
+    if(resultPanel) resultPanel.style.display = 'none';
     state.lastDownloadUrl = null; state.lastFileName = null;
-    downloadAgainBtn.style.display = 'none';
+    if(downloadAgainBtn) downloadAgainBtn.style.display = 'none';
   }
 
   /* ===== ZIP processing ===== */
@@ -185,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statusText.textContent = 'Leyendo ZIP...';
     const zip = await JSZip.loadAsync(file);
     const { imageGroups, singleImages } = await organizeImages(zip);
-    const totalItems = Object.keys(imageGroups).length + singleImages.length || 1;
+    const totalItems = (Object.keys(imageGroups).length + singleImages.length) || 1;
     let processed = 0;
     const previews = [];
     const sheetBlobs = [];
@@ -217,12 +251,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const zipRes = await processor.generateZipSheets(sheetBlobs);
     state.lastDownloadUrl = URL.createObjectURL(zipRes.blob);
     state.lastFileName = `cintas_${file.name.replace(/\.zip$/i,'')}.zip`;
-    downloadAgainBtn.style.display = 'inline-block';
-    state.lastDownloadUrl = URL.createObjectURL(zipRes.blob); state.lastFileName = `cintas_${file.name.replace(/\.zip$/i,'')}.zip`;
+    if(downloadAgainBtn) downloadAgainBtn.style.display = 'inline-block';
 
     displayResults(previews);
     statusText.textContent = '¡Listo! Descarga disponible.';
-    progressBar.style.width = '100%';
+    if(progressBar) progressBar.style.width = '100%';
   }
 
   async function organizeImages(zip){
@@ -245,7 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
         imageGroupsSafeAdd(temp, k, files);
       }
     }
-    // we need to return imageGroups properly (temp contains both)
     const imageGroups = {};
     for(const [k, files] of Object.entries(temp)){
       if(files.length>1 || (files.length===1 && files[0].frameNumber!==0)) imageGroups[k] = files;
@@ -308,7 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if(a.width !== b.width || a.height !== b.height) return false;
     const d1 = getImageDataFromBitmap(a);
     const d2 = getImageDataFromBitmap(b);
-    // getImageDataFromBitmap returns Uint8ClampedArray, but drawn synchronously so wrap in Promise
     const [data1, data2] = await Promise.all([d1, d2]);
     for(let i=0;i<data1.length;i+=4){
       if(data1[i] !== data2[i] || data1[i+1] !== data2[i+1] || data1[i+2] !== data2[i+2] || data1[i+3] !== data2[i+3]) return false;
@@ -330,35 +361,33 @@ document.addEventListener('DOMContentLoaded', () => {
   async function processImageXml(imageFile, xmlFile){
     statusText.textContent = 'Procesando imagen + XML...';
     const frames = await processor.processFiles(imageFile, xmlFile, p => {
-      progressBar.style.width = `${Math.round(p*100)}%`;
+      if(progressBar) progressBar.style.width = `${Math.round(p*100)}%`;
       statusText.textContent = `Procesando: ${Math.round(p*100)}%`;
     });
     // generate spritesheet
     const sheet = await processor.generateSpritesheet();
-    // use filename from image (without extension)
     const base = (imageFile.name||'spritesheet').replace(/\.[^/.]+$/,'');
     const fileName = sanitizeFilename(base) + '.png';
-    // create a zip with the single spritesheet
     const sheets = [{ name: fileName, blob: sheet.blob }];
     const zipRes = await processor.generateZipSheets(sheets);
     state.lastDownloadUrl = URL.createObjectURL(zipRes.blob);
     state.lastFileName = `cintas_${base}.zip`;
-    downloadAgainBtn.style.display = 'inline-block';
-    // previews: individual frames and the generated spritesheet preview
+    if(downloadAgainBtn) downloadAgainBtn.style.display = 'inline-block';
     const previews = frames.map(f => ({ name: f.name, url: URL.createObjectURL(f.blob), frames:1, width:f.width, height:f.height }));
     previews.unshift({ name: base + ' (spritesheet)', url: URL.createObjectURL(sheet.blob), frames: frames.length, width: sheet.width, height: sheet.height });
     displayResults(previews);
     statusText.textContent = '¡Listo! Descarga disponible.';
-    progressBar.style.width = '100%';
+    if(progressBar) progressBar.style.width = '100%';
   }
 
   /* ===== UI render ===== */
   function displayResults(previews){
-    resultPanel.style.display = 'block';
+    if(!resultPanel || !resultContent) return;
+    resultPanel.style.display = 'flex';
     resultContent.innerHTML = '';
     previews.sort((a,b) => a.name.localeCompare(b.name));
     previews.forEach(p => {
-      const el = document.createElement('div'); el.className = 'spritesheet-preview';
+      const el = document.createElement('div'); el.className = 'frame-preview';
       const thumb = document.createElement('div'); thumb.className = 'preview-image-container';
       const img = document.createElement('img'); img.src = p.url; img.alt = p.name;
       thumb.appendChild(img);
@@ -379,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateProgress(current, total){
     const pct = Math.round((current/total)*100);
-    progressBar.style.width = `${pct}%`;
+    if(progressBar) progressBar.style.width = `${pct}%`;
   }
 
   /* ===== Helpers ===== */
