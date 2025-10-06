@@ -4,18 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TextForFrames — Generador de Sprites</title>
-  <link rel="stylesheet" href="TextForFrames.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="sidebar">
     <h1>TextForFrames</h1>
     <div class="pill">Salida fija: sprites individuales (PNG)</div>
-    <p class="muted">Entrada/Ciclo/Salida — Insert (lateral) y Background (fade + scroll). Fuentes .ttf, fondo transparente y efectos combinables.</p>
+    <p class="muted">Entrada/Ciclo/Salida — Insert (lateral) y Background (fade + scroll). Fuentes .ttf, fondo transparente, efectos y fondo imagen.</p>
 
     <label>Nombre base</label>
     <input type="text" id="baseName" value="text1">
 
-    <label>Texto (cada línea = una línea)</label>
+    <label>Texto (cada línea = una línea / para BG: usa puntos '.' para separar líneas)</label>
     <textarea id="inputText">Línea 1\nLínea 2</textarea>
 
     <label>Modo</label>
@@ -57,10 +57,29 @@
       </div>
     </div>
 
+    <label>Imagen de fondo (opcional)</label>
+    <input type="file" id="bgImageFile" accept="image/*">
+    <div class="row">
+      <div class="col">
+        <label>Modo imagen</label>
+        <select id="bgImageMode">
+          <option value="cover">Cover (rellenar)</option>
+          <option value="contain">Contain (encajar)</option>
+          <option value="center">Center (centrar, sin escalar)</option>
+          <option value="tile">Tile (repetir)</option>
+        </select>
+      </div>
+      <div class="col">
+        <label>&nbsp;</label>
+        <button id="clearBgBtn" class="small secondary">Quitar imagen</button>
+      </div>
+    </div>
+    <div id="bgPreviewInfo" class="muted" style="margin-top:6px">Imagen de fondo: (ninguna)</div>
+
     <label>Fuente (.ttf opcional)</label>
     <input type="file" id="fontFile" accept=".ttf">
 
-    <label>Dirección (solo modo Insert)</label>
+    <label>Dirección (solo Insert)</label>
     <select id="insertDir">
       <option value="left">← Entra desde izquierda, sale por derecha</option>
       <option value="right">→ Entra desde derecha, sale por izquierda</option>
@@ -82,11 +101,11 @@
       <button id="downloadZipBtn" class="secondary small">ZIP</button>
     </div>
 
-    <div class="footer-note">Salida: {base}-insert_entrada0000.png, {base}-insert_ciclo0000.png, {base}-insert_salida0000.png (o -bg_...)</div>
+    <div class="footer-note">Salida: {base}-insert_entrada0000.png, {base}-bg_ciclo0000.png, etc.</div>
   </div>
 
   <main>
-    <h2>Preview</h2>
+    <h2>Vista previa</h2>
     <div class="preview"><canvas id="previewCanvas" width="512" height="128"></canvas></div>
 
     <div class="frame-controls">
