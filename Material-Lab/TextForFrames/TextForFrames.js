@@ -1,37 +1,104 @@
+// script.js - versión corregida con dos clases separadas y font loading robusto
 const $ = id => document.getElementById(id);
-const log = msg => { $('log').textContent = msg + '\n' + $('log').textContent; };
+const log = msg => { $('log').textContent = `${new Date().toLocaleTimeString()} — ${msg}\n` + $('log').textContent; };
 const pad = (n, w = 4) => String(n).padStart(w, '0');
 
-let frames = [], currentFrame = 0, playInterval = null, uploadedFont = null;
+let frames = [], currentFrame = 0, playInterval = null, uploadedFontFamily = null;
 const canvas = $('previewCanvas');
 const ctx = canvas.getContext('2d');
 
-$('fontFile').onchange = e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const name = 'Font' + Date.now();
-  const url = URL.createObjectURL(f);
-  const style = document.createElement('style');
-  style.innerHTML = `@font-face{font-family:'${name}';src:url('${url}');}`;
-  document.head.appendChild(style);
-  uploadedFont = name;
-  log('Fuente cargada: ' + f.name);
-};
+// --- Font loader (returns font family name) ---
+async function loadFontFromFile(file) {
+  if (!file) return null;
+  const name = 'UploadedFont_' + Date.now();
+  const url = URL.createObjectURL(file);
+  try {
+    const fontFace = new FontFace(name, `url(${url})`);
+    await fontFace.load();
+    document.fonts.add(fontFace);
+    // wait for it to be available
+    await document.fonts.ready;
+    log(`Fuente cargada: ${file.name} -> ${name}`);
+    return name;
+  } catch (e) {
+    log('Error cargando fuente: ' + e.message);
+    return null;
+  }
+}
 
-function drawFrame(lines) {
-  const w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
+// --- Helpers ---
+function getSelectedEffects() {
+  return [...document.querySelectorAll('.fx:checked')].map(el => el.value);
+}
+function setCanvasSizeFromInputs() {
+  const w = Math.max(1, +$('canvasW').value);
+  const h = Math.max(1, +$('canvasH').value);
+  canvas.width = w;
+  canvas.height = h;
+}
+setCanvasSizeFromInputs();
+$('canvasW').onchange = setCanvasSizeFromInputs;
+$('canvasH').onchange = setCanvasSizeFromInputs;
+
+function clearPreview() {
   if (!$('transparentBg').checked) {
     ctx.fillStyle = $('bgColor').value;
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
+}
+
+// apply combined visual effects to a base line object (non-destructive)
+function applyEffectsToLine(base, effects, progress) {
+  const t = progress * Math.PI * 2;
+  const out = { ...base }; // copy base
+  // ensure defaults
+  out.x = out.x ?? 0;
+  out.y = out.y ?? 0;
+  out.scale = out.scale ?? 1;
+  out.alpha = out.alpha ?? 1;
+  out.rotate = out.rotate ?? 0;
+
+  for (const eff of effects) {
+    switch (eff) {
+      case 'shake':
+        out.x += Math.sin(t * 10) * 4;
+        out.y += Math.cos(t * 9) * 4;
+        break;
+      case 'pulse':
+        out.scale = out.scale * (1 + 0.08 * Math.sin(t * 2));
+        break;
+      case 'bounce':
+        out.y += Math.sin(t * 2) * 8;
+        break;
+      case 'fade':
+        out.alpha = out.alpha * (0.6 + 0.4 * (Math.sin(t * 2) * 0.5 + 0.5));
+        break;
+    }
+  }
+  return out;
+}
+
+function drawLinesOnCanvas(lines, fontFamily) {
+  // clear or fill background
+  if (!$('transparentBg').checked) {
+    ctx.fillStyle = $('bgColor').value;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  const fontSize = Math.max(8, +$('fontSize').value);
+  const family = fontFamily || uploadedFontFamily || 'Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = $('textColor').value;
-  ctx.font = `${$('fontSize').value}px '${uploadedFont || 'Arial'}'`;
+  ctx.font = `${fontSize}px '${family}'`;
+
   for (const l of lines) {
-    ctx.globalAlpha = l.alpha ?? 1;
     ctx.save();
+    ctx.globalAlpha = l.alpha ?? 1;
     ctx.translate(l.x, l.y);
     ctx.scale(l.scale ?? 1, l.scale ?? 1);
     ctx.rotate(l.rotate ?? 0);
@@ -41,122 +108,287 @@ function drawFrame(lines) {
   ctx.globalAlpha = 1;
 }
 
-function getSelectedEffects() {
-  return [...document.querySelectorAll('.fx:checked')].map(el => el.value);
+async function canvasToBlob() {
+  return await new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png'));
 }
 
-function applyEffects(effects, p, base) {
-  const t = p * Math.PI * 2;
-  let out = { ...base };
-  for (const eff of effects) {
-    switch (eff) {
-      case 'shake':
-        out.x += Math.sin(t * 10) * 4;
-        out.y += Math.cos(t * 8) * 4;
-        break;
-      case 'pulse':
-        out.scale = (out.scale ?? 1) * (1 + 0.1 * Math.sin(t * 2));
-        break;
-      case 'bounce':
-        out.y += Math.sin(t * 2) * 10;
-        break;
-      case 'fade':
-        out.alpha = (out.alpha ?? 1) * (0.6 + 0.4 * Math.sin(t * 2));
-        break;
+// --- InsertTextGenerator class ---
+class InsertTextGenerator {
+  constructor(options) {
+    this.canvas = options.canvas;
+    this.ctx = options.ctx;
+    this.lines = options.lines; // array of string
+    this.framesPerPhase = options.framesPerPhase;
+    this.dir = options.dir || 'left'; // 'left' or 'right'
+    this.fontFamily = options.fontFamily;
+    this.effects = options.effects || [];
+    this.baseName = options.baseName || 'text';
+  }
+
+  // measure maximum text width (used for offscreen positions)
+  measureMaxWidth() {
+    const fontSize = Math.max(8, +$('fontSize').value);
+    this.ctx.font = `${fontSize}px '${this.fontFamily || uploadedFontFamily || 'Arial'}'`;
+    let maxW = 0;
+    for (const t of this.lines) {
+      const m = this.ctx.measureText(t).width;
+      if (m > maxW) maxW = m;
     }
+    return maxW;
   }
-  return out;
+
+  // generate returns array of {blob, name}
+  async generate() {
+    const results = [];
+    const w = this.canvas.width, h = this.canvas.height;
+    const fontSize = Math.max(8, +$('fontSize').value);
+    this.ctx.font = `${fontSize}px '${this.fontFamily || uploadedFontFamily || 'Arial'}'`;
+
+    const maxTextW = this.measureMaxWidth();
+    const startOffLeft = -Math.max(100, maxTextW + 50);
+    const startOffRight = w + Math.max(100, maxTextW + 50);
+    const centerX = w / 2;
+    const centerY = h / 2;
+
+    const dirSign = (this.dir === 'left') ? 1 : -1; // when 'left' we enter from left -> center, sign positive for startX = left (-)
+    // but simpler handle below
+
+    // Phase 1: entrada (from side to center)
+    for (let f = 0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase === 1) ? 1 : (f / (this.framesPerPhase - 1));
+      const frameLines = this.lines.map((t, i) => {
+        const startX = (this.dir === 'left') ? startOffLeft : startOffRight;
+        const x = startX + (centerX - startX) * p;
+        return { text: t, x, y: centerY + (i * (fontSize + 4)) - ((this.lines.length - 1) * (fontSize + 4) / 2), alpha: 1, scale: 1 };
+      }).map(base => applyEffectsToLine(base, this.effects, p));
+      drawLinesOnCanvas(frameLines, this.fontFamily);
+      const blob = await canvasToBlob();
+      const name = `${this.baseName}-insert_entrada${pad(f)}.png`;
+      results.push({ blob, name });
+    }
+
+    // Phase 2: ciclo (centered, effects applied). Will use same center positions.
+    // We'll keep positions centered; effects animate across frames.
+    const lastCycleFrames = [];
+    for (let f = 0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase === 1) ? 1 : (f / (this.framesPerPhase - 1));
+      const frameLines = this.lines.map((t, i) => {
+        const x = centerX;
+        const y = centerY + (i * (fontSize + 4)) - ((this.lines.length - 1) * (fontSize + 4) / 2);
+        return { text: t, x, y, alpha: 1, scale: 1 };
+      }).map(base => applyEffectsToLine(base, this.effects, p));
+
+      drawLinesOnCanvas(frameLines, this.fontFamily);
+      const blob = await canvasToBlob();
+      const name = `${this.baseName}-insert_ciclo${pad(f)}.png`;
+      results.push({ blob, name });
+      // keep last frame's layout (positions & alpha) to use as base for exit
+      if (f === this.framesPerPhase - 1) {
+        lastCycleFrames.push(...frameLines.map(l => ({ ...l })));
+      }
+    }
+
+    // Phase 3: salida (from center to opposite side). We must use last frame of cycle as base.
+    // Calculate endX opposite side
+    for (let f = 0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase === 1) ? 1 : (f / (this.framesPerPhase - 1));
+      const frameLines = this.lines.map((t, i) => {
+        const baseLine = lastCycleFrames[i] || { x: centerX, y: centerY, alpha: 1, scale: 1 };
+        const endX = (this.dir === 'left') ? startOffRight : startOffLeft; // exit to opposite side
+        const x = baseLine.x + (endX - baseLine.x) * p;
+        const y = baseLine.y; // keep same vertical
+        // optionally fade out? keep alpha 1 (spec didn't request fade). If you want fade-out multiply alpha: (1 - p)
+        return { text: t, x, y, alpha: 1 - p * (this.effects.includes('fade') ? 0.6 : 0), scale: baseLine.scale ?? 1 };
+      }).map(base => applyEffectsToLine(base, this.effects, p));
+      drawLinesOnCanvas(frameLines, this.fontFamily);
+      const blob = await canvasToBlob();
+      const name = `${this.baseName}-insert_salida${pad(f)}.png`;
+      results.push({ blob, name });
+    }
+
+    return results;
+  }
 }
 
-async function generatePhase(base, lines, phaseName, framesCount, drawFn) {
-  const effects = getSelectedEffects();
-  for (let i = 0; i < framesCount; i++) {
-    const p = i / (framesCount - 1);
-    const frameLines = drawFn(p, lines);
-    const effLines = frameLines.map(b => applyEffects(effects, p, b));
-    drawFrame(effLines);
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-    frames.push({ blob, name: `${base}_${phaseName}${pad(i)}.png` });
+// --- BackgroundTextGenerator class ---
+class BackgroundTextGenerator {
+  constructor(options) {
+    this.canvas = options.canvas;
+    this.ctx = options.ctx;
+    this.lines = options.lines; // array of string
+    this.framesPerPhase = options.framesPerPhase;
+    this.fontFamily = options.fontFamily;
+    this.effects = options.effects || [];
+    this.baseName = options.baseName || 'text';
+  }
+
+  measureMaxWidth() {
+    const fontSize = Math.max(8, +$('fontSize').value);
+    this.ctx.font = `${fontSize}px '${this.fontFamily || uploadedFontFamily || 'Arial'}'`;
+    let maxW = 0;
+    for (const t of this.lines) {
+      const m = this.ctx.measureText(t).width;
+      if (m > maxW) maxW = m;
+    }
+    return maxW;
+  }
+
+  async generate() {
+    const results = [];
+    const w = this.canvas.width, h = this.canvas.height;
+    const fontSize = Math.max(8, +$('fontSize').value);
+    this.ctx.font = `${fontSize}px '${this.fontFamily || uploadedFontFamily || 'Arial'}'`;
+
+    const centerX = w / 2;
+    const startX = -Math.max(100, this.measureMaxWidth() + 50);
+    const endX = w + Math.max(100, this.measureMaxWidth() + 50);
+
+    // Phase 1: entrada (fade in quickly)
+    for (let f = 0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase === 1) ? 1 : (f / (this.framesPerPhase - 1));
+      const frameLines = this.lines.map((t, i) => {
+        const x = centerX;
+        const y = h / 2 + (i * (fontSize + 4)) - ((this.lines.length - 1) * (fontSize + 4) / 2);
+        return { text: t, x, y, alpha: p, scale: 1 };
+      }).map(base => applyEffectsToLine(base, this.effects, p));
+      drawLinesOnCanvas(frameLines, this.fontFamily);
+      const blob = await canvasToBlob();
+      const name = `${this.baseName}-bg_entrada${pad(f)}.png`;
+      results.push({ blob, name });
+    }
+
+    // Phase 2: ciclo (scroll horizontally). For each line alternate direction.
+    // We'll make text traverse a wide range across frames.
+    for (let f = 0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase === 1) ? 1 : (f / (this.framesPerPhase - 1));
+      const frameLines = this.lines.map((t, i) => {
+        const dir = (i % 2 === 0) ? 1 : -1; // alternate directions
+        // x varies from end to start (so text seems to slide)
+        // when p=0 -> off-right (endX) if dir=1 or off-left if dir=-1
+        const travel = w + this.measureMaxWidth() + 200;
+        const x = centerX + dir * (travel * (p - 0.5));
+        const y = h / 2 + (i * (fontSize + 4)) - ((this.lines.length - 1) * (fontSize + 4) / 2);
+        return { text: t, x, y, alpha: 1, scale: 1 };
+      }).map(base => applyEffectsToLine(base, this.effects, p));
+      drawLinesOnCanvas(frameLines, this.fontFamily);
+      const blob = await canvasToBlob();
+      const name = `${this.baseName}-bg_ciclo${pad(f)}.png`;
+      results.push({ blob, name });
+      // store last frame layout to use in exit (we can compute again below)
+      if (f === this.framesPerPhase - 1) {
+        // we'll reuse positions computed here as lastCyclePositions
+        this.lastCyclePositions = frameLines.map(l => ({ ...l }));
+      }
+    }
+
+    // Phase 3: salida — starting from last cycle positions, fade out using alpha decreasing
+    // If lastCyclePositions not set (framesPerPhase=0 edge), recompute centered
+    const basePositions = this.lastCyclePositions || this.lines.map((t, i) => ({
+      text: t,
+      x: centerX,
+      y: h / 2 + (i * (fontSize + 4)) - ((this.lines.length - 1) * (fontSize + 4) / 2),
+      alpha: 1,
+      scale: 1
+    }));
+
+    for (let f = 0; f < this.framesPerPhase; f++) {
+      const p = (this.framesPerPhase === 1) ? 1 : (f / (this.framesPerPhase - 1));
+      const frameLines = basePositions.map((base, i) => {
+        const alpha = base.alpha * (1 - p);
+        return { ...base, alpha };
+      }).map(base => applyEffectsToLine(base, this.effects, p));
+      drawLinesOnCanvas(frameLines, this.fontFamily);
+      const blob = await canvasToBlob();
+      const name = `${this.baseName}-bg_salida${pad(f)}.png`;
+      results.push({ blob, name });
+    }
+
+    return results;
   }
 }
 
-async function generate() {
+// --- UI wiring ---
+$('fontFile').onchange = async e => {
+  const f = e.target.files[0];
+  if (!f) { uploadedFontFamily = null; return; }
+  uploadedFontFamily = await loadFontFromFile(f);
+};
+
+async function generateAll() {
   frames = [];
-  const baseName = $('baseName').value;
+  const baseName = $('baseName').value || 'text';
   const mode = $('mode').value;
-  const lines = $('inputText').value.split('\n').filter(Boolean);
-  const fc = +$('framesCount').value;
-  const w = canvas.width, h = canvas.height;
-  log(`Generando modo: ${mode}`);
+  const lines = $('inputText').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!lines.length) { log('No hay líneas de texto.'); return; }
+  const framesCount = Math.max(1, +$('framesCount').value);
+  const effects = getSelectedEffects();
+  const fontFamily = uploadedFontFamily || null;
+
+  // set canvas font earlier to ensure measureText uses the right font
+  ctx.font = `${Math.max(8, +$('fontSize').value)}px '${fontFamily || 'Arial'}'`;
+
+  log(`Generando modo "${mode}" con ${framesCount} frames por fase. Efectos: ${effects.join(', ') || 'ninguno'}`);
 
   if (mode === 'insert') {
-    const dir = $('insertDir').value === 'left' ? -1 : 1;
-
-    // Entrada (desde un lado)
-    await generatePhase(`${baseName}-insert_entrada`, lines, 'entrada', fc, p => {
-      return lines.map(t => ({
-        text: t, x: w / 2 + dir * w * (1 - p), y: h / 2, alpha: 1
-      }));
+    const dir = $('insertDir').value || 'left';
+    const gen = new InsertTextGenerator({
+      canvas, ctx, lines, framesPerPhase: framesCount, dir, fontFamily, effects, baseName
     });
-
-    // Ciclo (quieto con efectos)
-    await generatePhase(`${baseName}-insert_ciclo`, lines, 'ciclo', fc, p => {
-      return lines.map(t => ({ text: t, x: w / 2, y: h / 2, alpha: 1 }));
+    const res = await gen.generate();
+    frames.push(...res);
+  } else {
+    const gen = new BackgroundTextGenerator({
+      canvas, ctx, lines, framesPerPhase: framesCount, fontFamily, effects, baseName
     });
-
-    // Salida (al lado contrario)
-    await generatePhase(`${baseName}-insert_salida`, lines, 'salida', fc, p => {
-      return lines.map(t => ({
-        text: t, x: w / 2 - dir * w * p, y: h / 2, alpha: 1
-      }));
-    });
-
-  } else if (mode === 'bg') {
-    // Entrada (fade in)
-    await generatePhase(`${baseName}-bg_entrada`, lines, 'entrada', fc, p => {
-      return lines.map((t, j) => ({
-        text: t, x: w / 2, y: h / 2 + j * 30 - 30, alpha: p
-      }));
-    });
-
-    // Ciclo (scroll + efectos)
-    await generatePhase(`${baseName}-bg_ciclo`, lines, 'ciclo', fc, p => {
-      return lines.map((t, j) => ({
-        text: t,
-        x: w / 2 + ((j % 2 ? -1 : 1) * w * (p - 0.5)),
-        y: h / 2 + j * 30 - 30,
-        alpha: 1
-      }));
-    });
-
-    // Salida (fade out desde último frame)
-    await generatePhase(`${baseName}-bg_salida`, lines, 'salida', fc, p => {
-      return lines.map((t, j) => ({
-        text: t, x: w / 2, y: h / 2 + j * 30 - 30, alpha: 1 - p
-      }));
-    });
+    const res = await gen.generate();
+    frames.push(...res);
   }
 
   currentFrame = 0;
   showFrame(0);
-  log(`Generadas ${frames.length} imágenes.`);
+  log(`Generadas ${frames.length} imágenes (${frames[0]?.name || 'sin nombre'} ...).`);
 }
+
+$('generateBtn').onclick = async () => {
+  // ensure font is loaded if user just selected it
+  if ($('fontFile').files && $('fontFile').files[0]) {
+    // load again to be safe (loadFontFromFile handles duplicates but returns a new family)
+    uploadedFontFamily = await loadFontFromFile($('fontFile').files[0]);
+  }
+  await generateAll();
+};
 
 function showFrame(i) {
-  if (!frames.length) return;
+  if (!frames.length) { clearPreview(); $('frameInfo').textContent = 'Frame 0 / 0'; return; }
+  const obj = frames[i];
   const img = new Image();
-  img.src = URL.createObjectURL(frames[i].blob);
-  img.onload = () => ctx.drawImage(img, 0, 0);
-  $('frameInfo').textContent = `Frame ${i + 1} / ${frames.length}`;
+  img.src = URL.createObjectURL(obj.blob);
+  img.onload = () => {
+    // draw onto canvas (preserve transparency)
+    clearPreview();
+    ctx.drawImage(img, 0, 0);
+  };
+  $('frameInfo').textContent = `Frame ${i + 1} / ${frames.length} — ${obj.name}`;
 }
 
-$('generateBtn').onclick = generate;
-$('nextFrame').onclick = () => { currentFrame = (currentFrame + 1) % frames.length; showFrame(currentFrame); };
-$('prevFrame').onclick = () => { currentFrame = (currentFrame - 1 + frames.length) % frames.length; showFrame(currentFrame); };
+$('nextFrame').onclick = () => {
+  if (!frames.length) return;
+  currentFrame = (currentFrame + 1) % frames.length;
+  showFrame(currentFrame);
+};
+$('prevFrame').onclick = () => {
+  if (!frames.length) return;
+  currentFrame = (currentFrame - 1 + frames.length) % frames.length;
+  showFrame(currentFrame);
+};
+
 $('playPause').onclick = () => {
   if (!frames.length) return;
-  if (playInterval) { clearInterval(playInterval); playInterval = null; $('playPause').textContent = 'Play'; }
-  else {
+  if (playInterval) {
+    clearInterval(playInterval);
+    playInterval = null;
+    $('playPause').textContent = 'Play';
+  } else {
     $('playPause').textContent = 'Pausa';
     playInterval = setInterval(() => {
       currentFrame = (currentFrame + 1) % frames.length;
@@ -166,11 +398,13 @@ $('playPause').onclick = () => {
 };
 
 $('downloadZipBtn').onclick = async () => {
-  if (!frames.length) return;
+  if (!frames.length) { log('No hay frames para descargar.'); return; }
   const zip = new JSZip();
-  frames.forEach(f => zip.file(f.name, f.blob));
+  for (const f of frames) zip.file(f.name, f.blob);
   const blob = await zip.generateAsync({ type: 'blob' });
-  saveAs(blob, `${$('baseName').value}_frames.zip`);
-  log('ZIP descargado.');
+  saveAs(blob, `${$('baseName').value || 'text'}_frames.zip`);
+  log('ZIP listo para descargar.');
 };
 
+// initialize preview
+clearPreview();
