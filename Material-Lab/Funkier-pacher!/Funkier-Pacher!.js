@@ -50,26 +50,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Proceso de selección de método (ZIP vs PNG+XML)
 document.addEventListener('DOMContentLoaded', () => {
-    // Método de entrada
-    const methodZipBtn = document.getElementById('method-zip-btn');
-    const methodPngXmlBtn = document.getElementById('method-pngxml-btn');
-    const zipPanel = document.getElementById('zip-upload-panel');
-    const pngxmlPanel = document.getElementById('pngxml-upload-panel');
+    // ZIP
+    const zipBtn = document.getElementById('zip-btn');
+    const zipInput = document.getElementById('zip-input');
+    const generateBtnZip = document.getElementById('generate-btn-zip');
+    const statusTextZip = document.getElementById('status-text-zip');
 
-    methodZipBtn.onclick = () => {
-        zipPanel.style.display = 'block';
-        pngxmlPanel.style.display = 'none';
-        methodZipBtn.classList.add('active');
-        methodPngXmlBtn.classList.remove('active');
-    };
-    methodPngXmlBtn.onclick = () => {
-        zipPanel.style.display = 'none';
-        pngxmlPanel.style.display = 'block';
-        methodZipBtn.classList.remove('active');
-        methodPngXmlBtn.classList.add('active');
-    };
+    let zipFile = null;
 
-    // El resto de tu lógica de manejo de archivos y generación...
+    zipBtn.addEventListener('click', () => zipInput.click());
+    zipInput.addEventListener('change', () => {
+        if (zipInput.files.length > 0) {
+            zipFile = zipInput.files[0];
+            generateBtnZip.disabled = false;
+            statusTextZip.textContent = "ZIP seleccionado: " + zipFile.name;
+        }
+    });
+
+    // PNG + XML
+    const imageBtn = document.getElementById('image-btn');
+    const imageInput = document.getElementById('image-input');
+    const xmlBtn = document.getElementById('xml-btn');
+    const xmlInput = document.getElementById('xml-input');
+    const generateBtnPngXml = document.getElementById('generate-btn-pngxml');
+    const statusTextPngXml = document.getElementById('status-text-pngxml');
+
+    let imageFile = null;
+    let xmlFile = null;
+
+    imageBtn.addEventListener('click', () => imageInput.click());
+    xmlBtn.addEventListener('click', () => xmlInput.click());
+
+    imageInput.addEventListener('change', () => {
+        if (imageInput.files.length > 0) {
+            imageFile = imageInput.files[0];
+            checkReadyPngXml();
+        }
+    });
+
+    xmlInput.addEventListener('change', () => {
+        if (xmlInput.files.length > 0) {
+            xmlFile = xmlInput.files[0];
+            checkReadyPngXml();
+        }
+    });
+
+    function checkReadyPngXml() {
+        if (imageFile && xmlFile) {
+            generateBtnPngXml.disabled = false;
+            statusTextPngXml.textContent = `Listo para generar: ${imageFile.name} + ${xmlFile.name}`;
+        } else {
+            generateBtnPngXml.disabled = true;
+            if (imageFile && !xmlFile) statusTextPngXml.textContent = "Falta el XML";
+            if (xmlFile && !imageFile) statusTextPngXml.textContent = "Falta la imagen";
+        }
+    }
+
+    // Aquí debes agregar la lógica de procesamiento cuando se haga click en los botones de generar
+    // Ejemplo:
+    generateBtnZip.addEventListener('click', () => {
+        // Procesa el ZIP
+        statusTextZip.textContent = "Procesando ZIP...";
+        // Tu lógica aquí...
+    });
+
+    generateBtnPngXml.addEventListener('click', () => {
+        // Procesa PNG + XML
+        statusTextPngXml.textContent = "Procesando PNG + XML...";
+        // Tu lógica aquí...
+    });
 });
 
 // FunkierPacher + UI + procesamiento ZIP y PNG+XML Contiene: FunkierPacker (rotated support) + UI para seleccionar archivos + quitar frames duplicados + creación de ZIP final
