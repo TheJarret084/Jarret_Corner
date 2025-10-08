@@ -46,26 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarData();
 
     // ...resto de tu código...
-});
 
-// Proceso de selección de método (ZIP vs PNG+XML)
-document.addEventListener('DOMContentLoaded', () => {
-    // ZIP
-    const zipBtn = document.getElementById('zip-btn');
-    const zipInput = document.getElementById('zip-input');
-    const generateBtnZip = document.getElementById('generate-btn-zip');
-    const statusTextZip = document.getElementById('status-text-zip');
-
-    let zipFile = null;
-
-    zipBtn.addEventListener('click', () => zipInput.click());
-    zipInput.addEventListener('change', () => {
-        if (zipInput.files.length > 0) {
-            zipFile = zipInput.files[0];
-            generateBtnZip.disabled = false;
-            statusTextZip.textContent = "ZIP seleccionado: " + zipFile.name;
-        }
-    });
 
     // PNG + XML
     const imageBtn = document.getElementById('image-btn');
@@ -604,6 +585,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Fin DOMContentLoaded
+});
+
+// Ya me canse :v
+
+// Lógica de UI para alternar entre métodos (ZIP / PNG+XML)
+
+document.addEventListener('DOMContentLoaded', () => {
+    // ...toda tu lógica de UI y procesamiento...
+
+    // Alternar paneles de método de entrada
+    const methodZipBtn = document.getElementById('method-zip-btn');
+    const methodPngXmlBtn = document.getElementById('method-pngxml-btn');
+    const zipPanel = document.getElementById('zip-upload-panel');
+    const pngxmlPanel = document.getElementById('pngxml-upload-panel');
+
+    // Mostrar ZIP por defecto
+    zipPanel.style.display = 'block';
+    pngxmlPanel.style.display = 'none';
+
+    methodZipBtn.addEventListener('click', () => {
+        zipPanel.style.display = 'block';
+        pngxmlPanel.style.display = 'none';
+        methodZipBtn.classList.add('active');
+        methodPngXmlBtn.classList.remove('active');
+    });
+
+    methodPngXmlBtn.addEventListener('click', () => {
+        zipPanel.style.display = 'none';
+        pngxmlPanel.style.display = 'block';
+        methodZipBtn.classList.remove('active');
+        methodPngXmlBtn.classList.add('active');
+    });
+
+    // ...fin de tu lógica...
 });
 
 // Good morning abelito V2 :D
