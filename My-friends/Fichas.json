@@ -1,58 +1,102 @@
 {
+  "data": {
+    "nav": [
+      {
+        "tipo": "dropdown",
+        "titulo": "Más",
+        "opciones": [
+          { "texto": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
+          { "texto": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" },
+          { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" }
+        ]
+      }
+    ]
+  },
+  "contenido": "Mis amigos",
   "fichas": [
     {
       "titulo": "Foxy",
       "descripcion": "Mi mejor amigo.",
-      "imagen": "Images/icon-foxy.png",
+      "imagen": "images/icon-foxy.png",
       "link": "https://discord.gg/v3ur6PesvA"
     },
     {
       "titulo": "Carosbrine",
       "descripcion": "Al principio si era medio random, pero es un buen amigo",
-      "imagen": "Images/caros.webp",
+      "imagen": "images/caros.webp",
       "link": "https://www.youtube.com/@Carosbrine"
     },
     {
       "titulo": "Edwin",
       "descripcion": "Es el unico que conosco que programe bien.",
-      "imagen": "Images/avatar-edwin.png",
+      "imagen": "images/avatar-edwin.png",
       "link": "https://edwinrccdev.github.io/"
     },
     {
       "titulo": "5554Alan",
       "descripcion": "Cuenta la leyenda que alan se estaba masturban cuando se le callo la pollas de tanto jalarsela, entonces muy enojado dijo que si el no tenia pollas, nadie tendria y empezo a arrancar pollas a mordiscos a lo loco.",
-      "imagen": "Images/avatar-alan.png",
+      "imagen": "images/avatar-alan.png",
       "link": "https://youtu.be/xvFZjo5PgG0?si=WQCtdqtt3TKPr06B"
     },
     {
       "titulo": "Rushplay",
       "descripcion": "Compañero del colegio, vende pan.",
-      "imagen": "Images/Avatar-ELCOMEDORDEPAN.png",
+      "imagen": "images/Avatar-ELCOMEDORDEPAN.png",
       "link": "https://youtu.be/071vdE5dRRY?si=IVKpH-wb7B-GLoTS"
-    },    
+    },
     {
       "titulo": "Error MANCO, Alias ¨Gordo¨",
       "descripcion": "El gordo en mi grupo de amigos, (tranquilamente me puede matar de dos golpes) Palabras de el: veanse Jojos, es Meta.",
-      "imagen": "Images/Avatar-ERRORMANCO.png",
+      "imagen": "images/Avatar-ERRORMANCO.png",
       "link": "https://youtu.be/AgzVliP-96Y?si=6cnVZ7OwRbhWo-C9"
     },
     {
       "titulo": "LoquendoPro",
       "descripcion": "El inteligente del grupo, sabe mucho, pero se equivoca como ser humano, palabras de el: Jojos es mejor que jojos.",
-      "imagen": "Images/Avatar-LoquendoPro.png",
+      "imagen": "images/Avatar-LoquendoPro.png",
       "link": "https://www.youtube.com/@loquendepro"
     },
     {
       "titulo": "YoelPito",
       "descripcion": "El que nos condena a la locura a todos, no le rebicen el celular porfavor, lo peor es que el puto me dira gracias por el link que lleva esto.",
-      "imagen": "Images/Avatar-Pito.png",
-      "link": "https://youtu.be/3llgHgvYu9w?si=dtqGwZKEQYaWUIoc"
+      "imagen": "images/Avatar-Pito.png",
+      "link": "https://youtu.be/xvFZjo5PgG0?si=WQCtdqtt3TKPr06B"
+    },
+    {
+      "titulo": "Thiago",
+      "descripcion": "Super Fan de Shaggy y mas de sus mods en fnf, la verdad un buen amigo.",
+      "imagen": "images/Thiago.png",
+      "link": "https://funkymaker.kingamescreator.com/_app/@ThiagoCollection"
+    },
+    {
+      "titulo": "Yrick",
+      "descripcion": "Un buen amigo, no se que decir de el casi no hablo con el pero vive cerca mas que estos otros.",
+      "imagen": "images/Yrick.png",
+      "link": "https://funkymaker.kingamescreator.com/_app/@Yrik"
+    },
+    {
+      "titulo": "Cubick",
+      "descripcion": "Le pone muchas ganas a lo que hace, demaciado diria yo.",
+      "imagen": "Images/bubi.png",
+      "link": "https://funkymaker.kingamescreator.com/_app/@cubick"
     },
     {
       "titulo": "Alguien",
       "descripcion": "Placeholder.",
-      "imagen": "Images/Placeholder-avatar.png",
+      "imagen": "",
       "link": "https://youtu.be/xvFZjo5PgG0?si=WQCtdqtt3TKPr06B"
     }
-  ]
+  ],
+ "footer": {
+    "text": "¿No te gusta? No me importa igual...",
+    "contact": {
+      "label": "Contáctame en Discord",
+      "url": "https://discord.com/users/thejarret084",
+      "icon": "fab fa-discord"
+    },
+    "links": [
+      { "text": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
+      { "text": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" }
+    ]
+  }
 }

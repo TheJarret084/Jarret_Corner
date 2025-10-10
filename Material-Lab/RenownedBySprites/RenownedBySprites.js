@@ -1,3 +1,74 @@
+// Codigo copiado de Funkier Pacher y adaptado por Jarret para solo la nav-bar.
+
+// -------------------- Navbar dinámico --------------------
+window.jsonFile = '../../Corner.json';
+let dataGlobal = null;
+
+async function cargarNavData() {
+  try {
+    const res = await fetch(window.jsonFile);
+    if (!res.ok) throw new Error("No se pudo cargar Corner.json");
+    dataGlobal = await res.json();
+    renderizarNav();
+  } catch (err) {
+    console.error("Error cargando navbar:", err);
+  }
+}
+
+function renderizarNav() {
+  const navBar = document.getElementById('nav-bar');
+  if (!navBar || !dataGlobal) return;
+
+  let html = `
+    <a href="../../index.html" class="nav-link">
+      <i class="fa fa-home"></i> Menú Principal
+    </a>
+  `;
+
+  (dataGlobal.data?.nav || []).forEach(item => {
+    if (item.tipo === 'dropdown') {
+      html += `
+        <div class="nav-dropdown">
+          <button class="nav-dropbtn">
+            <i class="fa fa-bars"></i> ${item.titulo || 'Más'}
+          </button>
+          <div class="nav-dropdown-content">
+            ${item.opciones.map(opt => `
+              <a href="${opt.url}" target="_blank">${opt.texto}</a>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      html += `
+        <a href="${item.url}" class="nav-link" target="_blank">
+          <i class="${item.icono || 'fa fa-link'}"></i> ${item.texto}
+        </a>
+      `;
+    }
+  });
+
+  navBar.innerHTML = html;
+}
+
+// Cubick tiene depresion GG
+
+// Ejecutar al cargar la página
+
+document.addEventListener('DOMContentLoaded', cargarNavData);
+
+
+async function cargarData() {
+    try {
+        const resp = await fetch(window.jsonFile, { cache: 'no-cache' });
+        dataGlobal = await resp.json();
+        renderizarNav();
+    } catch (e) {
+        console.warn("No se pudo cargar JSON de navbar:", e);
+    }
+}
+
+
 // RenownedBySprites.js - versión final corregida
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');

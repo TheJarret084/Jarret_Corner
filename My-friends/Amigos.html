@@ -1,41 +1,75 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Mis Amigos?</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="Puta-madre.css">
-  <audio id="Deidad" autoplay loop>
-   <source src="JOJOS-SONG.ogg" type="audio/ogg">
-  </audio>
+
+  <!-- Favicon -->
+  <link rel="icon" href="../Material-Lab/Iconos/Defecto.ico" type="image/x-icon">
 </head>
 <body>
-  <h1>Buenas</h1>
-  <p>Lo más seguro eres uno de los pendejos que se me hace llamar amigo, y no te culpo, soy medio pendejo</p>
-   <h1>Aqui los perfiles de ellos.</h1>
- <div class="carousel-container">
-  <button class="prev">&lt;</button>
-  <div class="carousel-track-wrapper">
-    <div class="carousel-track" id="carousel-track">
-      <!-- Las fichas se inyectan aquí -->
-    </div>
-    </div>
-    <button class="next">&gt;</button>
+  <!-- Página -->
+  <div class="page-wrap">
+
+    <!-- Header -->
+    <header class="site-header">
+      <div class="header-left">
+        <div class="site-title">
+          <i class="fa-solid fa-bolt-lightning"></i>
+          <span>Mis Amigos</span>
+        </div>
+      </div>
+
+      <nav id="nav-bar" class="nav-bar" aria-label="Navegación principal"></nav>
+
+      <div class="header-right">
+        <button id="music-toggle" class="music-btn" aria-pressed="false" title="Reproducir / pausar música">
+          <i class="fa-solid fa-play"></i>
+        </button>
+      </div>
+
+      <p class="subtitle">Los pendejos que hago llamar amigos... La verdad los quiero.</p>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="container">
+      <h1 class="section-title">Aquí los perfiles de ellos</h1>
+
+      <!-- Carrusel -->
+      <section class="carousel-area" aria-label="Carrusel de perfiles">
+        <div class="carousel-controls">
+        <button class="carousel-btn prev" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+
+        <div class="carousel-track-wrapper">
+        <div class="carousel-track" id="carousel-track" role="list"></div>
+        </div>
+
+        <button class="carousel-btn next" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+
+        <div class="carousel-dots" id="carousel-dots" aria-hidden="false"></div>
+      </section>
+      <!-- Fin Carrusel -->
+
+      <!-- Footer -->
+      <div id="footer-container"></div>
+    </main>
+
   </div>
-  <!-- JS renombrado a lector-json.js -->
+
+  <!-- Audio (preload, no autoplay) -->
+  <audio id="Deidad" preload="auto">
+    <source src="JOJOS-SONG.ogg" type="audio/ogg">
+  </audio>
+
+  <!-- Script -->
   <script src="Lector-JSON.js" defer></script>
-
-  <button id="boton-musica" onclick="document.getElementById('Deidad').play()">▶ Reproducir</button>
-  <button id="boton-musica" onclick="document.getElementById('Deidad').pause()">⏸ Pausar</button>
-
- <script>
-   function reproducirMusica() {
-     const audio = document.getElementById("Deidad");
-     audio.play().catch(err => {
-       console.error("No se pudo reproducir automáticamente:", err);
-    });
-    }
- </script>
-  
 </body>
 </html>

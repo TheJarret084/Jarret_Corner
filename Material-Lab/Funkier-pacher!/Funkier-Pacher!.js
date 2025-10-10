@@ -2,7 +2,7 @@
 // Consolidado: navbar, UI, FunkierPacker, ZIP/PNG+XML processing, previews y descarga.
 
 // -------------------- Navbar dinámico --------------------
-window.jsonFile = 'FP!.json';
+window.jsonFile = '../../Corner.json';
 let dataGlobal = null;
 
 function renderizarNav() {

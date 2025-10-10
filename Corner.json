@@ -11,7 +11,7 @@
         "opciones": [
           { "texto": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
           { "texto": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" },
-          { "texto": "Amigos", "url": "My-friends/Amigos.html" },
+          { "texto": "Amigos", "url": "My-Friends/Amigos.html" },
           { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" }
         ]
       }
@@ -26,7 +26,7 @@
           "titulo": "Funkier-pacher!",
           "descripcion": "Antes llamado Macheteador de sprites, funcionaba con Python XD (y funcionaba muy bien).",
           "tipo": "boton",
-          "url": "Material-Lab/Funkier-pacher!/Funkier-Pacher!.html",
+          "url": "Material-Lab/Funkier-pacher!/Funkier-pacher!.html",
           "botonTexto": "Funkier-pacher!"
         },
         {
@@ -51,13 +51,6 @@
           "botonTexto": "Tunea-tu-imagen-inador!"
         },
         {
-          "titulo": "TextForFrames",
-          "descripcion": "No se la verdad, aprende usarlo",
-          "tipo": "boton",
-          "url": "Material-Lab/TextForFrames/TextForFrames.html",
-          "botonTexto": "TextForFrames!"
-        },
-        {
           "titulo": "VidToSheet",
           "descripcion": "Convierte videos en cuvierta para SpriteSheet.",
           "tipo": "boton",
@@ -68,5 +61,3 @@
     }
   }
 }
-
-
