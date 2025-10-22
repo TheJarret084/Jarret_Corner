@@ -84,6 +84,36 @@ function renderizarSeccion(seccion) {
         card.appendChild(btn);
 
         opciones.appendChild(card);
+
+        /*
+        // Esta es la mierda que no quiero que se vea pero, que este aqui
+        datos.opciones.forEach(op => {
+        const card = document.createElement('div');
+        card.className = 'contenedor-bonito';
+
+        // Cambiar color si es sección beta
+        if (seccion === 'beta') {
+           card.classList.add('beta-card');
+        }
+
+        const h2 = document.createElement('h2');
+        h2.textContent = op.titulo;
+
+        const p = document.createElement('p');
+        p.textContent = op.descripcion;
+
+        const btn = document.createElement('a');
+        btn.className = 'boton';
+        btn.href = op.url;
+        btn.textContent = op.botonTexto;
+        btn.target = '_blank';
+
+        card.appendChild(h2);
+        card.appendChild(p);
+        card.appendChild(btn);
+
+        opciones.appendChild(card);
+    }); */
     });
 }
 
@@ -107,4 +137,50 @@ document.addEventListener('DOMContentLoaded', () => {
             header.classList.remove('nav-open');
         }
     });
+
+   /*  // Botón para acceder al modo Beta
+    const betaBtn = document.createElement('button');
+    betaBtn.textContent = '🧪 Beta';
+    betaBtn.id = 'beta-btn';
+    document.querySelector('.footer').appendChild(betaBtn);
+
+    betaBtn.addEventListener('click', () => {
+        if (seccionActual === 'beta') {
+            seccionActual = 'laboratorio';
+            betaBtn.textContent = '🧪 Beta';
+        } else {
+            seccionActual = 'beta';
+            betaBtn.textContent = '⬅️ Volver';
+        }
+        renderizarSeccion(seccionActual);
+    }); */
+
+   // Botón para acceder al modo Beta
+    const betaBtn = document.createElement('button');
+    betaBtn.textContent = '🧪 Beta';
+    betaBtn.id = 'beta-btn';
+        document.querySelector('.footer').appendChild(betaBtn);
+
+    betaBtn.addEventListener('click', () => {
+     const body = document.body;
+
+     // Agregamos transición suave
+        body.style.transition = 'background 0.6s ease, color 0.6s ease';
+
+      if (seccionActual === 'beta') {
+         seccionActual = 'laboratorio';
+         betaBtn.textContent = '🧪 Beta';
+         body.classList.remove('modo-beta');
+         document.getElementById('titulo-seccion').textContent = 'Laboratorio de TheJarret084';
+        } else {
+         seccionActual = 'beta';
+         betaBtn.textContent = '⬅️ Volver';
+         body.classList.add('modo-beta');
+         document.getElementById('titulo-seccion').textContent = 'Laboratorio de TheJarret084 / Area Beta';
+       }
+
+    // Le damos una ligera demora para el render
+    setTimeout(() => renderizarSeccion(seccionActual), 150);
+});
+
 });

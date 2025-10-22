@@ -26,38 +26,52 @@
           "titulo": "Funkier-pacher!",
           "descripcion": "Antes llamado Macheteador de sprites, funcionaba con Python XD (y funcionaba muy bien).",
           "tipo": "boton",
-          "url": "Material-Lab/Funkier-pacher!/Funkier-Pacher!.html",
+          "url": "Material-Lab/Lab/Funkier-pacher!/Funkier-Pacher!.html",
           "botonTexto": "Funkier-pacher!"
         },
         {
           "titulo": "RenownedBySprites",
           "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
           "tipo": "boton",
-          "url": "Material-Lab/RenownedBySprites/RenownedBySprites.html",
+          "url": "Material-Lab/Lab/RenownedBySprites/RenownedBySprites.html",
           "botonTexto": "RenownedBySprites"
+        },
+        {
+          "titulo": "FNMM-Descompacter",
+          "descripcion": "Si necesitas desarmar tu niveles con todos los sprites dentro, esto te hecha una mano.",
+          "tipo": "boton",
+          "url": "Material-Lab/Lab/FNMM-Descompacter/FNMM-Descompacter.html",
+          "botonTexto": "Descompacter"
         },
         {
           "titulo": "Proyect",
           "descripcion": "Mucha pereza hacer 2000 frames iguales en paint.",
           "tipo": "boton",
-          "url": "Material-Lab/Proyect/proyect.html",
+          "url": "Material-Lab/Lab/Proyect/proyect.html",
           "botonTexto": "Name-Not-Found"
-        },
-        {
-          "titulo": "Idea Estúpida",
-          "descripcion": "Idea estúpida, de un estúpido",
-          "tipo": "boton",
-          "url": "Material-Lab/Idea_estupida/El_Shader-inador.html",
-          "botonTexto": "Tunea-tu-imagen-inador!"
-        },
-        {
-          "titulo": "VidToSheet",
-          "descripcion": "Convierte videos en cuvierta para SpriteSheet.",
-          "tipo": "boton",
-          "url": "Material-Lab/VidToSheet/VidToSheet.html",
-          "botonTexto": "VidToSheet"
         }
       ]
-    }
+    },
+    "beta": {
+   "contenido": [
+     "Aquí encontrarás las cosas que nuncan tendran una funcion, pero existen."
+    ],
+   "opciones": [
+      {
+        "titulo": "Idea Estúpida",
+        "descripcion": "Idea estúpida, de un estúpido",
+        "tipo": "boton",
+        "url": "Material-Lab/Beta/Idea_estupida/El_Shader-inador.html",
+        "botonTexto": "Tunea-tu-imagen-inador!"
+      }, 
+      {
+        "titulo": "VidToSheet",
+        "descripcion": "Convierte videos en cuvierta para SpriteSheet.",
+        "tipo": "boton",
+        "url": "Material-Lab/Beta/VidToSheet/VidToSheet.html",
+        "botonTexto": "VidToSheet"
+      }
+    ]
   }
+}
 }

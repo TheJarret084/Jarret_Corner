@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--Esta vez, si logre hacer la mayoria yo mismo... el html verdad...-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FNMM-Descompacter</title>
+  <link rel="icon" href="../../Iconos/FP.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="optimizer.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="title-glow">
+      <i class="fa-solid fa-bolt-lightning"></i> FNMM-Descompacter
+     </div>
+     <nav id="nav-bar"></nav>
+     <p class="subtitle">Extrae sprites [PNGS], permite optimización externa y reconstruye el nivel otra vez [FNMM].</p>
+  </header>
+
+  <div class="container">
+    <h1></h1>
+    <p class="note"></p>
+
+    <section class="step">
+      <h2>1) Cargar .FNMM (original)</h2>
+      <input id="fnmmFile" type="file" accept=".FNMM">
+      <button id="extractBtn">Extraer sprites</button>
+    </section>
+
+    <section class="step">
+      <h2>2) Descargar ZIP de sprites </br> [Si no lo tienes]</h2>
+      <div id="extractResults"></div>
+    </section>
+
+    <section class="step">
+      <h2>3) Subir ZIP con sprites optimizados [ojo no haber tocado el <strong>mapping.json</strong>]</h2>
+      <input id="optimizedZipFile" type="file" accept=".zip">
+      <button id="importBtn">Importar optimizados y reconstruir FNMM</button>
+    </section>
+
+    <section class="step">
+      <h2>Logs / Progreso</h2>
+      <div id="progress"><div id="progress-inner"></div></div>
+      <pre id="log">Esperando acción...</pre>
+      <div id="results"></div>
+    </section>
+
+    <footer class="footer">
+        <p><strong>© 2025 Jarret Labs.</strong></p>
+        <p>Esta página no está asociada con King GC ni su juego.</p>
+        <div class="contact">
+            <span>¿Problemas? Contáctame en Discord:</span>
+            <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+            <i class="fab fa-discord"></i>
+            </a>
+        </div>
+    </footer>
+  </div>
+ 
+  <!--Librerias/Scripts-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="optimizer.js"></script>
+</body>
+</html>
