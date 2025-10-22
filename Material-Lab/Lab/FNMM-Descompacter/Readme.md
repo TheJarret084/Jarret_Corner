@@ -10,4 +10,4 @@ no lo toques porque es el mapeo para volverlo armar, ahora con eso te sera mas f
 
 despues solo debes meter el zip con tus imagenes comprimidas, y el solo reacomodara todos los sprites, como indica el json en el zip... [Por eso no debes tocarlo] 
 
-Recomiendo usar esta pagina para Optimizar las imagenes sin perder TANTO la calidad, y sin redimencionarlo y despues no encaje: *link*
+Recomiendo usar esta pagina para Optimizar las imagenes sin perder TANTO la calidad, y sin redimencionarlo y despues no encaje: https://www.iloveimg.com/es
