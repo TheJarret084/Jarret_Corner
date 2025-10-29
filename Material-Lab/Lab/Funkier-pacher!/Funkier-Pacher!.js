@@ -577,7 +577,7 @@
         // finalize zip
         const baseName = (state.imageFile && state.imageFile.name) ? state.imageFile.name.replace(/\.[^/.]+$/,'') : 'spritesheet';
         const finalBlob = await zip.generateAsync({ type: 'blob' });
-        addDownloadButton(finalBlob, `funky'ed_${baseName}.zip`);
+        addDownloadButton(finalBlob, `TJ_${baseName}.zip`);
         statusTextPngXml && (statusTextPngXml.textContent = "¡Procesamiento completado!");
       } catch (err) {
         console.error('runPacker error', err);
