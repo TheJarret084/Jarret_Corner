@@ -1,318 +1,233 @@
 // Funkier-Pacher!.js
 // Good Night Abelito V2.3 :D
-// Versión: crea UNA sola cinta con todos los frames (no divide en partes).
-// Si el canvas no puede (tamaño o soporte), falla con advertencia.
-
-// Nota: para cambiar el comportamiento a "una cinta por animación", ajusta
-// la variable combineIntoSingleStrip a false más abajo actualizacion desde em celular.
+// Combina helpers ZIP + PNG+XML + previews + manejo de errores
+// Requiere: JSZip cargado antes de este script.
+// 2025 — Versión unificada para evitar errores por archivos separados.
 
 (() => {
-  let isProcessing = false;
-  let createdObjectURLs = [];
-  let previewSet = new Set();
+  'use strict';
 
-  // escala global
-  window.currentScale = window.currentScale || 1.0;
+  // -----------------------------
+  // Configurables
+  // -----------------------------
+  const DEFAULTS = {
+    EST_MAX: 32768,    // límite seguro en px (ajusta si quieres)
+    MIN_SCALE: 0.25,   // no reducimos por debajo de esto
+    SCALE_STEP: 0.05
+  };
 
-  // Behavior toggle: si true -> combinar TODO en una sola cinta; si false -> cinta por animación
-  const combineIntoSingleStrip = true;
+  // -----------------------------
+  // Helper (FTF) - funciones de imagen y spritesheet
+  // -----------------------------
+  const FTF = {
+    DEFAULTS: { ...DEFAULTS },
 
-  // JSON navbar
+    loadImage: function(fileOrBlob) {
+      return new Promise((resolve, reject) => {
+        try {
+          const url = URL.createObjectURL(fileOrBlob);
+          const img = new Image();
+          img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+          img.onerror = (e) => { URL.revokeObjectURL(url); reject(new Error('loadImage failed')); };
+          img.src = url;
+        } catch (e) { reject(e); }
+      });
+    },
+
+    readFileAsText: function(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = (e) => resolve(e.target.result);
+        r.onerror = reject;
+        r.readAsText(file);
+      });
+    },
+
+    toBitmap: async function(blobOrImage) {
+      try {
+        return await createImageBitmap(blobOrImage);
+      } catch (e) {
+        if (blobOrImage instanceof HTMLImageElement) {
+          const c = document.createElement('canvas');
+          c.width = blobOrImage.naturalWidth || blobOrImage.width;
+          c.height = blobOrImage.naturalHeight || blobOrImage.height;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(blobOrImage, 0, 0);
+          return await createImageBitmap(c);
+        }
+        throw e;
+      }
+    },
+
+    getImageDataFromBitmap: function(bitmap) {
+      const c = document.createElement('canvas');
+      c.width = bitmap.width;
+      c.height = bitmap.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(bitmap, 0, 0);
+      return ctx.getImageData(0, 0, c.width, c.height).data;
+    },
+
+    areBitmapsEqual: async function(bmpA, bmpB) {
+      if (!bmpA || !bmpB) return false;
+      if (bmpA.width !== bmpB.width || bmpA.height !== bmpB.height) return false;
+      const d1 = FTF.getImageDataFromBitmap(bmpA);
+      const d2 = FTF.getImageDataFromBitmap(bmpB);
+      if (d1.length !== d2.length) return false;
+      for (let i = 0; i < d1.length; i += 4) {
+        if (d1[i] !== d2[i] || d1[i+1] !== d2[i+1] || d1[i+2] !== d2[i+2] || d1[i+3] !== d2[i+3]) return false;
+      }
+      return true;
+    },
+
+    // Crea spritesheet a partir de ImageBitmap[] (una fila horizontal).
+    // cellWidth/cellHeight son los "cell" por frame (sin escalar).
+    // scale: escala aplicada a cada bitmap dibujo (1 = sin cambiar).
+    // devuelve { blob, canvas, usedScale }
+    createSpritesheetFromBitmaps: async function(bitmaps, cellWidth, cellHeight, scale = 1, opts = {}) {
+      const estMax = opts.estMax ?? DEFAULTS.EST_MAX;
+      const minScale = opts.minScale ?? DEFAULTS.MIN_SCALE;
+      const scaleStep = opts.scaleStep ?? DEFAULTS.SCALE_STEP;
+
+      if (!bitmaps || bitmaps.length === 0) {
+        const c = document.createElement('canvas'); c.width = 1; c.height = 1;
+        return { blob: await new Promise(r=>c.toBlob(r,'image/png')), canvas: c, usedScale: scale };
+      }
+
+      // calcular dimensiones finales
+      const totalW = Math.round(cellWidth * bitmaps.length * scale);
+      const totalH = Math.round(cellHeight * scale);
+
+      // si supera límites, intentar reducir iterativamente
+      if (totalW > estMax || totalH > estMax) {
+        let curScale = scale;
+        while ((Math.round(cellWidth * bitmaps.length * curScale) > estMax || Math.round(cellHeight * curScale) > estMax) && (curScale - scaleStep >= minScale)) {
+          curScale = +(curScale - scaleStep).toFixed(3);
+        }
+        // chequeo final preciso
+        if (Math.round(cellWidth * bitmaps.length * curScale) > estMax || Math.round(cellHeight * curScale) > estMax) {
+          const neededW = estMax / Math.max(1, cellWidth * bitmaps.length);
+          const neededH = estMax / Math.max(1, cellHeight);
+          const needed = Math.min(neededW, neededH);
+          if (needed >= minScale) curScale = needed;
+          else {
+            const e = new Error('CANVAS_TOO_LARGE');
+            e.code = 'CANVAS_TOO_LARGE';
+            throw e;
+          }
+        }
+        // intentar con curScale
+        return await FTF.createSpritesheetFromBitmaps(bitmaps, cellWidth, cellHeight, curScale, opts);
+      }
+
+      // crear canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = totalW;
+      canvas.height = totalH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { const e = new Error('NO_CANVAS'); e.code = 'NO_CANVAS'; throw e; }
+
+      // dibujar bitmaps (centrados en celda)
+      for (let i = 0; i < bitmaps.length; i++) {
+        const bmp = bitmaps[i];
+        const drawW = Math.max(1, Math.round(bmp.width * scale));
+        const drawH = Math.max(1, Math.round(bmp.height * scale));
+        const cellWScaled = Math.round(cellWidth * scale);
+        const cellHScaled = Math.round(cellHeight * scale);
+        const offsetX = Math.floor((cellWScaled - drawW) / 2);
+        const offsetY = Math.floor((cellHScaled - drawH) / 2);
+
+        if (scale !== 1) {
+          const temp = document.createElement('canvas');
+          temp.width = drawW; temp.height = drawH;
+          const tctx = temp.getContext('2d');
+          tctx.imageSmoothingEnabled = true;
+          tctx.imageSmoothingQuality = 'high';
+          tctx.drawImage(bmp, 0, 0, drawW, drawH);
+          ctx.drawImage(temp, i * cellWScaled + offsetX, offsetY);
+        } else {
+          ctx.drawImage(bmp, i * cellWidth + offsetX, offsetY);
+        }
+      }
+
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      return { blob, canvas, usedScale: scale };
+    },
+
+    // Dado un array de Blobs (frames), intenta crear una "tira" (spritesheet).
+    // Opciones: { estMax, minScale, scaleStep, autoScale }
+    // Devuelve Blob o lanza error (CANVAS_TOO_LARGE/NO_CANVAS)
+    createStripFromBlobs: async function(blobs, opts = {}) {
+      const estMax = opts.estMax ?? DEFAULTS.EST_MAX;
+      const minScale = opts.minScale ?? DEFAULTS.MIN_SCALE;
+      const scaleStep = opts.scaleStep ?? DEFAULTS.SCALE_STEP;
+      const autoScale = (opts.autoScale === undefined) ? true : !!opts.autoScale;
+      if (!blobs || blobs.length === 0) {
+        const c = document.createElement('canvas'); c.width = 1; c.height = 1;
+        return await new Promise(r=>c.toBlob(r,'image/png'));
+      }
+
+      // crear bitmaps
+      let bitmaps;
+      try {
+        bitmaps = await Promise.all(blobs.map(b => createImageBitmap(b)));
+      } catch (e) {
+        const err = new Error('NO_CANVAS'); err.code = 'NO_CANVAS'; throw err;
+      }
+
+      const maxW = Math.max(...bitmaps.map(b => b.width));
+      const maxH = Math.max(...bitmaps.map(b => b.height));
+      // escala inicial (leer valor UI si existe)
+      let initialScale = (typeof window !== 'undefined' && window.currentScale) ? window.currentScale : 1;
+      initialScale = Math.max(minScale, Math.min(1, initialScale));
+
+      // si autoScale está desactivado, solo intentar con initialScale (puede fallar)
+      if (!autoScale && initialScale < 1) {
+        const res = await FTF.createSpritesheetFromBitmaps(bitmaps, maxW, maxH, initialScale, { estMax, minScale, scaleStep });
+        return res.blob;
+      }
+
+      // intentar con initialScale (y la función interna hará reducción si hace falta)
+      const res = await FTF.createSpritesheetFromBitmaps(bitmaps, maxW, maxH, initialScale, { estMax, minScale, scaleStep });
+      return res.blob;
+    }
+  }; // end FTF
+
+  // -----------------------------
+  // Navbar loader si existe JSON
+  // Mantengo nombre original cargarData/renderizarNav
+  // -----------------------------
   window.jsonFile = window.jsonFile || '../../../Corner.json';
   let dataGlobal = null;
-
+  function renderizarNav() {
+    const navBar = document.getElementById('nav-bar');
+    if (!navBar || !dataGlobal) return;
+    let html = '';
+    html += `<a href="../../index.html" class="nav-link"><i class="fa fa-home"></i> Menú Principal</a>`;
+    (dataGlobal.data?.nav || []).forEach(item => {
+      if (item.tipo === 'dropdown') {
+        html += `<div class="nav-dropdown"><button class="nav-dropbtn"><i class="fa fa-bars"></i> Más</button><div class="nav-dropdown-content">`;
+        item.opciones.forEach(opt => { html += `<a href="${opt.url}" target="_blank">${opt.texto}</a>`; });
+        html += `</div></div>`;
+      }
+    });
+    navBar.innerHTML = html;
+  }
   async function cargarData() {
     try {
       const resp = await fetch(window.jsonFile, { cache: 'no-cache' });
       dataGlobal = await resp.json();
       renderizarNav();
-    } catch (e) {
-      console.warn("No se pudo cargar JSON de navbar:", e);
-    }
+    } catch (e) { console.warn("No se pudo cargar JSON de navbar:", e); }
   }
 
-  function renderizarNav() {
-    const navBar = document.getElementById('nav-bar');
-    if (!navBar || !dataGlobal) return;
-
-    let html = '';
-    html += `<a href="../../../index.html" class="nav-link">
-                <i class="fa fa-home"></i> Menú Principal
-            </a>`;
-
-    (dataGlobal.data?.nav || []).forEach(item => {
-      if (item.tipo === 'dropdown') {
-        html += `<div class="nav-dropdown">
-                    <button class="nav-dropbtn"><i class="fa fa-bars"></i> Más</button>
-                    <div class="nav-dropdown-content">`;
-        item.opciones.forEach(opt => {
-          html += `<a href="${opt.url}" target="_blank">${opt.texto}</a>`;
-        });
-        html += `</div></div>`;
-      }
-    });
-
-    navBar.innerHTML = html;
-  }
-
-  // ---------------- FunkierPacker ----------------
-  class FunkierPacker {
-    constructor() { this.frames = []; }
-
-    async processFiles(imageFile, xmlFile, options = {}, onProgress = () => {}) {
-      this.frames = [];
-      const img = await this._loadImage(imageFile);
-      const xmlText = await xmlFile.text();
-      const atlas = this._parseXML(xmlText);
-
-      const total = atlas.frames.length || 0;
-      for (let i = 0; i < atlas.frames.length; i++) {
-        const f = atlas.frames[i];
-        const frameCanvas = this._cutFrame(img, f);
-        const blob = await this._canvasToBlob(frameCanvas);
-
-        let name = f.name;
-        if (name && name.toLowerCase().endsWith('.png')) name = name.slice(0, -4);
-        this.frames.push({ name: name || 'unnamed', blob });
-        onProgress((i + 1) / Math.max(1, total));
-      }
-      return this.frames;
-    }
-
-    async generateZip() {
-      if (!this.frames.length) throw new Error("No hay frames procesados");
-      const zip = new JSZip();
-      this.frames.forEach(f => zip.file(f.name + '.png', f.blob));
-      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-      return { blob, fileName: 'frames.zip' };
-    }
-
-    _loadImage(file) {
-      return new Promise((res, rej) => {
-        const img = new Image();
-        img.onload = () => res(img);
-        img.onerror = rej;
-        img.src = URL.createObjectURL(file);
-      });
-    }
-
-    _parseXML(xmlText) {
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlText, "text/xml");
-      const frameNodes = Array.from(xml.querySelectorAll('SubTexture'));
-      const parseIntOr0 = v => {
-        if (v === null || v === undefined || v === '') return 0;
-        const n = parseInt(v, 10);
-        return Number.isNaN(n) ? 0 : n;
-      };
-      const parseBool = v => {
-        if (!v) return false;
-        v = v.toString().toLowerCase();
-        return (v === 'true' || v === '1');
-      };
-
-      return {
-        frames: frameNodes.map(n => {
-          let name = n.getAttribute('name');
-          if (name && name.toLowerCase().endsWith('.png')) name = name.slice(0, -4);
-          return {
-            name: name || 'unnamed',
-            x: parseIntOr0(n.getAttribute('x')),
-            y: parseIntOr0(n.getAttribute('y')),
-            width: parseIntOr0(n.getAttribute('width')),
-            height: parseIntOr0(n.getAttribute('height')),
-            rotated: parseBool(n.getAttribute('rotated')),
-            frameX: parseIntOr0(n.getAttribute('frameX')),
-            frameY: parseIntOr0(n.getAttribute('frameY')),
-            frameWidth: parseIntOr0(n.getAttribute('frameWidth')) || parseIntOr0(n.getAttribute('width')),
-            frameHeight: parseIntOr0(n.getAttribute('frameHeight')) || parseIntOr0(n.getAttribute('height'))
-          };
-        })
-      };
-    }
-
-    _cutFrame(img, frame) {
-      const srcW = frame.width, srcH = frame.height;
-      const srcCanvas = document.createElement('canvas');
-      srcCanvas.width = srcW; srcCanvas.height = srcH;
-      const sctx = srcCanvas.getContext('2d');
-      sctx.drawImage(img, frame.x, frame.y, srcW, srcH, 0, 0, srcW, srcH);
-
-      const finalW = frame.frameWidth, finalH = frame.frameHeight;
-      const canvas = document.createElement('canvas');
-      canvas.width = finalW; canvas.height = finalH;
-      const ctx = canvas.getContext('2d');
-      const offsetX = frame.frameX, offsetY = frame.frameY;
-
-      if (!frame.rotated) {
-        ctx.drawImage(srcCanvas, -offsetX, -offsetY);
-        return canvas;
-      }
-
-      const rotatedCanvas = document.createElement('canvas');
-      rotatedCanvas.width = srcH; rotatedCanvas.height = srcW;
-      const rctx = rotatedCanvas.getContext('2d');
-      rctx.translate(0, srcW);
-      rctx.rotate(-Math.PI / 2);
-      rctx.drawImage(srcCanvas, 0, 0);
-      ctx.drawImage(rotatedCanvas, -offsetX, -offsetY);
-      return canvas;
-    }
-
-    _canvasToBlob(canvas) {
-      return new Promise(resolve => {
-        const scale = (typeof window !== 'undefined' && window.currentScale) ? window.currentScale : 1;
-        if (scale < 1) {
-          const scaled = document.createElement('canvas');
-          scaled.width = Math.max(1, Math.round(canvas.width * scale));
-          scaled.height = Math.max(1, Math.round(canvas.height * scale));
-          const sctx = scaled.getContext('2d');
-          sctx.imageSmoothingEnabled = true;
-          sctx.imageSmoothingQuality = 'high';
-          sctx.drawImage(canvas, 0, 0, scaled.width, scaled.height);
-          scaled.toBlob(resolve, 'image/png');
-        } else {
-          canvas.toBlob(resolve, 'image/png');
-        }
-      });
-    }
-  }
-
-  // ---------------- Helpers ----------------
-  function getImageDataFromBitmap(img) {
-    const c = document.createElement('canvas');
-    const ctx = c.getContext('2d');
-    c.width = img.width; c.height = img.height;
-    ctx.drawImage(img, 0, 0);
-    return ctx.getImageData(0, 0, c.width, c.height).data;
-  }
-
-  async function areImagesEqual(img1, img2) {
-    if (img1.width !== img2.width || img1.height !== img2.height) return false;
-    const [d1, d2] = await Promise.all([getImageDataFromBitmap(img1), getImageDataFromBitmap(img2)]);
-    for (let i = 0; i < d1.length; i += 4) {
-      if (d1[i] !== d2[i] || d1[i + 1] !== d2[i + 1] || d1[i + 2] !== d2[i + 2] || d1[i + 3] !== d2[i + 3]) return false;
-    }
-    return true;
-  }
-
-  // createStrip: intento único de poner TODOS los frames en un único canvas.
-  // Si falla por tamaño o soporte -> lanza CANVAS_TOO_LARGE o NO_CANVAS.
-  async function createStrip(blobs, options = {}) {
-    const limit = (options && typeof options.limit === 'number') ? options.limit : null;
-    if (!blobs || blobs.length === 0) {
-      const c = document.createElement('canvas');
-      c.width = 1; c.height = 1;
-      return new Promise(r => c.toBlob(r, 'image/png'));
-    }
-
-    const use = (limit && limit > 0 && blobs.length > limit) ? blobs.slice(0, limit) : blobs;
-
-    // Intentar crear bitmaps (si falla -> NO_CANVAS)
-    let images;
-    try {
-      images = await Promise.all(use.map(b => createImageBitmap(b)));
-    } catch (err) {
-      const e = new Error('El navegador no soporta operaciones de canvas/createImageBitmap');
-      e.code = 'NO_CANVAS';
-      throw e;
-    }
-
-    const maxW = Math.max(...images.map(i => i.width));
-    const maxH = Math.max(...images.map(i => i.height));
-
-    // límite estimado para evitar canvases gigantes (ajusta si quieres)
-    const EST_MAX = 16000;
-
-    // calcular tamaño total para ponerlos en una sola fila
-    const totalW = maxW * images.length;
-    const totalH = maxH;
-
-    // si excede límites, fallar (sin dividir)
-    if (totalW > EST_MAX || totalH > EST_MAX) {
-      const e = new Error('Canvas demasiado grande para generar la cinta con todos los frames.');
-      e.code = 'CANVAS_TOO_LARGE';
-      throw e;
-    }
-
-    // crear canvas único y dibujar todos los frames centrados por celda
-    const canvas = document.createElement('canvas');
-    canvas.width = totalW;
-    canvas.height = totalH;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      const e = new Error('No se obtuvo contexto 2d del canvas.');
-      e.code = 'NO_CANVAS';
-      throw e;
-    }
-
-    for (let i = 0; i < images.length; i++) {
-      const img = images[i];
-      const x = i * maxW + Math.floor((maxW - img.width) / 2);
-      const y = Math.floor((maxH - img.height) / 2);
-      ctx.drawImage(img, x, y);
-    }
-
-    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-  }
-
-  async function createGif(images) {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const { width, height } = images[0];
-    canvas.width = width; canvas.height = height;
-    ctx.drawImage(images[0], 0, 0);
-    return new Promise(r => canvas.toBlob(r, 'image/png'));
-  }
-
-  async function makeLabeledBlob(imageBitmap, label, width, height) {
-    const c = document.createElement('canvas');
-    c.width = width; c.height = height;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(imageBitmap, 0, 0);
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(0, c.height - 24, c.width, 24);
-    ctx.font = 'bold 12px Arial';
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.fillText(label, c.width / 2, c.height - 8);
-    return new Promise(r => c.toBlob(r, 'image/png'));
-  }
-
-  // ---------------- DOM helpers ----------------
-  function ensureDownloadArea() {
-    const id = 'download-controls';
-    let area = document.getElementById(id);
-    if (!area) {
-      area = document.createElement('div');
-      area.id = id;
-      area.className = 'download-area';
-      const footer = document.querySelector('footer');
-      if (footer && footer.parentNode) footer.parentNode.insertBefore(area, footer);
-      else document.body.appendChild(area);
-    }
-    return area;
-  }
-
-  function createFileListFromFile(file) {
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    return dt.files;
-  }
-
-  // revoke urls created during previews and downloads
-  function revokeAllCreatedURLs() {
-    createdObjectURLs.forEach(u => {
-      try { URL.revokeObjectURL(u); } catch (e) { /* ignore */ }
-    });
-    createdObjectURLs = [];
-  }
-
-  // ----------------- Main UI & Logic -----------------
+  // -----------------------------
+  // Main UI + lógica (DOMContentLoaded)
+  // -----------------------------
   document.addEventListener('DOMContentLoaded', () => {
-    cargarData();
-
+    // -----------------------------
     // DOM refs
+    // -----------------------------
     const methodZipBtn = document.getElementById('method-zip-btn');
     const methodPngXmlBtn = document.getElementById('method-pngxml-btn');
     const zipPanel = document.getElementById('zip-upload-panel');
@@ -331,53 +246,61 @@
     const statusTextPngXml = document.getElementById('status-text-pngxml');
 
     const removeDuplicatesCheckbox = document.getElementById('remove-duplicates');
-    const outputGifCheckbox = document.getElementById('output-gif'); // optional
-
-    const resultContent = document.querySelector('#result-panel .result-content') || document.getElementById('result-panel');
-
     const scaleRange = document.getElementById('scale-range');
     const scaleValue = document.getElementById('scale-value');
     const scaleWarning = document.getElementById('scale-warning');
 
-    const downloadArea = ensureDownloadArea();
+    const resultPanel = document.getElementById('result-panel');
+    const resultContent = document.querySelector('#result-panel .result-content') || document.getElementById('result-panel');
 
-    // local app state
+    const downloadControls = document.getElementById('download-controls');
+
+    // attempt to load navbar JSON
+    try { cargarData(); } catch(e){ /* ignore */ }
+
+    // -----------------------------
+    // State
+    // -----------------------------
     const state = { mode: 'zip', zipFile: null, imageFile: null, xmlFile: null };
-    const packer = new FunkierPacker();
+    window.currentScale = window.currentScale || 1.0;
 
-    // inicial UI
+    // track created object URLs for revocation
+    let createdObjectURLs = [];
+    function registerObjectURL(url) { createdObjectURLs.push(url); return url; }
+    function revokeAllCreatedURLs() { createdObjectURLs.forEach(u => { try { URL.revokeObjectURL(u); } catch(e){} }); createdObjectURLs = []; }
+
+    // -----------------------------
+    // Initial UI
+    // -----------------------------
     if (zipPanel) zipPanel.style.display = 'block';
     if (pngxmlPanel) pngxmlPanel.style.display = 'none';
     methodZipBtn?.classList.add('active');
-    methodPngXmlBtn?.classList.remove('active');
 
-    // --- switch methods (single listener)
-    methodZipBtn?.addEventListener('click', () => {
-      if (isProcessing) return;
-      state.mode = 'zip';
-      if (zipPanel) zipPanel.style.display = 'block';
-      if (pngxmlPanel) pngxmlPanel.style.display = 'none';
-      methodZipBtn.classList.add('active');
-      methodPngXmlBtn.classList.remove('active');
-      checkReady();
-    });
+    // scale UI
+    if (scaleRange && scaleValue) {
+      scaleRange.addEventListener('input', () => {
+        const v = parseFloat(scaleRange.value);
+        window.currentScale = Math.max(DEFAULTS.MIN_SCALE, Math.min(1, v));
+        scaleValue.textContent = Math.round(window.currentScale * 100) + '%';
+        if (scaleWarning) scaleWarning.style.display = window.currentScale < 1 ? 'block' : 'none';
+      });
+      scaleRange.value = window.currentScale.toString();
+      scaleValue.textContent = Math.round(window.currentScale * 100) + '%';
+      if (scaleWarning) scaleWarning.style.display = window.currentScale < 1 ? 'block' : 'none';
+    }
 
-    methodPngXmlBtn?.addEventListener('click', () => {
-      if (isProcessing) return;
-      state.mode = 'packer';
-      if (zipPanel) zipPanel.style.display = 'none';
-      if (pngxmlPanel) pngxmlPanel.style.display = 'block';
-      methodZipBtn.classList.remove('active');
-      methodPngXmlBtn.classList.add('active');
-      checkReady();
-    });
+    // -----------------------------
+    // Utility: set FileList
+    // -----------------------------
+    function createFileListFromFile(file) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      return dt.files;
+    }
 
-    // file pickers
-    zipBtn?.addEventListener('click', () => zipInput && zipInput.click());
-    imageBtn?.addEventListener('click', () => imageInput && imageInput.click());
-    xmlBtn?.addEventListener('click', () => xmlInput && xmlInput.click());
-
-    // drag & drop helpers
+    // -----------------------------
+    // Drag & drop helpers
+    // -----------------------------
     function makeDropZoneHandlers(dropEl, onFile) {
       if (!dropEl) return;
       let prevent = e => { e.preventDefault(); e.stopPropagation(); };
@@ -393,21 +316,27 @@
 
     makeDropZoneHandlers(document.getElementById('zip-drop-zone'), (file) => {
       if (!file) return;
-      if (zipInput) zipInput.files = createFileListFromFile(file);
-      zipInput?.dispatchEvent(new Event('change'));
+      zipInput.files = createFileListFromFile(file);
+      zipInput.dispatchEvent(new Event('change'));
     });
     makeDropZoneHandlers(document.getElementById('png-drop-zone'), (file) => {
       if (!file) return;
-      if (imageInput) imageInput.files = createFileListFromFile(file);
-      imageInput?.dispatchEvent(new Event('change'));
+      imageInput.files = createFileListFromFile(file);
+      imageInput.dispatchEvent(new Event('change'));
     });
     makeDropZoneHandlers(document.getElementById('xml-drop-zone'), (file) => {
       if (!file) return;
-      if (xmlInput) xmlInput.files = createFileListFromFile(file);
-      xmlInput?.dispatchEvent(new Event('change'));
+      xmlInput.files = createFileListFromFile(file);
+      xmlInput.dispatchEvent(new Event('change'));
     });
 
-    // input change
+    // -----------------------------
+    // File pickers wiring
+    // -----------------------------
+    zipBtn?.addEventListener('click', () => zipInput && zipInput.click());
+    imageBtn?.addEventListener('click', () => imageInput && imageInput.click());
+    xmlBtn?.addEventListener('click', () => xmlInput && xmlInput.click());
+
     zipInput?.addEventListener('change', () => {
       if (zipInput.files.length > 0) {
         state.zipFile = zipInput.files[0];
@@ -430,6 +359,25 @@
       checkReady();
     });
 
+    // -----------------------------
+    // Mode switching and readiness
+    // -----------------------------
+    methodZipBtn?.addEventListener('click', () => {
+      state.mode = 'zip';
+      if (zipPanel) zipPanel.style.display = 'block';
+      if (pngxmlPanel) pngxmlPanel.style.display = 'none';
+      methodZipBtn.classList.add('active'); methodPngXmlBtn?.classList.remove('active');
+      checkReady();
+    });
+
+    methodPngXmlBtn?.addEventListener('click', () => {
+      state.mode = 'packer';
+      if (zipPanel) zipPanel.style.display = 'none';
+      if (pngxmlPanel) pngxmlPanel.style.display = 'block';
+      methodZipBtn.classList.remove('active'); methodPngXmlBtn.classList.add('active');
+      checkReady();
+    });
+
     function checkReady() {
       if (state.mode === 'packer') {
         if (state.imageFile && state.xmlFile) {
@@ -441,158 +389,209 @@
           else if (state.xmlFile && !state.imageFile) statusTextPngXml && (statusTextPngXml.textContent = "Falta la imagen");
           else statusTextPngXml && (statusTextPngXml.textContent = "Selecciona PNG y XML para continuar.");
         }
-        // disable zip generate while packer selected
-        generateBtnZip.disabled = true;
+        if (generateBtnZip) generateBtnZip.disabled = true;
       } else {
-        // mode zip
-        generateBtnZip.disabled = !state.zipFile;
+        if (generateBtnZip) generateBtnZip.disabled = !state.zipFile;
         if (!state.zipFile) statusTextZip && (statusTextZip.textContent = "Selecciona un archivo ZIP para continuar.");
-        // disable pngxml generate while zip selected
-        generateBtnPngXml.disabled = true;
-      }
-      // if processing: ensure both generate buttons disabled
-      if (isProcessing) {
-        generateBtnZip.disabled = true;
-        generateBtnPngXml.disabled = true;
+        if (generateBtnPngXml) generateBtnPngXml.disabled = true;
       }
     }
 
-    // scale UI
-    if (scaleRange && scaleValue) {
-      scaleRange.addEventListener('input', () => {
-        const v = parseFloat(scaleRange.value);
-        const limited = Math.max(0.5, Math.min(1, v));
-        window.currentScale = limited;
-        scaleValue.textContent = Math.round(window.currentScale * 100) + '%';
-        if (scaleWarning) scaleWarning.style.display = window.currentScale < 1.0 ? 'block' : 'none';
-      });
-      scaleRange.value = window.currentScale.toString();
-      scaleValue.textContent = Math.round(window.currentScale * 100) + '%';
-      if (scaleWarning) scaleWarning.style.display = window.currentScale < 1.0 ? 'block' : 'none';
-    }
+    // initial readiness check
+    checkReady();
 
-    // helper: scale blob (only when from ZIP)
-    async function scaleBlobIfNeeded(blob) {
-      const scale = (typeof window !== 'undefined' && window.currentScale) ? window.currentScale : 1;
-      if (!blob) return blob;
-      if (scale >= 1) return blob;
-      try {
-        const bmp = await createImageBitmap(blob);
-        const c = document.createElement('canvas');
-        c.width = Math.max(1, Math.round(bmp.width * scale));
-        c.height = Math.max(1, Math.round(bmp.height * scale));
-        const ctx = c.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(bmp, 0, 0, c.width, c.height);
-        return await new Promise(r => c.toBlob(r, 'image/png'));
-      } catch (e) {
-        console.warn('scaleBlobIfNeeded fallo, retornando blob original:', e);
-        return blob;
-      }
-    }
-
-    // prevent double-click / reentrancy on generate
-    async function onGenerateZip() {
-      if (isProcessing) {
-        statusTextZip && (statusTextZip.textContent = "Ya se está generando. Espera a que termine...");
-        return;
-      }
-      isProcessing = true;
-      setUiProcessing(true, 'zip');
-      previewSet.clear();
-      revokeAllCreatedURLs();
-      clearResultsInner();
-      try {
-        await runZip(!!removeDuplicatesCheckbox?.checked, !!outputGifCheckbox?.checked);
-      } finally {
-        isProcessing = false;
-        setUiProcessing(false);
-        checkReady();
-      }
-    }
-
-    async function onGeneratePngXml() {
-      if (isProcessing) {
-        statusTextPngXml && (statusTextPngXml.textContent = "Ya se está generando. Espera a que termine...");
-        return;
-      }
-      isProcessing = true;
-      setUiProcessing(true, 'packer');
-      previewSet.clear();
-      revokeAllCreatedURLs();
-      clearResultsInner();
-      try {
-        await runPacker(!!removeDuplicatesCheckbox?.checked);
-      } finally {
-        isProcessing = false;
-        setUiProcessing(false);
-        checkReady();
-      }
-    }
-
-    // wire generate buttons
-    generateBtnZip?.addEventListener('click', onGenerateZip);
-    generateBtnPngXml?.addEventListener('click', onGeneratePngXml);
-
-    function setUiProcessing(flag, mode) {
-      const elsToDisable = [
-        generateBtnZip, generateBtnPngXml,
-        zipBtn, imageBtn, xmlBtn,
-        zipInput, imageInput, xmlInput,
-        methodZipBtn, methodPngXmlBtn
-      ];
-      elsToDisable.forEach(el => { if (el) el.disabled = !!flag; });
-      if (flag) {
-        if (mode === 'zip') statusTextZip && (statusTextZip.textContent = "Iniciando proceso...");
-        else statusTextPngXml && (statusTextPngXml.textContent = "Iniciando proceso...");
-      }
-    }
-
-    function clearResultsInner() {
+    // -----------------------------
+    // Clear results helper
+    // -----------------------------
+    function clearResults() {
+      // revoke preview object URLs inside resultContent
       if (resultContent) {
-        const previews = resultContent.querySelectorAll('.preview-container');
-        previews.forEach(p => {
-          if (p._cleanupPreviewURL) {
-            try { URL.revokeObjectURL(p._cleanupPreviewURL); } catch (e) {}
-          }
+        const imgs = resultContent.querySelectorAll('img[data-created-url]');
+        imgs.forEach(img => {
+          try { const u = img.getAttribute('data-created-url'); URL.revokeObjectURL(u); } catch(e) {}
         });
         resultContent.innerHTML = '';
       }
-      const area = ensureDownloadArea();
-      if (area) area.innerHTML = '';
-    }
-
-    function clearResults() {
-      previewSet.clear();
       revokeAllCreatedURLs();
-      clearResultsInner();
+      if (downloadControls) downloadControls.innerHTML = '';
     }
 
-    // Run handlers
+    // -----------------------------
+    // Generate buttons wiring
+    // -----------------------------
+    generateBtnZip?.addEventListener('click', async () => {
+      clearResults();
+      await runZip(!!removeDuplicatesCheckbox?.checked);
+    });
+    generateBtnPngXml?.addEventListener('click', async () => {
+      clearResults();
+      await runPacker(!!removeDuplicatesCheckbox?.checked);
+    });
+
+    // -----------------------------
+    // runPacker: PNG + XML path
+    // -----------------------------
     async function runPacker(removeDuplicates = false) {
       try {
         statusTextPngXml && (statusTextPngXml.textContent = "Procesando PNG + XML...");
-        if (!state.imageFile || !state.xmlFile) {
-          statusTextPngXml && (statusTextPngXml.textContent = "Faltan archivos (PNG o XML).");
-          return;
-        }
-        const frames = await packer.processFiles(state.imageFile, state.xmlFile);
-        const animGroups = groupFrames(frames);
-        await createTiras(animGroups, state.imageFile.name, removeDuplicates, false);
-      } catch (err) {
-        statusTextPngXml && (statusTextPngXml.textContent = 'Error: ' + (err && err.message ? err.message : err));
-        console.error(err);
-      }
-    }
+        if (!state.imageFile || !state.xmlFile) { statusTextPngXml && (statusTextPngXml.textContent = "Faltan archivos (PNG o XML)."); return; }
 
-    async function runZip(removeDuplicates = false, outputGif = false) {
+        // load image + parse XML
+        const img = await FTF.loadImage(state.imageFile);
+        const xmlText = await FTF.readFileAsText(state.xmlFile);
+        const frameData = (function parse() {
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(xmlText, 'text/xml');
+          return Array.from(xml.querySelectorAll('SubTexture')).map(n => {
+            const name = n.getAttribute('name') || '';
+            const x = parseInt(n.getAttribute('x') || '0', 10);
+            const y = parseInt(n.getAttribute('y') || '0', 10);
+            const width = parseInt(n.getAttribute('width') || '0', 10);
+            const height = parseInt(n.getAttribute('height') || '0', 10);
+            const frameX = parseInt(n.getAttribute('frameX') || '0', 10);
+            const frameY = parseInt(n.getAttribute('frameY') || '0', 10);
+            const frameWidth = parseInt(n.getAttribute('frameWidth') || String(width), 10);
+            const frameHeight = parseInt(n.getAttribute('frameHeight') || String(height), 10);
+            return { name, x, y, width, height, frameX, frameY, frameWidth, frameHeight };
+          });
+        })();
+
+        // extract frames as ImageBitmap
+        const extracted = [];
+        for (const f of frameData) {
+          const c = document.createElement('canvas');
+          c.width = f.frameWidth;
+          c.height = f.frameHeight;
+          const ctx = c.getContext('2d');
+          ctx.clearRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, f.x, f.y, f.width, f.height, -f.frameX, -f.frameY, f.width, f.height);
+          const bmp = await createImageBitmap(c);
+          extracted.push({ name: f.name, bmp, frame: f });
+        }
+
+        // organize into animations (robust grouping)
+        const animations = {};
+        for (const ef of extracted) {
+          let name = ef.name || '';
+          name = name.replace(/\.(png|jpg|jpeg)$/i, '');
+          let match = name.match(/^(.*?)(\d+)$/);
+          let animName, frameNum;
+          if (match) {
+            animName = match[1].replace(/[_.-]$/, '') || 'animation';
+            frameNum = parseInt(match[2], 10);
+          } else {
+            match = name.match(/^(.*[_.-])?(.+?)(\d+)([_.-].*)?$/);
+            if (match) {
+              animName = ((match[1] || '') + (match[2] || '') + (match[4] || '')).replace(/[_.-]$/, '') || 'animation';
+              frameNum = parseInt(match[3] || '0', 10);
+            } else {
+              const dm = name.match(/(\d+)/);
+              if (dm) {
+                const idx = name.indexOf(dm[0]);
+                animName = name.substring(0, idx).replace(/[_.-]$/, '') || name;
+                frameNum = parseInt(dm[0], 10);
+                if (!animName) animName = (name.substring(idx + dm[0].length) || 'animation');
+              } else { animName = name || 'animation'; frameNum = 0; }
+            }
+          }
+          if (!animations[animName]) animations[animName] = [];
+          animations[animName].push({ name: ef.name, bmp: ef.bmp, frame: ef.frame, frameNumber: frameNum });
+        }
+
+        // sort frames inside anims
+        Object.keys(animations).forEach(k => animations[k].sort((a,b) => (a.frameNumber || 0) - (b.frameNumber || 0)));
+
+        // process each animation: create spritesheet, add to zip, preview
+        const zip = new JSZip();
+        const previews = [];
+        const animEntries = Object.entries(animations);
+        let processed = 0;
+        const total = animEntries.length;
+        for (const [animName, frames] of animEntries) {
+          processed++;
+          statusTextPngXml && (statusTextPngXml.textContent = `Procesando animación: ${animName} (${processed}/${total})`);
+
+          // collect bitmaps and optionally remove duplicates
+          let bitmaps = frames.map(f => f.bmp);
+          if (removeDuplicates && bitmaps.length > 1) {
+            const unique = [bitmaps[0]];
+            for (let i = 1; i < bitmaps.length; i++) {
+              try {
+                const eq = await FTF.areBitmapsEqual(bitmaps[i], bitmaps[i-1]);
+                if (!eq) unique.push(bitmaps[i]);
+              } catch (e) { unique.push(bitmaps[i]); }
+            }
+            bitmaps = unique;
+          }
+
+          if (bitmaps.length === 0) continue;
+
+          // determine max cell size
+          const maxW = Math.max(...bitmaps.map(b => b.width));
+          const maxH = Math.max(...bitmaps.map(b => b.height));
+
+          // convert bitmaps -> blobs for helper
+          const blobs = [];
+          for (const bmp of bitmaps) {
+            const canvas = document.createElement('canvas');
+            canvas.width = bmp.width;
+            canvas.height = bmp.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(bmp, 0, 0);
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+            blobs.push(blob);
+          }
+
+          // create spritesheet blob using helper (it auto-reduces if needed)
+          let sheetBlob = null;
+          let sheetDims = null;
+          try {
+            sheetBlob = await FTF.createStripFromBlobs(blobs, { estMax: FTF.DEFAULTS.EST_MAX, minScale: FTF.DEFAULTS.MIN_SCALE, scaleStep: FTF.DEFAULTS.SCALE_STEP, autoScale: true });
+            const bmp = await createImageBitmap(sheetBlob);
+            sheetDims = { width: bmp.width, height: bmp.height };
+            bmp.close?.();
+          } catch (e) {
+            if (e && e.code === 'CANVAS_TOO_LARGE') {
+              resultContent && resultContent.appendChild(createErrorBox(`No se pudo generar ${animName}: canvas demasiado grande incluso reduciendo resolución.`));
+              continue;
+            } else if (e && e.code === 'NO_CANVAS') {
+              resultContent && resultContent.appendChild(createErrorBox(`No se pudo generar ${animName}: operaciones de canvas no disponibles.`));
+              continue;
+            } else {
+              console.error('Error generando spritesheet', animName, e);
+              resultContent && resultContent.appendChild(createErrorBox(`Error generando ${animName}: ${e && e.message ? e.message : e}`));
+              continue;
+            }
+          }
+
+          // add to zip
+          try { zip.file(`${animName}.png`, sheetBlob); } catch (e) { console.error('Error añadiendo al zip', e); }
+
+          // create preview and append
+          const url = registerObjectURL(URL.createObjectURL(sheetBlob));
+          const preview = { name: animName, url, frames: bitmaps.length, width: sheetDims ? sheetDims.width : 0, height: sheetDims ? sheetDims.height : 0 };
+          previews.push(preview);
+          resultContent && resultContent.appendChild(createPreviewElement(preview));
+        }
+
+        // finalize zip
+        const baseName = (state.imageFile && state.imageFile.name) ? state.imageFile.name.replace(/\.[^/.]+$/,'') : 'spritesheet';
+        const finalBlob = await zip.generateAsync({ type: 'blob' });
+        addDownloadButton(finalBlob, `funky'ed_${baseName}.zip`);
+        statusTextPngXml && (statusTextPngXml.textContent = "¡Procesamiento completado!");
+      } catch (err) {
+        console.error('runPacker error', err);
+        statusTextPngXml && (statusTextPngXml.textContent = `Error: ${err && err.message ? err.message : err}`);
+      }
+    } // end runPacker
+
+    // -----------------------------
+    // runZip: ZIP path
+    // -----------------------------
+    async function runZip(removeDuplicates = false) {
       try {
         statusTextZip && (statusTextZip.textContent = "Procesando ZIP de frames...");
-        if (!state.zipFile) {
-          statusTextZip && (statusTextZip.textContent = "Falta el ZIP.");
-          return;
-        }
+        if (!state.zipFile) { statusTextZip && (statusTextZip.textContent = "Falta el ZIP."); return; }
 
         const zip = await JSZip.loadAsync(state.zipFile);
         const framesList = [];
@@ -601,9 +600,10 @@
           framesList.push({ name: filename.slice(0, -4), entry });
         }
 
+        // group frames into animations (robusto)
         const animGroups = {};
         for (const f of framesList) {
-          const match = f.name.match(/^(.*?)(\d+)$/);
+          let match = f.name.match(/^(.*?)(\d+)$/);
           if (!match) {
             const baseName = f.name.trim();
             if (!animGroups[baseName]) animGroups[baseName] = [];
@@ -611,443 +611,147 @@
             continue;
           }
           const baseName = match[1].trim();
-          const frameNumber = parseInt(match[2]);
+          const frameNumber = parseInt(match[2], 10);
           if (!animGroups[baseName]) animGroups[baseName] = [];
           animGroups[baseName].push({ name: f.name, frameNumber, entry: f.entry });
         }
 
-        await createTiras(animGroups, state.zipFile.name, removeDuplicates, outputGif);
-      } catch (err) {
-        statusTextZip && (statusTextZip.textContent = 'Error: ' + (err && err.message ? err.message : err));
-        console.error(err);
-      }
-    }
+        // process each animation group
+        const newZip = new JSZip();
+        const groupNames = Object.keys(animGroups).sort();
+        let processedCount = 0;
+        for (const animName of groupNames) {
+          processedCount++;
+          statusTextZip && (statusTextZip.textContent = `Procesando: ${animName} (${processedCount}/${groupNames.length})`);
+          const group = animGroups[animName];
+          group.sort((a,b) => (a.frameNumber || 0) - (b.frameNumber || 0));
 
-    // Create strips and previews (ahora soporta combinar TODO en UNA cinta si combineIntoSingleStrip=true)
-    async function createTiras(animGroups, originalName, removeDuplicates = false, outputGif = false) {
-      const zip = new JSZip();
-      const sortedNames = Object.keys(animGroups).sort();
-
-      let total = sortedNames.length;
-      let processed = 0;
-      const PREVIEW_MAX_FRAMES = 80;
-
-      // prioridad para ordenar animaciones dentro de la cinta combinada
-      const priorityOrder = ['idle', 'left', 'down', 'up', 'right'];
-
-      if (combineIntoSingleStrip) {
-        // juntar todos los blobs en el orden: prioridad primero, luego el resto alfabético
-        const orderedNames = [
-          ...priorityOrder.filter(n => sortedNames.includes(n)),
-          ...sortedNames.filter(n => !priorityOrder.includes(n))
-        ];
-
-        // recolectar blobs en ese orden
-        const allBlobsInfo = [];
-        for (const name of orderedNames) {
-          const framesArr = (animGroups[name] || []).slice();
-          framesArr.sort((a, b) => (a.frameNumber || 0) - (b.frameNumber || 0));
-          for (const f of framesArr) {
-            if (f.blob) {
-              allBlobsInfo.push({ blob: f.blob, fromEntry: false, name });
-            } else if (f.entry) {
-              try {
-                const b = await f.entry.async('blob');
-                allBlobsInfo.push({ blob: b, fromEntry: true, name });
-              } catch (e) {
-                console.warn('No pudo extraer blob de entry:', e);
-              }
-            }
+          // extract blobs
+          const blobs = [];
+          for (const gf of group) {
+            try { blobs.push(await gf.entry.async('blob')); } catch(e) { console.warn('zip entry async failed', e); }
           }
-        }
+          if (blobs.length === 0) continue;
 
-        // opcional: quitar duplicados si pediste
-        let blobs = allBlobsInfo.map(i => i.blob).filter(Boolean);
-        if (removeDuplicates && blobs.length > 1) {
-          const unique = [];
-          try {
-            unique.push(blobs[0]);
+          // remove duplicates if requested
+          let processedBlobs = blobs;
+          if (removeDuplicates && blobs.length > 1) {
+            const unique = [blobs[0]];
             for (let i = 1; i < blobs.length; i++) {
               try {
                 const curBmp = await createImageBitmap(blobs[i]);
                 const prevBmp = await createImageBitmap(unique[unique.length - 1]);
-                const eq = await areImagesEqual(curBmp, prevBmp);
+                const eq = await FTF.areBitmapsEqual(curBmp, prevBmp);
                 if (!eq) unique.push(blobs[i]);
-              } catch (e) {
-                unique.push(blobs[i]);
-              }
+                curBmp.close?.(); prevBmp.close?.();
+              } catch (e) { unique.push(blobs[i]); }
             }
-            blobs = unique;
-          } catch (e) {
-            console.warn('Error comparando duplicados, se mantienen todos:', e);
+            processedBlobs = unique;
           }
-        }
 
-        // aplicar escala si es necesario (solo si vino de ZIP/entry)
-        if (window.currentScale < 1) {
-          for (let i = 0; i < blobs.length; i++) {
-            try {
-              blobs[i] = await scaleBlobIfNeeded(blobs[i]);
-            } catch (e) {
-              console.warn('Error al escalar blob:', e);
-            }
-          }
-        }
-
-        // preview (limitado)
-        try {
-          if (blobs.length > 0) {
-            addPreview('combined', blobs, { previewLimit: Math.min(PREVIEW_MAX_FRAMES, blobs.length) });
-          } else {
-            // no frames -> nada
-          }
-        } catch (e) {
-          console.warn('addPreview falló para combined:', e);
-        }
-
-        // intentar crear la cinta completa UNICA (si falla -> fallo y advertencia)
-        try {
-          if (blobs.length === 0) {
-            // nada que hacer
-          } else {
-            const fullStripBlob = await createStrip(blobs, { limit: null });
-            zip.file(`combined.png`, fullStripBlob);
-          }
-        } catch (e) {
-          if (e && (e.code === 'CANVAS_TOO_LARGE' || e.code === 'NO_CANVAS')) {
-            const area = ensureDownloadArea();
-            if (area) {
-              area.innerHTML = `<div class="build-error-box"><div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="error-text"><strong>Error:</strong> No se pudo generar la cinta combinada porque el canvas es demasiado grande o el navegador no soporta operaciones de canvas. Intenta quitar frames, bajar resolución o usar otro navegador.</div></div>`;
-            }
-            console.warn('createStrip falló para combined', e);
-            // no añadir nada al zip (sigue)
-          } else {
-            console.warn('No se pudo crear la cinta combinada:', e);
-          }
-        }
-
-        // generar ZIP final
-        try {
-          const finalBlob = await zip.generateAsync({ type: 'blob' });
-          const baseName = originalName.replace(/\.(png|jpg|jpeg|zip)$/i, '');
-          const finalName = `TJ-${baseName}.zip`;
-          addDownloadButton(finalBlob, finalName);
-        } catch (e) {
-          console.error('Error generando ZIP final:', e);
-          const area = ensureDownloadArea();
-          if (area) {
-            area.innerHTML = `<div class="build-error-box"><div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-              <div class="error-text"><strong>Error:</strong> No se pudo generar el ZIP final.</div></div>`;
-          }
-        }
-
-        if (state.mode === 'zip') statusTextZip && (statusTextZip.textContent = "¡Procesamiento completado!");
-        else statusTextPngXml && (statusTextPngXml.textContent = "¡Procesamiento completado!");
-        return;
-      }
-
-      // si no combinamos, comportamiento tradicional: una cinta por animación
-      for (const animName of sortedNames) {
-        if (!animGroups[animName] || animGroups[animName].length === 0) {
-          processed++; continue;
-        }
-        const progressText = `Procesando: ${animName} (${processed + 1}/${total})`;
-        if (state.mode === 'zip') statusTextZip && (statusTextZip.textContent = progressText);
-        else statusTextPngXml && (statusTextPngXml.textContent = progressText);
-
-        let framesArr = animGroups[animName];
-        framesArr.sort((a, b) => (a.frameNumber || 0) - (b.frameNumber || 0));
-
-        // obtener blobs (entry.async o blob)
-        let blobsInfo = await Promise.all(framesArr.map(async f => {
-          if (f.blob) return { blob: f.blob, fromEntry: false };
+          // attempt to create spritesheet (auto-reduce)
+          let sheetBlob = null;
+          let sheetDims = null;
           try {
-            const b = await f.entry.async('blob');
-            return { blob: b, fromEntry: true };
+            sheetBlob = await FTF.createStripFromBlobs(processedBlobs, { estMax: FTF.DEFAULTS.EST_MAX, minScale: FTF.DEFAULTS.MIN_SCALE, scaleStep: FTF.DEFAULTS.SCALE_STEP, autoScale: true });
+            const bmp = await createImageBitmap(sheetBlob);
+            sheetDims = { width: bmp.width, height: bmp.height };
+            bmp.close?.();
           } catch (e) {
-            console.warn('No pudo extraer blob de entry:', e);
-            return { blob: null, fromEntry: true };
-          }
-        }));
-
-        // remove duplicates (if requested)
-        if (removeDuplicates && blobsInfo.length > 1) {
-          const uniqueInfos = [];
-          if (blobsInfo[0] && blobsInfo[0].blob) uniqueInfos.push(blobsInfo[0]);
-          for (let i = 1; i < blobsInfo.length; i++) {
-            const cur = blobsInfo[i];
-            if (!cur || !cur.blob) continue;
-            try {
-              const curBmp = await createImageBitmap(cur.blob);
-              const prevBmp = await createImageBitmap(uniqueInfos[uniqueInfos.length - 1].blob);
-              const eq = await areImagesEqual(curBmp, prevBmp);
-              if (!eq) uniqueInfos.push(cur);
-            } catch (e) {
-              uniqueInfos.push(cur);
+            if (e && e.code === 'CANVAS_TOO_LARGE') {
+              resultContent && resultContent.appendChild(createErrorBox(`No se pudo generar ${animName}: canvas demasiado grande incluso reduciendo resolución.`));
+              continue;
+            } else if (e && e.code === 'NO_CANVAS') {
+              resultContent && resultContent.appendChild(createErrorBox(`No se pudo generar ${animName}: operaciones de canvas no disponibles.`));
+              continue;
+            } else {
+              console.error('createStrip error', e);
+              resultContent && resultContent.appendChild(createErrorBox(`Error creando cinta para ${animName}: ${e && e.message ? e.message : e}`));
+              continue;
             }
           }
-          blobsInfo = uniqueInfos;
+
+          // add to zip and preview
+          try { newZip.file(`${animName}.png`, sheetBlob); } catch(e) { console.error('zip add failed', e); }
+          const url = registerObjectURL(URL.createObjectURL(sheetBlob));
+          resultContent && resultContent.appendChild(createPreviewElement({ name: animName, url, frames: processedBlobs.length, width: sheetDims?.width || 0, height: sheetDims?.height || 0 }));
         }
 
-        // scale blobs that came from entry and only if scale < 1
-        if (window.currentScale < 1) {
-          for (let i = 0; i < blobsInfo.length; i++) {
-            if (blobsInfo[i] && blobsInfo[i].blob && blobsInfo[i].fromEntry) {
-              try {
-                const scaled = await scaleBlobIfNeeded(blobsInfo[i].blob);
-                blobsInfo[i] = { blob: scaled, fromEntry: false };
-              } catch (e) { console.warn('Error al escalar blob:', e); }
-            }
-          }
-        }
-
-        let blobs = blobsInfo.map(i => i ? i.blob : null).filter(Boolean);
-        if (blobs.length === 0) { processed++; continue; }
-
-        // always add full strip into zip
-        try {
-          const fullStripBlob = await createStrip(blobs, { limit: null });
-          zip.file(`${animName}.png`, fullStripBlob);
-        } catch (e) {
-          if (e && (e.code === 'CANVAS_TOO_LARGE' || e.code === 'NO_CANVAS')) {
-            const area = ensureDownloadArea();
-            if (area) {
-              area.innerHTML = `<div class="build-error-box"><div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="error-text"><strong>Error:</strong> No se pudo generar la cinta <em>${animName}</em> porque el canvas es demasiado grande o el navegador no soporta operaciones de canvas. Intenta quitar frames, bajar resolución o usar otro navegador.</div></div>`;
-            }
-            console.warn('createStrip falló para', animName, e);
-          } else {
-            console.warn('No se pudo crear strip completo para zip:', e);
-          }
-        }
-
-        // preview: use limited frames to avoid huge canvases
-        const previewLimit = Math.min(PREVIEW_MAX_FRAMES, blobs.length);
-        try {
-          addPreview(animName, blobs, { previewLimit });
-        } catch (e) {
-          console.warn('addPreview falló:', e);
-        }
-
-        processed++;
+        // finalize zip
+        const baseName = state.zipFile.name.replace(/\.[^/.]+$/, '');
+        const finalBlob = await newZip.generateAsync({ type: 'blob' });
+        addDownloadButton(finalBlob, `TJ-${baseName}.zip`);
+        statusTextZip && (statusTextZip.textContent = "¡Procesamiento completado!");
+      } catch (err) {
+        console.error('runZip error', err);
+        statusTextZip && (statusTextZip.textContent = `Error: ${err && err.message ? err.message : err}`);
       }
+    } // end runZip
 
-      // generar ZIP final y añadir botón en área separada
-      try {
-        const finalBlob = await zip.generateAsync({ type: 'blob' });
-        const baseName = originalName.replace(/\.(png|jpg|jpeg|zip)$/i, '');
-        const finalName = `TJ-${baseName}.zip`;
-        addDownloadButton(finalBlob, finalName);
-      } catch (e) {
-        console.error('Error generando ZIP final:', e);
-        const area = ensureDownloadArea();
-        if (area) {
-          area.innerHTML = `<div class="build-error-box"><div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="error-text"><strong>Error:</strong> No se pudo generar el ZIP final.</div></div>`;
-        }
-      }
-
-      if (state.mode === 'zip') statusTextZip && (statusTextZip.textContent = "¡Procesamiento completado!");
-      else statusTextPngXml && (statusTextPngXml.textContent = "¡Procesamiento completado!");
-    }
-
-    // addPreview: evita duplicados con previewSet y registra URLs
-    async function addPreview(name, blobsArray, options = {}) {
-      if (!resultContent) return;
-      if (previewSet.has(name)) return; // ya agregado en esta corrida
-      previewSet.add(name);
-
+    // -----------------------------
+    // UI helpers: preview, errors, download
+    // -----------------------------
+    function createPreviewElement(preview) {
       const container = document.createElement('div');
       container.className = 'preview-container';
 
       const title = document.createElement('div');
       title.className = 'preview-title';
-      title.textContent = name;
+      title.textContent = preview.name;
       container.appendChild(title);
 
-      const invalid = blobsArray.some(b => !b || (typeof b.size === 'number' && b.size === 0));
-      if (invalid) {
-        const errorBox = document.createElement('div');
-        errorBox.className = 'build-error-box';
-        errorBox.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                              <div class="error-text"><strong>Error de construcción:</strong> son demasiados frames o los frames son muy grandes. Intenta <strong>quitar frames duplicados</strong> o <strong>bajar un poco la resolución</strong>.</div>`;
-        container.appendChild(errorBox);
-        const label = document.createElement('div'); label.className = 'preview-label';
-        label.textContent = `${blobsArray.length} frame(s) — vista previa no disponible.`; 
-        container.appendChild(label);
-        resultContent.appendChild(container);
+      const stripWrapper = document.createElement('div');
+      stripWrapper.className = 'preview-strip-wrapper';
+      stripWrapper.style.overflowX = 'auto';
+      stripWrapper.style.padding = '6px 0';
+      stripWrapper.style.whiteSpace = 'nowrap';
+
+      const img = document.createElement('img');
+      img.src = preview.url;
+      img.setAttribute('data-created-url', preview.url);
+      img.alt = `${preview.name} - cinta de frames`;
+      img.loading = 'lazy';
+      img.style.maxWidth = 'none';
+      img.style.height = 'auto';
+      stripWrapper.appendChild(img);
+
+      container.appendChild(stripWrapper);
+
+      const label = document.createElement('div');
+      label.className = 'preview-label';
+      label.textContent = `${preview.frames} frame${preview.frames > 1 ? 's' : ''}`;
+      container.appendChild(label);
+
+      return container;
+    }
+
+    function createErrorBox(text) {
+      const err = document.createElement('div');
+      err.className = 'build-error-box';
+      err.style.margin = '8px 0';
+      err.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="error-text">${text}</div>`;
+      return err;
+    }
+
+    function addDownloadButton(blob, fileName) {
+      if (!downloadControls) {
+        // fallback: append to resultContent top
+        if (!resultContent) return;
+        const btn = document.createElement('button');
+        btn.className = 'download-btn';
+        btn.textContent = `Descargar ${fileName}`;
+        btn.addEventListener('click', () => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = fileName;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} }, 2000);
+        });
+        resultContent.insertBefore(btn, resultContent.firstChild);
         return;
       }
 
-      try {
-        const previewLimit = (options && options.previewLimit) ? options.previewLimit : Math.min(80, blobsArray.length);
-        const truncated = previewLimit < blobsArray.length;
-
-        let previewBlob;
-        try {
-          previewBlob = await createStrip(blobsArray, { limit: previewLimit });
-        } catch (err) {
-          if (err && err.code === 'CANVAS_TOO_LARGE') {
-            const errorBox = document.createElement('div');
-            errorBox.className = 'build-error-box';
-            errorBox.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                                  <div class="error-text"><strong>Error:</strong> La cinta es demasiado grande para generar una vista previa. Reduce número de frames o baja resolución.</div>`;
-            container.appendChild(errorBox);
-            const label = document.createElement('div'); label.className = 'preview-label';
-            label.textContent = `${blobsArray.length} frame(s) — vista previa no disponible.`; container.appendChild(label);
-            resultContent.appendChild(container);
-            return;
-          } else if (err && err.code === 'NO_CANVAS') {
-            const errorBox = document.createElement('div');
-            errorBox.className = 'build-error-box';
-            errorBox.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                                  <div class="error-text"><strong>Error:</strong> El navegador no soporta operaciones de canvas necesarias para la vista previa.</div>`;
-            container.appendChild(errorBox);
-            const label = document.createElement('div'); label.className = 'preview-label';
-            label.textContent = `${blobsArray.length} frame(s) — vista previa no disponible.`; container.appendChild(label);
-            resultContent.appendChild(container);
-            return;
-          } else {
-            throw err;
-          }
-        }
-
-        const stripUrl = URL.createObjectURL(previewBlob);
-        createdObjectURLs.push(stripUrl);
-        container._cleanupPreviewURL = stripUrl;
-
-        const stripWrapper = document.createElement('div');
-        stripWrapper.className = 'preview-strip-wrapper';
-        stripWrapper.style.overflowX = 'auto';
-        stripWrapper.style.whiteSpace = 'nowrap';
-        stripWrapper.style.width = '100%';
-        stripWrapper.style.boxSizing = 'border-box';
-        stripWrapper.style.padding = '6px 0';
-        stripWrapper.style.cursor = 'grab';
-        stripWrapper.style.WebkitOverflowScrolling = 'touch';
-
-        const img = document.createElement('img');
-        img.className = 'preview-strip-image';
-        img.src = stripUrl;
-        img.alt = `${name} - cinta de frames`;
-        img.loading = 'lazy';
-        img.style.maxWidth = 'none';
-        img.style.height = 'auto';
-        img.style.display = 'inline-block';
-
-        stripWrapper.appendChild(img);
-        container.appendChild(stripWrapper);
-
-        const label = document.createElement('div');
-        label.className = 'preview-label';
-        label.textContent = `${previewLimit}${truncated ? '/' + blobsArray.length + ' (mostrando)' : ''} frame(s)`;
-        container.appendChild(label);
-
-        // descargar cinta individual (si no está procesando otra corrida)
-        const downloadBtn = document.createElement('button');
-        downloadBtn.className = 'select-file-button';
-        downloadBtn.style.marginTop = '8px';
-        downloadBtn.textContent = 'Descargar cinta individual';
-        downloadBtn.addEventListener('click', async () => {
-          if (isProcessing) {
-            const err = document.createElement('div');
-            err.className = 'build-error-box';
-            err.style.marginTop = '8px';
-            err.innerHTML = `<div class="error-icon"><i class="fas fa-info-circle"></i></div>
-                             <div class="error-text">La aplicación está procesando. Intenta descargar cuando termine.</div>`;
-            container.appendChild(err);
-            return;
-          }
-          downloadBtn.disabled = true;
-          downloadBtn.textContent = 'Generando...';
-          try {
-            const fullBlob = await createStrip(blobsArray, { limit: null });
-            const url = URL.createObjectURL(fullBlob);
-            createdObjectURLs.push(url);
-            const a = document.createElement('a');
-            a.href = url;
-            const safeName = name.replace(/[^\w\-]/g, '_') || 'strip';
-            a.download = `${safeName}-strip.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 2500);
-          } catch (e) {
-            if (e && e.code === 'CANVAS_TOO_LARGE') {
-              const errEl = document.createElement('div');
-              errEl.className = 'build-error-box';
-              errEl.style.marginTop = '8px';
-              errEl.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                                 <div class="error-text"><strong>Error:</strong> no se pudo generar la cinta completa porque el canvas sería demasiado grande. Reduce frames o baja resolución.</div>`;
-              container.appendChild(errEl);
-            } else if (e && e.code === 'NO_CANVAS') {
-              const errEl = document.createElement('div');
-              errEl.className = 'build-error-box';
-              errEl.style.marginTop = '8px';
-              errEl.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                                 <div class="error-text"><strong>Error:</strong> el navegador no soporta canvas/createImageBitmap.</div>`;
-              container.appendChild(errEl);
-            } else {
-              console.error('Error generando cinta completa:', e);
-              const errEl = document.createElement('div');
-              errEl.className = 'build-error-box';
-              errEl.style.marginTop = '8px';
-              errEl.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                                 <div class="error-text"><strong>Error:</strong> no se pudo generar la cinta completa (posible falta de recursos).</div>`;
-              container.appendChild(errEl);
-            }
-          } finally {
-            downloadBtn.disabled = false;
-            downloadBtn.textContent = 'Descargar cinta individual';
-          }
-        });
-
-        container.appendChild(downloadBtn);
-
-        // drag-to-scroll handlers
-        let isDown = false, startX = 0, scrollLeft = 0;
-        stripWrapper.addEventListener('mousedown', (e) => {
-          isDown = true;
-          stripWrapper.style.cursor = 'grabbing';
-          startX = e.pageX - stripWrapper.offsetLeft;
-          scrollLeft = stripWrapper.scrollLeft;
-          e.preventDefault();
-        });
-        stripWrapper.addEventListener('mouseleave', () => { isDown = false; stripWrapper.style.cursor = 'grab'; });
-        stripWrapper.addEventListener('mouseup', () => { isDown = false; stripWrapper.style.cursor = 'grab'; });
-        stripWrapper.addEventListener('mousemove', (e) => {
-          if (!isDown) return;
-          const x = e.pageX - stripWrapper.offsetLeft;
-          const walk = (x - startX) * 1;
-          stripWrapper.scrollLeft = scrollLeft - walk;
-        });
-        stripWrapper.addEventListener('touchstart', (e) => {
-          startX = e.touches[0].pageX - stripWrapper.offsetLeft;
-          scrollLeft = stripWrapper.scrollLeft;
-        });
-        stripWrapper.addEventListener('touchmove', (e) => {
-          const x = e.touches[0].pageX - stripWrapper.offsetLeft;
-          const walk = (x - startX) * 1;
-          stripWrapper.scrollLeft = scrollLeft - walk;
-        });
-
-        resultContent.appendChild(container);
-      } catch (e) {
-        console.error('addPreview error:', e);
-        const errBox = document.createElement('div');
-        errBox.className = 'build-error-box';
-        errBox.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="error-text"><strong>Error de construcción:</strong> no se pudo generar la preview.</div>`;
-        resultContent.appendChild(errBox);
-      }
-    }
-
-    // addDownloadButton: limpia el área y pone 1 solo botón
-    function addDownloadButton(blob, fileName) {
-      const area = ensureDownloadArea();
-      if (!area) return;
-      area.innerHTML = '';
+      downloadControls.innerHTML = '';
       const wrapper = document.createElement('div');
       wrapper.className = 'download-wrapper';
       wrapper.style.display = 'flex';
@@ -1066,44 +770,28 @@
       btn.className = 'download-btn';
       btn.textContent = 'Descargar ZIP';
       btn.addEventListener('click', () => {
-        const a = document.createElement('a');
         const url = URL.createObjectURL(blob);
-        createdObjectURLs.push(url);
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 2000);
+        registerObjectURL(url);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} }, 2000);
       });
 
       wrapper.appendChild(info);
       wrapper.appendChild(btn);
-      area.appendChild(wrapper);
+      downloadControls.appendChild(wrapper);
     }
 
-    function groupFrames(frames) {
-      const animGroups = {};
-      for (const f of frames) {
-        const match = f.name.match(/^(.*?)(\d+)$/);
-        if (!match) {
-          const baseName = f.name.trim();
-          if (!animGroups[baseName]) animGroups[baseName] = [];
-          animGroups[baseName].push({ name: f.name, frameNumber: 0, blob: f.blob });
-          continue;
-        }
-        const baseName = match[1].trim();
-        const frameNumber = parseInt(match[2]);
-        if (!animGroups[baseName]) animGroups[baseName] = [];
-        animGroups[baseName].push({ name: f.name, frameNumber, blob: f.blob });
-      }
-      return animGroups;
+    // progreso (si necesitas una barra)
+    function updateProgress(current, total) {
+      const bar = document.getElementById('progress-bar');
+      if (bar && total > 0) bar.style.width = `${Math.round((current / total) * 100)}%`;
     }
 
-    // initial readiness check
-    checkReady();
-
-    // expose clearResults to console if needed for debugging
-    window.__fp_clearResults = clearResults;
-  });
+    // expose helper shortcuts to window for debugging
+    window.__FP = window.__FP || {};
+    window.__FP.revokeAllPreviewURLs = revokeAllCreatedURLs;
+    window.__FP.createStripFromBlobs = FTF.createStripFromBlobs;
+  }); // end DOMContentLoaded
 })();
