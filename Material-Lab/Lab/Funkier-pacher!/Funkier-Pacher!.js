@@ -1,14 +1,21 @@
-// Funkier-Pacher!.js 
+// Funkier-Pacher!.js
 // Good Night Abelito V2.3 :D
+// Versión: crea UNA sola cinta con todos los frames (no divide en partes).
+// Si el canvas no puede (tamaño o soporte), falla con advertencia.
+
+// Nota: para cambiar el comportamiento a "una cinta por animación", ajusta
+// la variable combineIntoSingleStrip a false más abajo actualizacion desde em celular.
 
 (() => {
- 
   let isProcessing = false;
-  let createdObjectURLs = []; 
-  let previewSet = new Set(); // para evitar previews duplicadas dentro de una corrida
+  let createdObjectURLs = [];
+  let previewSet = new Set();
 
   // escala global
   window.currentScale = window.currentScale || 1.0;
+
+  // Behavior toggle: si true -> combinar TODO en una sola cinta; si false -> cinta por animación
+  const combineIntoSingleStrip = true;
 
   // JSON navbar
   window.jsonFile = window.jsonFile || '../../../Corner.json';
@@ -189,6 +196,8 @@
     return true;
   }
 
+  // createStrip: intento único de poner TODOS los frames en un único canvas.
+  // Si falla por tamaño o soporte -> lanza CANVAS_TOO_LARGE o NO_CANVAS.
   async function createStrip(blobs, options = {}) {
     const limit = (options && typeof options.limit === 'number') ? options.limit : null;
     if (!blobs || blobs.length === 0) {
@@ -196,26 +205,51 @@
       c.width = 1; c.height = 1;
       return new Promise(r => c.toBlob(r, 'image/png'));
     }
+
     const use = (limit && limit > 0 && blobs.length > limit) ? blobs.slice(0, limit) : blobs;
-    const images = await Promise.all(use.map(b => createImageBitmap(b)));
+
+    // Intentar crear bitmaps (si falla -> NO_CANVAS)
+    let images;
+    try {
+      images = await Promise.all(use.map(b => createImageBitmap(b)));
+    } catch (err) {
+      const e = new Error('El navegador no soporta operaciones de canvas/createImageBitmap');
+      e.code = 'NO_CANVAS';
+      throw e;
+    }
+
     const maxW = Math.max(...images.map(i => i.width));
     const maxH = Math.max(...images.map(i => i.height));
 
+    // límite estimado para evitar canvases gigantes (ajusta si quieres)
     const EST_MAX = 16000;
-    let count = images.length;
-    if (maxW * count > EST_MAX) {
-      count = Math.max(1, Math.floor(EST_MAX / maxW));
+
+    // calcular tamaño total para ponerlos en una sola fila
+    const totalW = maxW * images.length;
+    const totalH = maxH;
+
+    // si excede límites, fallar (sin dividir)
+    if (totalW > EST_MAX || totalH > EST_MAX) {
+      const e = new Error('Canvas demasiado grande para generar la cinta con todos los frames.');
+      e.code = 'CANVAS_TOO_LARGE';
+      throw e;
     }
 
+    // crear canvas único y dibujar todos los frames centrados por celda
     const canvas = document.createElement('canvas');
-    canvas.width = maxW * count;
-    canvas.height = maxH;
+    canvas.width = totalW;
+    canvas.height = totalH;
     const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      const e = new Error('No se obtuvo contexto 2d del canvas.');
+      e.code = 'NO_CANVAS';
+      throw e;
+    }
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < images.length; i++) {
       const img = images[i];
-      const x = i * maxW + (maxW - img.width) / 2;
-      const y = (maxH - img.height) / 2;
+      const x = i * maxW + Math.floor((maxW - img.width) / 2);
+      const y = Math.floor((maxH - img.height) / 2);
       ctx.drawImage(img, x, y);
     }
 
@@ -468,7 +502,7 @@
       setUiProcessing(true, 'zip');
       previewSet.clear();
       revokeAllCreatedURLs();
-      clearResultsInner(); // clears previews but not download area (we'll clean download area too)
+      clearResultsInner();
       try {
         await runZip(!!removeDuplicatesCheckbox?.checked, !!outputGifCheckbox?.checked);
       } finally {
@@ -502,7 +536,6 @@
     generateBtnPngXml?.addEventListener('click', onGeneratePngXml);
 
     function setUiProcessing(flag, mode) {
-      // disable inputs/buttons while processing
       const elsToDisable = [
         generateBtnZip, generateBtnPngXml,
         zipBtn, imageBtn, xmlBtn,
@@ -510,7 +543,6 @@
         methodZipBtn, methodPngXmlBtn
       ];
       elsToDisable.forEach(el => { if (el) el.disabled = !!flag; });
-      // status text
       if (flag) {
         if (mode === 'zip') statusTextZip && (statusTextZip.textContent = "Iniciando proceso...");
         else statusTextPngXml && (statusTextPngXml.textContent = "Iniciando proceso...");
@@ -518,7 +550,6 @@
     }
 
     function clearResultsInner() {
-      // remove preview containers and revoke their URLs
       if (resultContent) {
         const previews = resultContent.querySelectorAll('.preview-container');
         previews.forEach(p => {
@@ -528,7 +559,6 @@
         });
         resultContent.innerHTML = '';
       }
-      // clean download area too (we will add new button later)
       const area = ensureDownloadArea();
       if (area) area.innerHTML = '';
     }
@@ -593,7 +623,7 @@
       }
     }
 
-    // Create strips and previews
+    // Create strips and previews (ahora soporta combinar TODO en UNA cinta si combineIntoSingleStrip=true)
     async function createTiras(animGroups, originalName, removeDuplicates = false, outputGif = false) {
       const zip = new JSZip();
       const sortedNames = Object.keys(animGroups).sort();
@@ -602,6 +632,122 @@
       let processed = 0;
       const PREVIEW_MAX_FRAMES = 80;
 
+      // prioridad para ordenar animaciones dentro de la cinta combinada
+      const priorityOrder = ['idle', 'left', 'down', 'up', 'right'];
+
+      if (combineIntoSingleStrip) {
+        // juntar todos los blobs en el orden: prioridad primero, luego el resto alfabético
+        const orderedNames = [
+          ...priorityOrder.filter(n => sortedNames.includes(n)),
+          ...sortedNames.filter(n => !priorityOrder.includes(n))
+        ];
+
+        // recolectar blobs en ese orden
+        const allBlobsInfo = [];
+        for (const name of orderedNames) {
+          const framesArr = (animGroups[name] || []).slice();
+          framesArr.sort((a, b) => (a.frameNumber || 0) - (b.frameNumber || 0));
+          for (const f of framesArr) {
+            if (f.blob) {
+              allBlobsInfo.push({ blob: f.blob, fromEntry: false, name });
+            } else if (f.entry) {
+              try {
+                const b = await f.entry.async('blob');
+                allBlobsInfo.push({ blob: b, fromEntry: true, name });
+              } catch (e) {
+                console.warn('No pudo extraer blob de entry:', e);
+              }
+            }
+          }
+        }
+
+        // opcional: quitar duplicados si pediste
+        let blobs = allBlobsInfo.map(i => i.blob).filter(Boolean);
+        if (removeDuplicates && blobs.length > 1) {
+          const unique = [];
+          try {
+            unique.push(blobs[0]);
+            for (let i = 1; i < blobs.length; i++) {
+              try {
+                const curBmp = await createImageBitmap(blobs[i]);
+                const prevBmp = await createImageBitmap(unique[unique.length - 1]);
+                const eq = await areImagesEqual(curBmp, prevBmp);
+                if (!eq) unique.push(blobs[i]);
+              } catch (e) {
+                unique.push(blobs[i]);
+              }
+            }
+            blobs = unique;
+          } catch (e) {
+            console.warn('Error comparando duplicados, se mantienen todos:', e);
+          }
+        }
+
+        // aplicar escala si es necesario (solo si vino de ZIP/entry)
+        if (window.currentScale < 1) {
+          for (let i = 0; i < blobs.length; i++) {
+            try {
+              blobs[i] = await scaleBlobIfNeeded(blobs[i]);
+            } catch (e) {
+              console.warn('Error al escalar blob:', e);
+            }
+          }
+        }
+
+        // preview (limitado)
+        try {
+          if (blobs.length > 0) {
+            addPreview('combined', blobs, { previewLimit: Math.min(PREVIEW_MAX_FRAMES, blobs.length) });
+          } else {
+            // no frames -> nada
+          }
+        } catch (e) {
+          console.warn('addPreview falló para combined:', e);
+        }
+
+        // intentar crear la cinta completa UNICA (si falla -> fallo y advertencia)
+        try {
+          if (blobs.length === 0) {
+            // nada que hacer
+          } else {
+            const fullStripBlob = await createStrip(blobs, { limit: null });
+            zip.file(`combined.png`, fullStripBlob);
+          }
+        } catch (e) {
+          if (e && (e.code === 'CANVAS_TOO_LARGE' || e.code === 'NO_CANVAS')) {
+            const area = ensureDownloadArea();
+            if (area) {
+              area.innerHTML = `<div class="build-error-box"><div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="error-text"><strong>Error:</strong> No se pudo generar la cinta combinada porque el canvas es demasiado grande o el navegador no soporta operaciones de canvas. Intenta quitar frames, bajar resolución o usar otro navegador.</div></div>`;
+            }
+            console.warn('createStrip falló para combined', e);
+            // no añadir nada al zip (sigue)
+          } else {
+            console.warn('No se pudo crear la cinta combinada:', e);
+          }
+        }
+
+        // generar ZIP final
+        try {
+          const finalBlob = await zip.generateAsync({ type: 'blob' });
+          const baseName = originalName.replace(/\.(png|jpg|jpeg|zip)$/i, '');
+          const finalName = `TJ-${baseName}.zip`;
+          addDownloadButton(finalBlob, finalName);
+        } catch (e) {
+          console.error('Error generando ZIP final:', e);
+          const area = ensureDownloadArea();
+          if (area) {
+            area.innerHTML = `<div class="build-error-box"><div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+              <div class="error-text"><strong>Error:</strong> No se pudo generar el ZIP final.</div></div>`;
+          }
+        }
+
+        if (state.mode === 'zip') statusTextZip && (statusTextZip.textContent = "¡Procesamiento completado!");
+        else statusTextPngXml && (statusTextPngXml.textContent = "¡Procesamiento completado!");
+        return;
+      }
+
+      // si no combinamos, comportamiento tradicional: una cinta por animación
       for (const animName of sortedNames) {
         if (!animGroups[animName] || animGroups[animName].length === 0) {
           processed++; continue;
@@ -613,7 +759,7 @@
         let framesArr = animGroups[animName];
         framesArr.sort((a, b) => (a.frameNumber || 0) - (b.frameNumber || 0));
 
-        // obtener blobs (entry.async or blob)
+        // obtener blobs (entry.async o blob)
         let blobsInfo = await Promise.all(framesArr.map(async f => {
           if (f.blob) return { blob: f.blob, fromEntry: false };
           try {
@@ -664,7 +810,16 @@
           const fullStripBlob = await createStrip(blobs, { limit: null });
           zip.file(`${animName}.png`, fullStripBlob);
         } catch (e) {
-          console.warn('No se pudo crear strip completo para zip:', e);
+          if (e && (e.code === 'CANVAS_TOO_LARGE' || e.code === 'NO_CANVAS')) {
+            const area = ensureDownloadArea();
+            if (area) {
+              area.innerHTML = `<div class="build-error-box"><div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="error-text"><strong>Error:</strong> No se pudo generar la cinta <em>${animName}</em> porque el canvas es demasiado grande o el navegador no soporta operaciones de canvas. Intenta quitar frames, bajar resolución o usar otro navegador.</div></div>`;
+            }
+            console.warn('createStrip falló para', animName, e);
+          } else {
+            console.warn('No se pudo crear strip completo para zip:', e);
+          }
         }
 
         // preview: use limited frames to avoid huge canvases
@@ -719,7 +874,7 @@
                               <div class="error-text"><strong>Error de construcción:</strong> son demasiados frames o los frames son muy grandes. Intenta <strong>quitar frames duplicados</strong> o <strong>bajar un poco la resolución</strong>.</div>`;
         container.appendChild(errorBox);
         const label = document.createElement('div'); label.className = 'preview-label';
-        label.textContent = `${blobsArray.length} frame(s) — vista previa no disponible.`;
+        label.textContent = `${blobsArray.length} frame(s) — vista previa no disponible.`; 
         container.appendChild(label);
         resultContent.appendChild(container);
         return;
@@ -729,14 +884,41 @@
         const previewLimit = (options && options.previewLimit) ? options.previewLimit : Math.min(80, blobsArray.length);
         const truncated = previewLimit < blobsArray.length;
 
-        const previewStripBlob = await createStrip(blobsArray, { limit: previewLimit });
-        const stripUrl = URL.createObjectURL(previewStripBlob);
+        let previewBlob;
+        try {
+          previewBlob = await createStrip(blobsArray, { limit: previewLimit });
+        } catch (err) {
+          if (err && err.code === 'CANVAS_TOO_LARGE') {
+            const errorBox = document.createElement('div');
+            errorBox.className = 'build-error-box';
+            errorBox.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                  <div class="error-text"><strong>Error:</strong> La cinta es demasiado grande para generar una vista previa. Reduce número de frames o baja resolución.</div>`;
+            container.appendChild(errorBox);
+            const label = document.createElement('div'); label.className = 'preview-label';
+            label.textContent = `${blobsArray.length} frame(s) — vista previa no disponible.`; container.appendChild(label);
+            resultContent.appendChild(container);
+            return;
+          } else if (err && err.code === 'NO_CANVAS') {
+            const errorBox = document.createElement('div');
+            errorBox.className = 'build-error-box';
+            errorBox.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                  <div class="error-text"><strong>Error:</strong> El navegador no soporta operaciones de canvas necesarias para la vista previa.</div>`;
+            container.appendChild(errorBox);
+            const label = document.createElement('div'); label.className = 'preview-label';
+            label.textContent = `${blobsArray.length} frame(s) — vista previa no disponible.`; container.appendChild(label);
+            resultContent.appendChild(container);
+            return;
+          } else {
+            throw err;
+          }
+        }
+
+        const stripUrl = URL.createObjectURL(previewBlob);
         createdObjectURLs.push(stripUrl);
         container._cleanupPreviewURL = stripUrl;
 
         const stripWrapper = document.createElement('div');
         stripWrapper.className = 'preview-strip-wrapper';
-        // styling inline (keeps predictable behavior)
         stripWrapper.style.overflowX = 'auto';
         stripWrapper.style.whiteSpace = 'nowrap';
         stripWrapper.style.width = '100%';
@@ -769,7 +951,6 @@
         downloadBtn.textContent = 'Descargar cinta individual';
         downloadBtn.addEventListener('click', async () => {
           if (isProcessing) {
-            // evitar iniciar descarga completa durante la generación masiva
             const err = document.createElement('div');
             err.className = 'build-error-box';
             err.style.marginTop = '8px';
@@ -781,9 +962,8 @@
           downloadBtn.disabled = true;
           downloadBtn.textContent = 'Generando...';
           try {
-            const fullStripBlob = await createStrip(blobsArray, { limit: null });
-            const url = URL.createObjectURL(fullStripBlob);
-            // registrar para revocar después
+            const fullBlob = await createStrip(blobsArray, { limit: null });
+            const url = URL.createObjectURL(fullBlob);
             createdObjectURLs.push(url);
             const a = document.createElement('a');
             a.href = url;
@@ -792,16 +972,31 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            // revoke with timeout
             setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 2500);
           } catch (e) {
-            console.error('Error generando cinta completa:', e);
-            const errEl = document.createElement('div');
-            errEl.className = 'build-error-box';
-            errEl.style.marginTop = '8px';
-            errEl.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                               <div class="error-text"><strong>Error:</strong> no se pudo generar la cinta completa (posible falta de recursos).</div>`;
-            container.appendChild(errEl);
+            if (e && e.code === 'CANVAS_TOO_LARGE') {
+              const errEl = document.createElement('div');
+              errEl.className = 'build-error-box';
+              errEl.style.marginTop = '8px';
+              errEl.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                 <div class="error-text"><strong>Error:</strong> no se pudo generar la cinta completa porque el canvas sería demasiado grande. Reduce frames o baja resolución.</div>`;
+              container.appendChild(errEl);
+            } else if (e && e.code === 'NO_CANVAS') {
+              const errEl = document.createElement('div');
+              errEl.className = 'build-error-box';
+              errEl.style.marginTop = '8px';
+              errEl.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                 <div class="error-text"><strong>Error:</strong> el navegador no soporta canvas/createImageBitmap.</div>`;
+              container.appendChild(errEl);
+            } else {
+              console.error('Error generando cinta completa:', e);
+              const errEl = document.createElement('div');
+              errEl.className = 'build-error-box';
+              errEl.style.marginTop = '8px';
+              errEl.innerHTML = `<div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                 <div class="error-text"><strong>Error:</strong> no se pudo generar la cinta completa (posible falta de recursos).</div>`;
+              container.appendChild(errEl);
+            }
           } finally {
             downloadBtn.disabled = false;
             downloadBtn.textContent = 'Descargar cinta individual';
@@ -852,8 +1047,7 @@
     function addDownloadButton(blob, fileName) {
       const area = ensureDownloadArea();
       if (!area) return;
-      area.innerHTML = ''; // limpiar cualquier cosa previa
-      // wrapper
+      area.innerHTML = '';
       const wrapper = document.createElement('div');
       wrapper.className = 'download-wrapper';
       wrapper.style.display = 'flex';
