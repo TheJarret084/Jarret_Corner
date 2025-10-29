@@ -5,6 +5,7 @@
     <title>Funkier-Pacher!</title>
     <link rel="icon" href="../../Iconos/FP.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Enlaza al archivo CSS separado -->
     <link rel="stylesheet" href="Funkier-Pacher!.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -12,119 +13,134 @@
 <body>
 
     <!-- Header -->
-<header class="header">
-    <div class="title-glow">
-        <i class="fa-solid fa-bolt-lightning"></i> Funkier-Pacher!
-    </div>
-    <nav id="nav-bar"></nav>
-    <p class="subtitle">Convierte Sprites de FNF a Cintas para usar en FMM.</p>
-</header>
+    <header class="header">
+        <div class="title-glow">
+            <i class="fa-solid fa-bolt-lightning"></i> Funkier-Pacher!
+        </div>
+        <nav id="nav-bar"></nav>
+        <p class="subtitle">Convierte Sprites de FNF a Cintas para usar en FMM.</p>
+    </header>
 
     <!-- Contenido principal -->
     <main class="main-content">
-        <div class="funky-tool-container">
-            
-            <!-- Selector de método -->
-            <section class="funky-panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-upload"></i> <span class="header-text">Método de Entrada</span></h3>
-                </div>
-                <div class="input-method-selection">
-                    <div class="method-buttons">
-                        <button id="method-zip-btn" class="method-button active">
-                            <i class="fas fa-file-zipper"></i> ZIP
-                        </button>
-                        <button id="method-pngxml-btn" class="method-button">
-                            <i class="fas fa-image"></i> Spritesheet (PNG) + XML
+        <!-- Contenedor translúcido que aparece en mobile -->
+        <div class="mobile-wrapper">
+            <div class="funky-tool-container">
+
+                <!-- Selector de método -->
+                <section class="funky-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-upload"></i> <span class="header-text">Método de Entrada</span></h3>
+                    </div>
+                    <div class="input-method-selection">
+                        <div class="method-buttons">
+                            <button id="method-zip-btn" class="method-button active">
+                                <i class="fas fa-file-zipper"></i> ZIP
+                            </button>
+                            <button id="method-pngxml-btn" class="method-button">
+                                <i class="fas fa-image"></i> Spritesheet (PNG) + XML
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Subida de ZIP -->
+                <section class="funky-panel" id="zip-upload-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-file-zipper"></i> <span class="header-text">Subir ZIP</span></h3>
+                    </div>
+
+                    <div class="drop-zone" id="zip-drop-zone">
+                        <p>Arrastra tu archivo ZIP aquí o</p>
+                        <input type="file" id="zip-input" accept=".zip" hidden>
+                        <button class="select-file-button" id="zip-btn">
+                            <i class="fas fa-file-upload"></i> Seleccionar ZIP
                         </button>
                     </div>
-                </div>
-            </section>
 
-            <!-- Subida de ZIP -->
-            <section class="funky-panel" id="zip-upload-panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-file-zipper"></i> <span class="header-text">Subir ZIP</span></h3>
-                </div>
-
-                <div class="drop-zone" id="zip-drop-zone">
-                    <p>Arrastra tu archivo ZIP aquí o</p>
-                    <input type="file" id="zip-input" accept=".zip" hidden>
-                    <button class="select-file-button" id="zip-btn">
-                        <i class="fas fa-file-upload"></i> Seleccionar ZIP
+                    <button id="generate-btn-zip" class="generate-button" disabled>
+                        <i class="fa-solid fa-gears"></i> Generar
                     </button>
-                </div>
 
-                <button id="generate-btn-zip" class="generate-button" disabled>
-                    <i class="fa-solid fa-gears"></i> Generar
-                </button>
+                    <p id="status-text-zip">Selecciona un archivo ZIP para continuar.</p>
+                </section>
 
-                <p id="status-text-zip">Selecciona un archivo ZIP para continuar.</p>
-            </section>
+                <!-- Subida de PNG + XML -->
+                <section class="funky-panel" id="pngxml-upload-panel" style="display: none;">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-image"></i> <span class="header-text">Subir Spritesheet y XML</span></h3>
+                    </div>
 
-            <!-- Subida de PNG + XML -->
-            <section class="funky-panel" id="pngxml-upload-panel" style="display: none;">
-                <div class="panel-header">
-                    <h3><i class="fas fa-image"></i> <span class="header-text">Subir Spritesheet y XML</span></h3>
-                </div>
+                    <div class="dual-upload-container">
+                        <div class="upload-section">
+                            <div class="drop-zone" id="png-drop-zone">
+                                <p><i class="fas fa-image"></i></p>
+                                <p> Spritesheet (PNG)</p>
+                                <input type="file" id="image-input" accept=".png,.jpg,.jpeg,.webp" hidden>
+                                <button class="select-file-button" id="image-btn">
+                                    <i class="fas fa-file-upload"></i> Seleccionar PNG
+                                </button>
+                            </div>
+                        </div>
 
-                <div class="dual-upload-container">
-                    <div class="upload-section">
-                        <div class="drop-zone" id="png-drop-zone">
-                            <p><i class="fas fa-image"></i></p>
-                            <p> Spritesheet (PNG)</p>
-                            <input type="file" id="image-input" accept=".png,.jpg,.jpeg,.webp" hidden>
-                            <button class="select-file-button" id="image-btn">
-                                <i class="fas fa-file-upload"></i> Seleccionar PNG
-                            </button>
+                        <div class="upload-section">
+                            <div class="drop-zone" id="xml-drop-zone">
+                                <p><i class="fas fa-code"></i></p>
+                                <p>XML</p>
+                                <input type="file" id="xml-input" accept=".xml" hidden>
+                                <button class="select-file-button" id="xml-btn">
+                                    <i class="fas fa-file-upload"></i> Seleccionar XML
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="upload-section">
-                        <div class="drop-zone" id="xml-drop-zone">
-                            <p><i class="fas fa-code"></i></p>
-                            <p>XML</p>
-                            <input type="file" id="xml-input" accept=".xml" hidden>
-                            <button class="select-file-button" id="xml-btn">
-                                <i class="fas fa-file-upload"></i> Seleccionar XML
-                            </button>
-                        </div>
+                    <button id="generate-btn-pngxml" class="generate-button" disabled>
+                        <i class="fa-solid fa-gears"></i> Generar
+                    </button>
+
+                    <p id="status-text-pngxml">Selecciona PNG y XML para continuar.</p>
+                </section>
+
+                <!-- Configuración -->
+                <section class="funky-panel settings-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-sliders-h"></i> <span class="header-text">Configuración</span></h3>
                     </div>
-                </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="remove-duplicates">
+                        <label class="form-check-label" for="remove-duplicates">
+                            Quitar frames duplicados
+                        </label>
+                    </div>
+                    <!-- Nueva opción de escala -->
+                    <div class="config-option">
+                        <label for="scale-range">Resolución de salida:</label>
+                        <input type="range" id="scale-range" min="0.5" max="1" step="0.1" value="1">
+                        <span id="scale-value">100%</span>
+                        <div id="scale-warning" class="scale-warning" style="display:none;">
+                        ⚠️ La imagen puede verse borrosa.
+                    </div>
+                    </div>
+                    <p id="status-text">Listo para generar.</p>
+                </section>
 
-                <button id="generate-btn-pngxml" class="generate-button" disabled>
-                    <i class="fa-solid fa-gears"></i> Generar
-                </button>
+                <!-- Resultados -->
+                <section class="funky-panel result-panel" id="result-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-image"></i> <span class="header-text">Spritesheet Generado</span></h3>
+                    </div>
+                    <div class="result-content">
+                        <!-- Previews generados por JS -->
+                    </div>
+                </section>
 
-                <p id="status-text-pngxml">Selecciona PNG y XML para continuar.</p>
-            </section>
-
-            <!-- Configuración -->
-            <section class="funky-panel settings-panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-sliders-h"></i> <span class="header-text">Configuración</span></h3>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="remove-duplicates">
-                    <label class="form-check-label" for="remove-duplicates">
-                        Quitar frames duplicados
-                    </label>
-                </div>
-                <p id="status-text">Listo para generar.</p>
-            </section>
-
-            <!-- Resultados -->
-            <section class="funky-panel result-panel" id="result-panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-image"></i> <span class="header-text">Spritesheet Generado</span></h3>
-                </div>
-                <div class="result-content">
-                    <!-- Previews generados por JS -->
-                </div>
-            </section>
-
-        </div>
+            </div> <!-- .funky-tool-container -->
+        </div> <!-- .mobile-wrapper -->
     </main>
+
+    <!-- Área de descarga separada (se mostrará cuando haya un ZIP listo) -->
+    <div id="download-controls" class="download-area" aria-live="polite"></div>
 
     <!-- Footer -->
     <footer class="footer">
