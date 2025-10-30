@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -20,21 +20,21 @@
 
     <button id="extractBtn" class="btn">📸 Extraer Fotogramas</button>
     <button id="downloadBtn" class="btn download-btn" disabled>⬇️ Descargar ZIP</button>
+
+    <!-- Botón de spritesheet dentro de controls para orden -->
+    <button id="spritesheetBtn" class="btn">🧩 Generar Spritesheet (Horizontal)</button>
   </section>
 
   <video id="video" controls style="max-width: 100%; margin: 15px 0; display:none;"></video>
-  <canvas id="canvas"></canvas>
+  <canvas id="canvas" style="display:none;"></canvas>
 
   <div id="status-text">Carga un video o GIF para empezar</div>
 
   <div id="result-panel"></div>
 
-<!-- Agregar en <section class="controls"> -->
-<button id="spritesheetBtn" class="btn">🧩 Generar Spritesheet (Horizontal)</button>
-
-<!-- Barra de progreso y texto (colócala donde quieras en la UI) -->
-<progress id="progressBar" value="0" max="100" style="width:100%; height:14px; display:block; margin:8px 0;"></progress>
-<div id="progressText" style="font-size:0.9rem; color:#666; margin-bottom:8px;">Esperando acción...</div>
+  <!-- Barra de progreso y texto -->
+  <progress id="progressBar" value="0" max="100" style="width:100%; height:14px; display:block; margin:8px 0;"></progress>
+  <div id="progressText" style="font-size:0.9rem; color:#666; margin-bottom:8px;">Esperando acción...</div>
 
   <footer>
     © 2025 Jarret Labs. Todo lo que pasa por esta pagina no esta ligada a mi persona.
@@ -44,12 +44,14 @@
     </a>
   </footer>
 
-  <!-- Librerías -->
+  <!-- Librerías: fija la versión que expone `GIF` como global -->
+  <script src="https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/dist/gifuct.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gifuct-js/dist/gifuct.min.js"></script>
+
+  <!-- Tu JS corregido -->
   <script src="VidToSheet.js"></script>
 </body>
-</html>
+</html> 
 
 <!--- si no funciona esculpa de thiagoo,hola dice thiago--->
