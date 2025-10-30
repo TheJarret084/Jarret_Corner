@@ -1,305 +1,407 @@
-// VidToSheet.js - versión robusta y compatible con GIF transparente
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const fileInput = document.getElementById("fileInput");
-const fpsInput = document.getElementById("fpsInput");
-const extractBtn = document.getElementById("extractBtn");
-const downloadBtn = document.getElementById("downloadBtn");
-const spritesheetBtn = document.getElementById("spritesheetBtn");
-const statusText = document.getElementById("status-text");
-const resultPanel = document.getElementById("result-panel");
-const progressBar = document.getElementById("progressBar");
-const progressText = document.getElementById("progressText");
+// VidToSheet.js - Extracción robusta para MOBILE usando libgif / SuperGif
+// Requiere en el HTML:
+// <script src="https://cdn.jsdelivr.net/npm/libgif@0.0.3/libgif.min.js"></script>
+// y ya debes tener jszip + filesaver incluidos.
 
-let frames = [];            // dataURLs PNG
-let videoName = "VidToSheet";
-let currentFile = null;     // File object
-let fileType = "";          // "video" or "gif"
-let gifBuffer = null;       // ArrayBuffer para gif
+(() => {
+  // Elementos DOM (ya definidos en tu HTML)
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const fileInput = document.getElementById("fileInput");
+  const fpsInput = document.getElementById("fpsInput");
+  const extractBtn = document.getElementById("extractBtn");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const spritesheetBtn = document.getElementById("spritesheetBtn");
+  const statusText = document.getElementById("status-text");
+  const resultPanel = document.getElementById("result-panel");
+  const progressBar = document.getElementById("progressBar");
+  const progressText = document.getElementById("progressText");
 
-// helpers
-function padNumber(n){ return n.toString().padStart(4, "0"); }
-function setProgressPct(p, txt){
-  if(progressBar){ progressBar.value = Math.max(0, Math.min(100, Math.round(p))); }
-  if(progressText) progressText.textContent = txt || "";
-}
-function clearResultPanel(){ resultPanel.innerHTML = ""; }
+  // Estado
+  let frames = [];               // dataURLs de PNG
+  let videoName = "VidToSheet";
+  let currentFile = null;
+  let fileType = "";             // "video" o "gif"
+  let objectUrl = null;          // URL.createObjectURL(file)
+  const MAX_CANVAS_DIM = 32768;  // límite práctico para spritesheet
 
-// --- file select: SOLO guarda info, no procesar inmediatamente ---
-fileInput.addEventListener("change", async (e) => {
-  const f = e.target.files && e.target.files[0];
-  if(!f) return;
-  currentFile = f;
-  videoName = f.name.replace(/\.[^/.]+$/, "");
-  frames = [];
-  clearResultPanel();
-  downloadBtn.disabled = true;
-  setProgressPct(0, "Archivo cargado, esperando extracción...");
-
-  const ext = (f.name.split(".").pop() || "").toLowerCase();
-  if(["mp4","webm","mov","mkv"].includes(ext)){
-    fileType = "video";
-    video.style.display = "block";
-    video.src = URL.createObjectURL(f);
-    // intentar esperar metadata (no bloquear)
-    video.addEventListener("loadedmetadata", ()=> {
-      setProgressPct(0, `Video listo: ${f.name}`);
-    }, { once:true });
-  } else if(ext === "gif"){
-    fileType = "gif";
-    video.style.display = "none";
-    // leer buffer para procesar luego
-    gifBuffer = await f.arrayBuffer();
-    setProgressPct(0, `GIF listo: ${f.name}`);
-  } else {
-    fileType = "";
-    alert("Formato no soportado. Usa MP4/WEBM/MOV o GIF.");
+  // helpers
+  function padNumber(n){ return n.toString().padStart(4,"0"); }
+  function setStatus(txt){ if(statusText) statusText.textContent = txt; }
+  function setProgress(percent, txt){
+    if(progressBar) progressBar.value = Math.max(0, Math.min(100, Math.round(percent)));
+    if(progressText) progressText.textContent = txt || "";
   }
-});
+  function clearResult(){ resultPanel.innerHTML = ""; }
 
-// --- extract button: según tipo, procesar ---
-extractBtn.addEventListener("click", async () => {
-  if(!currentFile){ alert("Carga un archivo primero."); return; }
-  frames = [];
-  clearResultPanel();
-  downloadBtn.disabled = true;
-  setProgressPct(0, "Iniciando extracción...");
+  // Limpieza de objectURL
+  function revokeObjectUrl(){
+    if(objectUrl){
+      try{ URL.revokeObjectURL(objectUrl); }catch(e){}
+      objectUrl = null;
+    }
+  }
 
-  try {
-    if(fileType === "gif"){
-      await processGIFBuffer();         // procesar GIF con gifuct (preserva alfa)
-    } else if(fileType === "video"){
-      // asegurar metadatos
-      if(video.readyState < 1){
-        await new Promise(r => video.addEventListener("loadedmetadata", r, { once:true }));
-      }
-      await processVideoFrames();
+  // --- Selección de archivo (solo guarda el archivo, no procesa aún) ---
+  fileInput.addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+
+    currentFile = f;
+    videoName = f.name.replace(/\.[^/.]+$/, "");
+    frames = [];
+    clearResult();
+    downloadBtn.disabled = true;
+    setProgress(0, "Archivo cargado");
+
+    // liberar anterior
+    revokeObjectUrl();
+
+    const ext = (f.name.split(".").pop() || "").toLowerCase();
+    if(["mp4","webm","mov","mkv"].includes(ext)){
+      fileType = "video";
+      objectUrl = URL.createObjectURL(f);
+      video.src = objectUrl;
+      video.style.display = "block";
+      setStatus(`Video cargado: ${f.name} — listo para extraer`);
+    } else if(ext === "gif"){
+      fileType = "gif";
+      objectUrl = URL.createObjectURL(f);
+      // no arrancamos la decodificación todavía; se hace al apretar Extraer
+      setStatus(`GIF cargado: ${f.name} — presiona Extraer Fotogramas`);
     } else {
-      throw new Error("Tipo de archivo desconocido");
+      fileType = "";
+      setStatus("Formato no soportado (usa MP4/WebM/MOV o GIF)");
+      alert("Formato no soportado. Usa MP4/WebM/MOV o GIF.");
+    }
+  });
+
+  // --- Botón: Extraer fotogramas (video o gif) ---
+  extractBtn.addEventListener("click", async () => {
+    if(!currentFile){
+      alert("Carga un archivo primero (MP4 o GIF).");
+      return;
     }
 
-    buildPreview();
-    downloadBtn.disabled = false;
-    setProgressPct(100, `Extracción completada (${frames.length} frames)`);
+    frames = [];
+    clearResult();
+    downloadBtn.disabled = true;
+    setProgress(0, "Iniciando extracción...");
 
-  } catch(err){
-    console.error("Error extrayendo:", err);
-    alert("Error durante la extracción. Mira la consola para más detalles.");
-    setProgressPct(0, "Error durante extracción");
-  }
-});
-
-// --- procesar GIF (usa global GIF de gifuct-js) ---
-async function processGIFBuffer(){
-  setProgressPct(5, "Decodificando GIF...");
-  try {
-    // usar el global GIF expuesto por gifuct-js
-    const parsed = GIF.parseGIF(gifBuffer);
-    const decoded = GIF.decompressFrames(parsed, true); // true -> build patch
-    if(!decoded || decoded.length === 0) throw new Error("GIF vacío o no animado.");
-
-    // determinamos w/h del canvas (from lsd o first frame)
-    const w = (parsed.lsd && parsed.lsd.width) ? parsed.lsd.width : (decoded[0].dims && decoded[0].dims.width ? decoded[0].dims.width : 1);
-    const h = (parsed.lsd && parsed.lsd.height) ? parsed.lsd.height : (decoded[0].dims && decoded[0].dims.height ? decoded[0].dims.height : 1);
-    canvas.width = w;
-    canvas.height = h;
-
-    // compositing para respetar disposals/posición y alfa (simplificado)
-    // construiremos fullImageData RGBA y lo actualizaremos por frame
-    const full = ctx.createImageData(w, h);
-    // inicia transparente (ya lo es)
-
-    for(let i=0;i<decoded.length;i++){
-      const fr = decoded[i];
-      // manejo básico disposal: si prevFrame.disposalType === 2 limpiar región
-      if(i>0 && decoded[i-1].disposalType === 2){
-        const pd = decoded[i-1].dims;
-        for(let yy=0; yy<pd.height; yy++){
-          for(let xx=0; xx<pd.width; xx++){
-            const idx = ((pd.top+yy)*w + (pd.left+xx)) * 4;
-            full.data[idx]=0; full.data[idx+1]=0; full.data[idx+2]=0; full.data[idx+3]=0;
-          }
+    try {
+      if(fileType === "gif"){
+        await extractFromGifUsingSuperGif();
+      } else if(fileType === "video"){
+        // aseguramos metadata
+        if(video.readyState < 1){
+          await new Promise(res => video.addEventListener("loadedmetadata", res, { once:true }));
         }
+        await extractFromVideo();
+      } else {
+        throw new Error("Tipo de archivo desconocido");
       }
 
-      // copiar patch al full
-      const patch = fr.patch; // Uint8Array RGBA w*h*4 of frame.dims size
-      const dims = fr.dims;
-      if(patch && dims){
-        let pi = 0;
-        for(let yy=0; yy<dims.height; yy++){
-          for(let xx=0; xx<dims.width; xx++){
-            const destIdx = ((dims.top + yy)*w + (dims.left + xx)) * 4;
-            full.data[destIdx]   = patch[pi++];
-            full.data[destIdx+1] = patch[pi++];
-            full.data[destIdx+2] = patch[pi++];
-            full.data[destIdx+3] = patch[pi++];
-          }
+      if(frames.length === 0) throw new Error("0 frames extraídos");
+
+      buildPreview();
+      setProgress(100, `Extracción completada: ${frames.length} frames`);
+      downloadBtn.disabled = false;
+
+    } catch(err){
+      console.error("Error extracción:", err);
+      setStatus("Error durante extracción — revisa mensajes");
+      setProgress(0, `Error: ${err && err.message ? err.message : err}`);
+      // intentar fallback mínimo: si no hay frames, intentar 1 frame si es GIF
+      if(fileType === "gif" && frames.length === 0){
+        try {
+          await fallbackSingleFrame();
+          buildPreview();
+          downloadBtn.disabled = false;
+          setProgress(100, "Fallback completado: 1 frame");
+        } catch(e){
+          console.error("Fallback falló:", e);
+          alert("No se pudieron extraer frames. Revisa la consola (si puedes) o prueba otro GIF.");
         }
+      } else {
+        alert("Error al extraer frames: " + (err && err.message ? err.message : err));
       }
+    }
+  });
 
-      // volcar full en canvas y guardar PNG
-      ctx.putImageData(full, 0, 0);
-      frames.push(canvas.toDataURL("image/png"));
-
-      // progreso
-      setProgressPct(5 + Math.round(((i+1)/decoded.length)*90), `Procesando GIF (${i+1}/${decoded.length})`);
-      await new Promise(r=>setTimeout(r,0)); // yield
+  // --- Extraer GIF con SuperGif (libgif) ---
+  async function extractFromGifUsingSuperGif(){
+    if(!objectUrl){
+      // si por alguna razón no hay objectURL, crear una
+      objectUrl = URL.createObjectURL(currentFile);
     }
 
-    if(frames.length === 0) throw new Error("0 frames extraídos del GIF.");
+    setStatus("Decodificando GIF (SuperGif) ...");
+    setProgress(5, "Decodificando GIF...");
 
-  } catch(err){
-    console.warn("gifuct falló:", err);
-    // fallback: intentar cargar el gif como <img> y obtener un frame estático (1 frame)
-    await fallbackSingleFrameFromGIF();
-  }
-}
+    // Crear un <img> oculto para SuperGif
+    const img = document.createElement("img");
+    img.style.display = "none";
+    img.crossOrigin = "anonymous"; // por si acaso
+    img.src = objectUrl;
+    document.body.appendChild(img);
 
-// fallback: si gifuct no pudo, extraer 1 frame visible del GIF
-async function fallbackSingleFrameFromGIF(){
-  try {
-    setProgressPct(30, "Fallback: obteniendo frame estático del GIF...");
-    const url = URL.createObjectURL(currentFile);
-    const img = new Image();
-    await new Promise((res, rej)=>{
-      img.onload = res;
-      img.onerror = rej;
-      img.src = url;
+    // Crear instancia SuperGif
+    // max_width reduce memoria en móviles si el GIF es enorme (opcional)
+    const rub = new SuperGif({ gif: img, auto_play: false, max_width: 0 });
+
+    // envolver load en promise
+    await new Promise((resolve, reject) => {
+      rub.load(function(){
+        // load callback (no args)
+        resolve();
+      });
+      // timeout de seguridad (20s)
+      setTimeout(()=> {
+        // si no cargó, no bloquear
+        if(!rub.get_loading || rub.get_loading()) {
+          // no hacemos reject inmediato; SuperGif puede demorar
+        }
+      }, 20000);
     });
+
+    // ya cargó — obtener número de frames
+    const length = rub.get_length();
+    if(!length || length === 0) {
+      // liberamos img y rub y tiramos error para fallback
+      try{ document.body.removeChild(img); }catch(e){}
+      throw new Error("SuperGif: 0 frames detectados");
+    }
+
+    setStatus(`GIF decodificado: ${length} frames. Extrayendo...`);
+    setProgress(8, `Extrayendo frames (0/${length})`);
+
+    // preparar canvas destino (tamaño gif)
+    // SuperGif escala según max_width; la canvas se obtiene con get_canvas()
+    const tmpCanvas = document.createElement("canvas");
+    const tmpCtx = tmpCanvas.getContext("2d");
+
+    // Extraer frame por frame usando move_to + get_canvas
+    for(let i=0;i<length;i++){
+      rub.move_to(i);
+      // dar un pequeño tick para que SuperGif renderice al canvas interno
+      await new Promise(r => setTimeout(r, 20)); // 20ms -> razonable en mobile
+      const gifCanvas = rub.get_canvas();
+      if(!gifCanvas){
+        // si por alguna razón no está, intentar small fallback
+        console.warn("No se obtuvo gifCanvas en frame", i);
+        continue;
+      }
+      // copiar a tmp canvas para generar dataURL
+      tmpCanvas.width = gifCanvas.width;
+      tmpCanvas.height = gifCanvas.height;
+      tmpCtx.clearRect(0,0,tmpCanvas.width,tmpCanvas.height);
+      tmpCtx.drawImage(gifCanvas, 0, 0);
+      // guardar PNG dataURL
+      const dataURL = tmpCanvas.toDataURL("image/png");
+      frames.push(dataURL);
+
+      setProgress(8 + Math.round(((i+1)/length)*86), `Extrayendo frames (${i+1}/${length})`);
+      // yield
+      await new Promise(r => setTimeout(r, 0));
+    }
+
+    setStatus(`GIF extraído: ${frames.length} frames`);
+    // cleanup
+    try { document.body.removeChild(img); } catch(e){}
+    // SuperGif no expone destructor; permitir GC (rub sola referencia local)
+  }
+
+  // --- Fallback simple: obtener 1 frame vía <img> drawing ---
+  async function fallbackSingleFrame(){
+    if(!objectUrl) objectUrl = URL.createObjectURL(currentFile);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = objectUrl;
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(img,0,0);
-    frames = [canvas.toDataURL("image/png")];
-    setProgressPct(100, "Fallback completado: 1 frame (GIF estático)");
-  } catch(e){
-    console.error("Fallback de GIF falló:", e);
-    throw new Error("No se pudieron extraer frames del GIF");
+    ctx.drawImage(img, 0, 0);
+    frames = [ canvas.toDataURL("image/png") ];
+    setStatus("Fallback: 1 frame extraído");
   }
-}
 
-// --- procesar video frames ---
-async function processVideoFrames(){
-  const fps = Math.max(1, parseInt(fpsInput.value) || 1);
-  const interval = 1 / fps;
-  const duration = video.duration || 0;
-  const estimatedCount = Math.max(1, Math.ceil(duration * fps));
-  canvas.width = video.videoWidth || 1;
-  canvas.height = video.videoHeight || 1;
+  // --- Extraer frames desde <video> (MP4/WebM) ---
+  async function extractFromVideo(){
+    const fps = Math.max(1, parseInt(fpsInput.value) || 1);
+    const interval = 1 / fps;
+    // asegurar metadatos
+    if(video.readyState < 1){
+      await new Promise(res => video.addEventListener("loadedmetadata", res, { once:true }));
+    }
+    const duration = video.duration || 0;
+    const estimated = Math.max(1, Math.ceil(duration * fps));
+    canvas.width = video.videoWidth || 1;
+    canvas.height = video.videoHeight || 1;
 
-  let count = 0;
-  for(let t=0; t<duration; t += interval){
-    await seekAndCapture(t);
-    count++;
-    setProgressPct( Math.round((count/estimatedCount)*100), `Extrayendo frames (${count}/${estimatedCount})`);
+    setStatus(`Extrayendo frames de video (est ${estimated})`);
+    setProgress(0, `0 / ${estimated}`);
+
+    let count = 0;
+    for(let t=0; t < duration; t += interval){
+      await captureFrameAt(t);
+      count++;
+      setProgress(Math.round((count/estimated)*100), `${count} / ${estimated}`);
+      // safety break
+      if(count > estimated + 3) break;
+    }
+    // asegurar último frame
+    if(count < estimated){
+      await captureFrameAt(Math.max(0, duration - 0.001));
+      count++;
+    }
+    setStatus(`Video procesado: ${count} frames`);
   }
-  // intentar captura del último frame si no cayó exactamente
-  if(count < estimatedCount){
-    await seekAndCapture(duration - 0.001);
-    count++;
-  }
-  setProgressPct(100, `Video procesado: ${count} frames`);
-}
 
-function seekAndCapture(time){
-  return new Promise((res)=>{
-    const handler = () => {
-      try{ ctx.drawImage(video,0,0,canvas.width,canvas.height); }
-      catch(e){ console.warn("drawImage fallo:",e); }
-      frames.push(canvas.toDataURL("image/png"));
-      video.removeEventListener("seeked", handler);
-      res();
-    };
-    video.addEventListener("seeked", handler, { once:true });
-    try { video.currentTime = Math.min(time, Math.max(0, video.duration || time)); }
-    catch(e){ video.removeEventListener("seeked", handler); res(); }
+  function captureFrameAt(time){
+    return new Promise(res => {
+      const handler = () => {
+        try{ ctx.drawImage(video, 0, 0, canvas.width, canvas.height); }
+        catch(e){ console.warn("drawImage fail:", e); }
+        frames.push(canvas.toDataURL("image/png"));
+        video.removeEventListener("seeked", handler);
+        res();
+      };
+      video.addEventListener("seeked", handler, { once:true });
+      try { video.currentTime = Math.min(time, Math.max(0, video.duration || time)); }
+      catch(e){ video.removeEventListener("seeked", handler); res(); }
+    });
+  }
+
+  // --- Vista previa de thumbnails ---
+  function buildPreview(){
+    clearResult();
+    const wrap = document.createElement("div");
+    wrap.className = "preview-container";
+
+    const title = document.createElement("div");
+    title.className = "preview-title";
+    title.textContent = videoName;
+
+    const strip = document.createElement("div");
+    strip.className = "preview-strip-wrapper";
+
+    frames.forEach((d,i) => {
+      const img = document.createElement("img");
+      img.src = d;
+      img.alt = `frame-${i}`;
+      img.style.maxWidth = "80px";
+      img.style.margin = "3px";
+      strip.appendChild(img);
+    });
+
+    const label = document.createElement("div");
+    label.className = "preview-label";
+    label.textContent = `${frames.length} frames`;
+
+    wrap.appendChild(title);
+    wrap.appendChild(strip);
+    wrap.appendChild(label);
+    resultPanel.appendChild(wrap);
+  }
+
+  // --- Generar spritesheet horizontal (botón) ---
+  spritesheetBtn.addEventListener("click", async () => {
+    if(!frames || frames.length === 0){
+      alert("No hay frames. Extrae primero.");
+      return;
+    }
+    try {
+      await generateSpritesheetHorizontal();
+    } catch(err){
+      console.error("Spritesheet error:", err);
+      alert("Error creando spritesheet: " + (err && err.message ? err.message : err));
+      // no romper: mantener posibilidad de descargar ZIP
+    }
   });
-}
 
-// --- construir preview (thumbnails) ---
-function buildPreview(){
-  clearResultPanel();
-  const container = document.createElement("div");
-  container.className = "preview-container";
+  async function generateSpritesheetHorizontal(){
+    setStatus("Generando spritesheet...");
+    setProgress(2, "Preparando imágenes...");
 
-  const title = document.createElement("div"); title.className="preview-title"; title.textContent = videoName;
-  const strip = document.createElement("div"); strip.className = "preview-strip-wrapper";
+    // cargar todas las imágenes (thumbnails) en objetos Image
+    const images = await Promise.all(frames.map(src => new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = e => rej(new Error("Error cargando frame image"));
+      i.src = src;
+    })));
 
-  frames.forEach(s => {
-    const img = document.createElement("img");
-    img.src = s;
-    img.style.maxWidth = "100px";
-    img.style.margin = "2px";
-    strip.appendChild(img);
+    const fw = images[0].width;
+    const fh = images[0].height;
+    const count = images.length;
+
+    const targetW = fw * count;
+    const targetH = fh;
+
+    // Validación de tamaño (para no colapsar memoria)
+    if(targetW > MAX_CANVAS_DIM || targetH > MAX_CANVAS_DIM) {
+      throw new Error(`Spritesheet demasiado grande: ${targetW}x${targetH} (máx ${MAX_CANVAS_DIM}).`);
+    }
+
+    // crear canvas temporal para spritesheet
+    const sheet = document.createElement("canvas");
+    sheet.width = targetW;
+    sheet.height = targetH;
+    const sctx = sheet.getContext("2d");
+
+    for(let i=0;i<count;i++){
+      sctx.drawImage(images[i], i*fw, 0, fw, fh);
+      setProgress(Math.round(((i+1)/count)*95), `Armando spritesheet (${i+1}/${count})`);
+      // dar tiempo a navegador (ultil en mobile)
+      await new Promise(r=>setTimeout(r, 0));
+    }
+
+    setProgress(96, "Exportando spritesheet...");
+    // exportar blob
+    const blob = await new Promise((res, rej) => {
+      sheet.toBlob(b => b ? res(b) : rej(new Error("toBlob devolvió null")), "image/png");
+    });
+
+    // descargar con FileSaver
+    saveAs(blob, `${videoName}_spritesheet.png`);
+    setProgress(100, "Spritesheet listo");
+    setStatus("Spritesheet generado ✅");
+  }
+
+  // --- Descargar ZIP con frames (si spritesheet falla o sólo quieres frames) ---
+  downloadBtn.addEventListener("click", () => {
+    createZipFromFrames().catch(err => {
+      console.error("ZIP error:", err);
+      alert("Error generando ZIP: " + (err && err.message ? err.message : err));
+    });
   });
 
-  const label = document.createElement("div"); label.className="preview-label";
-  label.textContent = `${frames.length} frame${frames.length!==1 ? "s":""}`;
-  container.appendChild(title);
-  container.appendChild(strip);
-  container.appendChild(label);
-  resultPanel.appendChild(container);
-}
+  async function createZipFromFrames(){
+    if(!frames || frames.length === 0) throw new Error("No hay frames para crear ZIP");
+    setStatus("Generando ZIP...");
+    setProgress(3, "Creando ZIP...");
+    const zip = new JSZip();
+    const folder = zip.folder(videoName);
 
-// --- generar spritesheet horizontal (por botón) ---
-spritesheetBtn.addEventListener("click", async () => {
-  if(!frames || frames.length === 0){ alert("No hay frames: extrae primero."); return; }
-  try {
-    await generateSpritesheetHorizontal();
-  } catch(err){
-    console.error("Spritesheet error:", err);
-    alert("Error generando spritesheet. Se mantiene el ZIP de frames.");
-  }
-});
+    for(let i=0;i<frames.length;i++){
+      const data = frames[i].split(",")[1];
+      const name = `${videoName}_${padNumber(i)}.png`;
+      folder.file(name, data, { base64: true });
+      setProgress(3 + Math.round(((i+1)/frames.length)*90), `Agregando frames (${i+1}/${frames.length})`);
+      await new Promise(r=>setTimeout(r, 0));
+    }
 
-async function generateSpritesheetHorizontal(){
-  // preparar imágenes
-  const imgs = await Promise.all(frames.map(src => new Promise((res,rej)=>{
-    const i = new Image();
-    i.onload = ()=>res(i);
-    i.onerror = e=>rej(e);
-    i.src = src;
-  })));
+    const blob = await zip.generateAsync({ type: "blob" }, meta => {
+      setProgress(3 + Math.round((meta.percent||0)*0.9), `Comprimiendo ZIP ${Math.round(meta.percent||0)}%`);
+    });
 
-  const fw = imgs[0].width, fh = imgs[0].height, count = imgs.length;
-  const maxDim = 32768; // límite práctico
-  if(fw * count > maxDim || fh > maxDim) throw new Error(`Spritesheet demasiado grande: ${fw*count}x${fh}`);
-
-  const sheet = document.createElement("canvas");
-  sheet.width = fw * count;
-  sheet.height = fh;
-  const sctx = sheet.getContext("2d");
-
-  for(let i=0;i<count;i++){
-    sctx.drawImage(imgs[i], i*fw, 0);
-    setProgressPct(Math.round(((i+1)/count)*95), `Construyendo spritesheet (${i+1}/${count})`);
-    await new Promise(r=>setTimeout(r,0));
+    saveAs(blob, `${videoName}.zip`);
+    setProgress(100, "ZIP descargado");
+    setStatus("ZIP listo ✅");
   }
 
-  // exportar PNG blob y descargar
-  const blob = await new Promise((res,rej)=> sheet.toBlob(b=> b ? res(b) : rej(new Error("toBlob devolvió null")), "image/png"));
-  saveAs(blob, `${videoName}_spritesheet.png`);
-  setProgressPct(100, "Spritesheet listo");
-}
-
-// --- descargar ZIP de frames ---
-downloadBtn.addEventListener("click", downloadZipOfFrames);
-async function downloadZipOfFrames(){
-  if(!frames || frames.length === 0){ alert("No hay frames para descargar."); return; }
-  setProgressPct(5, "Generando ZIP...");
-  const zip = new JSZip();
-  const folder = zip.folder(videoName);
-  for(let i=0;i<frames.length;i++){
-    const data = frames[i].split(",")[1];
-    folder.file(`${videoName}_${padNumber(i)}.png`, data, { base64: true });
-    setProgressPct(5 + Math.round(((i+1)/frames.length)*90), `Agregando frames al ZIP (${i+1}/${frames.length})`);
-    await new Promise(r=>setTimeout(r,0));
-  }
-  const blob = await zip.generateAsync({ type: "blob" }, meta => {
-    setProgressPct(5 + Math.round((meta.percent||0)*0.9), `Comprimiendo ZIP ${Math.round(meta.percent||0)}%`);
-  });
-  saveAs(blob, `${videoName}.zip`);
-  setProgressPct(100, "ZIP listo");
-}
+  // limpiar object URL cuando la página se cierra/navega
+  window.addEventListener("beforeunload", revokeObjectUrl);
+})();
