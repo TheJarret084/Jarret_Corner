@@ -1,8 +1,7 @@
-// Funkier-Pacher!.js
-// Good Night Abelito V2.3 :D
-// Combina helpers ZIP + PNG+XML + previews + manejo de errores
+// Funkier-Pacher!-(soporte de rotado arreglado).js
+// Good Night Abelito V2.3.1 :D
+// Unificado: soporte para SubTexture rotated="true" usando FunkierPacker de la 1.7
 // Requiere: JSZip cargado antes de este script.
-// 2025 — Versión unificada para evitar errores por archivos separados.
 
 (() => {
   'use strict';
@@ -189,13 +188,168 @@
 
       // intentar con initialScale (y la función interna hará reducción si hace falta)
       const res = await FTF.createSpritesheetFromBitmaps(bitmaps, maxW, maxH, initialScale, { estMax, minScale, scaleStep });
+      // liberar bitmaps
+      bitmaps.forEach(b => b.close?.());
       return res.blob;
     }
   }; // end FTF
 
   // -----------------------------
+  // FunkierPacker class (tu versión integrada)
+  // -----------------------------
+  class FunkierPacker {
+    constructor() {
+        this.frames = [];
+    }
+
+    // ======== Procesar imagen y XML ========
+    async processFiles(imageFile, xmlFile, options = {}, onProgress = ()=>{}) {
+        this.frames = [];
+        const img = await this._loadImage(imageFile);
+        const xmlText = await xmlFile.text();
+        const atlas = this._parseXML(xmlText);
+
+        const total = atlas.frames.length;
+        for (let i = 0; i < atlas.frames.length; i++) {
+            const f = atlas.frames[i];
+            const frameCanvas = this._cutFrame(img, f);
+            const blob = await this._canvasToBlob(frameCanvas);
+
+            // Limpiar nombre: si termina en .png, quitarlo
+            let name = f.name;
+            if(name.toLowerCase().endsWith('.png')) name = name.slice(0, -4);
+
+            this.frames.push({ name, blob });
+            try { onProgress((i+1)/total); } catch(e){}
+        }
+
+        return this.frames;
+    }
+
+    // ======== Generar ZIP de frames ========
+    async generateZip() {
+        if(this.frames.length === 0) throw new Error("No hay frames procesados");
+        const zip = new JSZip();
+        this.frames.forEach(f => {
+            zip.file(f.name + '.png', f.blob);
+        });
+        const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+        return { blob, fileName: 'frames.zip' };
+    }
+
+    // ======== Funciones internas ========
+    _loadImage(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    _parseXML(xmlText) {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "text/xml");
+        const frameNodes = Array.from(xml.querySelectorAll('SubTexture'));
+
+        const parseIntOr0 = (v) => {
+            if (v === null || v === undefined || v === '') return 0;
+            const n = parseInt(v, 10);
+            return Number.isNaN(n) ? 0 : n;
+        };
+        const parseBool = (v) => {
+            if (!v) return false;
+            v = v.toString().toLowerCase();
+            return (v === 'true' || v === '1');
+        };
+
+        return {
+            frames: frameNodes.map(n => {
+                let name = n.getAttribute('name');
+                if(name && name.toLowerCase().endsWith('.png')) name = name.slice(0,-4); // limpiar .png extra
+                return {
+                    name: name || 'unnamed',
+                    x: parseIntOr0(n.getAttribute('x')),
+                    y: parseIntOr0(n.getAttribute('y')),
+                    width: parseIntOr0(n.getAttribute('width')),
+                    height: parseIntOr0(n.getAttribute('height')),
+                    rotated: parseBool(n.getAttribute('rotated')) || (n.getAttribute('rotation') === '90'),
+                    frameX: parseIntOr0(n.getAttribute('frameX')),
+                    frameY: parseIntOr0(n.getAttribute('frameY')),
+                    frameWidth: parseIntOr0(n.getAttribute('frameWidth')) || parseIntOr0(n.getAttribute('width')),
+                    frameHeight: parseIntOr0(n.getAttribute('frameHeight')) || parseIntOr0(n.getAttribute('height'))
+                };
+            })
+        };
+    }
+
+    _cutFrame(img, frame) {
+        // src rectangle in atlas
+        const srcW = frame.width;
+        const srcH = frame.height;
+
+        // extraer el rect original tal como está en el atlas (sin "des-rotar")
+        const srcCanvas = document.createElement('canvas');
+        srcCanvas.width = srcW;
+        srcCanvas.height = srcH;
+        const sctx = srcCanvas.getContext('2d');
+        sctx.drawImage(
+            img,
+            frame.x, frame.y, srcW, srcH,
+            0, 0, srcW, srcH
+        );
+
+        // canvas final con las dimensiones de la "frameWidth/frameHeight" (tam original antes de trimming)
+        const finalW = frame.frameWidth;
+        const finalH = frame.frameHeight;
+        const canvas = document.createElement('canvas');
+        canvas.width = finalW;
+        canvas.height = finalH;
+        const ctx = canvas.getContext('2d');
+
+        const offsetX = frame.frameX; // normalmente negativo si el sprite fue recortado
+        const offsetY = frame.frameY;
+
+        if (!frame.rotated) {
+            // dibujo directo: la posición dentro del canvas final debe compensar frameX/frameY
+            ctx.drawImage(srcCanvas, -offsetX, -offsetY);
+            return canvas;
+        }
+
+        // Si está rotado en el atlas, debemos rotarlo -90 grados (contra las manecillas) para restaurar la orientación.
+        // Primero creamos un canvas intermedio con la imagen rotada -90deg.
+        const rotatedCanvas = document.createElement('canvas');
+        // al rotar -90°, las dimensiones se invierten
+        rotatedCanvas.width = srcH;
+        rotatedCanvas.height = srcW;
+        const rctx = rotatedCanvas.getContext('2d');
+
+        // trasladar + rotar (-90 grados)
+        rctx.translate(0, srcW);
+        rctx.rotate(-Math.PI / 2);
+        rctx.drawImage(srcCanvas, 0, 0);
+
+        // Ahora rotatedCanvas contiene la imagen en orientación correcta (como era originalmente)
+        // Dibujamos la imagen rotada en la posición que corresponde dentro del canvas final, compensando frameX/frameY
+        ctx.drawImage(rotatedCanvas, -offsetX, -offsetY);
+
+        return canvas;
+    }
+
+    _canvasToBlob(canvas) {
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    }
+  }
+
+  // exportación para módulos (opcional)
+  if (typeof module !== 'undefined' && module.exports) {
+      module.exports = FunkierPacker;
+  } else {
+      window.FunkierPacker = FunkierPacker;
+  }
+
+  // -----------------------------
   // Navbar loader si existe JSON
-  // Mantengo nombre original cargarData/renderizarNav
   // -----------------------------
   window.jsonFile = window.jsonFile || '../../../Corner.json';
   let dataGlobal = null;
@@ -429,51 +583,32 @@
     });
 
     // -----------------------------
-    // runPacker: PNG + XML path
+    // runPacker: PNG + XML path (AHORA usando FunkierPacker)
     // -----------------------------
     async function runPacker(removeDuplicates = false) {
       try {
         statusTextPngXml && (statusTextPngXml.textContent = "Procesando PNG + XML...");
         if (!state.imageFile || !state.xmlFile) { statusTextPngXml && (statusTextPngXml.textContent = "Faltan archivos (PNG o XML)."); return; }
 
-        // load image + parse XML
-        const img = await FTF.loadImage(state.imageFile);
-        const xmlText = await FTF.readFileAsText(state.xmlFile);
-        const frameData = (function parse() {
-          const parser = new DOMParser();
-          const xml = parser.parseFromString(xmlText, 'text/xml');
-          return Array.from(xml.querySelectorAll('SubTexture')).map(n => {
-            const name = n.getAttribute('name') || '';
-            const x = parseInt(n.getAttribute('x') || '0', 10);
-            const y = parseInt(n.getAttribute('y') || '0', 10);
-            const width = parseInt(n.getAttribute('width') || '0', 10);
-            const height = parseInt(n.getAttribute('height') || '0', 10);
-            const frameX = parseInt(n.getAttribute('frameX') || '0', 10);
-            const frameY = parseInt(n.getAttribute('frameY') || '0', 10);
-            const frameWidth = parseInt(n.getAttribute('frameWidth') || String(width), 10);
-            const frameHeight = parseInt(n.getAttribute('frameHeight') || String(height), 10);
-            return { name, x, y, width, height, frameX, frameY, frameWidth, frameHeight };
+        // usa FunkierPacker para extraer cada SubTexture ya corregida (rotations handled)
+        const fp = new FunkierPacker();
+        let extractedFrames;
+        try {
+          extractedFrames = await fp.processFiles(state.imageFile, state.xmlFile, {}, (p) => {
+            statusTextPngXml && (statusTextPngXml.textContent = `Extrayendo frames... ${Math.round(p*100)}%`);
           });
-        })();
-
-        // extract frames as ImageBitmap
-        const extracted = [];
-        for (const f of frameData) {
-          const c = document.createElement('canvas');
-          c.width = f.frameWidth;
-          c.height = f.frameHeight;
-          const ctx = c.getContext('2d');
-          ctx.clearRect(0, 0, c.width, c.height);
-          ctx.drawImage(img, f.x, f.y, f.width, f.height, -f.frameX, -f.frameY, f.width, f.height);
-          const bmp = await createImageBitmap(c);
-          extracted.push({ name: f.name, bmp, frame: f });
+        } catch (e) {
+          console.error('FunkierPacker failed', e);
+          statusTextPngXml && (statusTextPngXml.textContent = `Error extrayendo frames: ${e && e.message ? e.message : e}`);
+          return;
         }
 
-        // organize into animations (robust grouping)
+        // extractedFrames: [{name, blob}]
+        // agrupar en animaciones por sufijo numérico como antes
         const animations = {};
-        for (const ef of extracted) {
+        for (const ef of extractedFrames) {
           let name = ef.name || '';
-          name = name.replace(/\.(png|jpg|jpeg)$/i, '');
+          // attempt to detect trailing digits
           let match = name.match(/^(.*?)(\d+)$/);
           let animName, frameNum;
           if (match) {
@@ -495,7 +630,7 @@
             }
           }
           if (!animations[animName]) animations[animName] = [];
-          animations[animName].push({ name: ef.name, bmp: ef.bmp, frame: ef.frame, frameNumber: frameNum });
+          animations[animName].push({ name: ef.name, blob: ef.blob, frameNumber: frameNum });
         }
 
         // sort frames inside anims
@@ -511,36 +646,24 @@
           processed++;
           statusTextPngXml && (statusTextPngXml.textContent = `Procesando animación: ${animName} (${processed}/${total})`);
 
-          // collect bitmaps and optionally remove duplicates
-          let bitmaps = frames.map(f => f.bmp);
-          if (removeDuplicates && bitmaps.length > 1) {
-            const unique = [bitmaps[0]];
-            for (let i = 1; i < bitmaps.length; i++) {
+          // collect blobs and optionally remove duplicates
+          let blobs = frames.map(f => f.blob);
+
+          if (removeDuplicates && blobs.length > 1) {
+            const unique = [blobs[0]];
+            for (let i = 1; i < blobs.length; i++) {
               try {
-                const eq = await FTF.areBitmapsEqual(bitmaps[i], bitmaps[i-1]);
-                if (!eq) unique.push(bitmaps[i]);
-              } catch (e) { unique.push(bitmaps[i]); }
+                const curBmp = await createImageBitmap(blobs[i]);
+                const prevBmp = await createImageBitmap(unique[unique.length - 1]);
+                const eq = await FTF.areBitmapsEqual(curBmp, prevBmp);
+                if (!eq) unique.push(blobs[i]);
+                curBmp.close?.(); prevBmp.close?.();
+              } catch (e) { unique.push(blobs[i]); }
             }
-            bitmaps = unique;
+            blobs = unique;
           }
 
-          if (bitmaps.length === 0) continue;
-
-          // determine max cell size
-          const maxW = Math.max(...bitmaps.map(b => b.width));
-          const maxH = Math.max(...bitmaps.map(b => b.height));
-
-          // convert bitmaps -> blobs for helper
-          const blobs = [];
-          for (const bmp of bitmaps) {
-            const canvas = document.createElement('canvas');
-            canvas.width = bmp.width;
-            canvas.height = bmp.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(bmp, 0, 0);
-            const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-            blobs.push(blob);
-          }
+          if (blobs.length === 0) continue;
 
           // create spritesheet blob using helper (it auto-reduces if needed)
           let sheetBlob = null;
@@ -569,7 +692,7 @@
 
           // create preview and append
           const url = registerObjectURL(URL.createObjectURL(sheetBlob));
-          const preview = { name: animName, url, frames: bitmaps.length, width: sheetDims ? sheetDims.width : 0, height: sheetDims ? sheetDims.height : 0 };
+          const preview = { name: animName, url, frames: blobs.length, width: sheetDims ? sheetDims.width : 0, height: sheetDims ? sheetDims.height : 0 };
           previews.push(preview);
           resultContent && resultContent.appendChild(createPreviewElement(preview));
         }
@@ -586,7 +709,7 @@
     } // end runPacker
 
     // -----------------------------
-    // runZip: ZIP path
+    // runZip: ZIP path (sin cambios funcionales, conserva comportamiento)
     // -----------------------------
     async function runZip(removeDuplicates = false) {
       try {
@@ -794,4 +917,4 @@
     window.__FP.revokeAllPreviewURLs = revokeAllCreatedURLs;
     window.__FP.createStripFromBlobs = FTF.createStripFromBlobs;
   }); // end DOMContentLoaded
-})();
+})(); // end IIFE
