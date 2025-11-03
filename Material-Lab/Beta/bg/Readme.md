@@ -1,0 +1,3 @@
+me cago en todo, digo...
+
+Bg-generator, algo creado porque esta hardcore
