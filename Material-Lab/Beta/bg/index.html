@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador de Fondo 3D</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    input[type="file"] {
+      margin: 15px;
+    }
+    canvas {
+      display: block;
+      margin: 30px auto;
+      border: 2px solid #333;
+      border-radius: 12px;
+      background: #000;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <h1>bg generator</h1>
+  <p>Sube una imagen <b>doorway.png</b> y genera un fondo con perspectiva.</p>
+  
+  <input type="file" id="fileInput" accept="image/png" />
+  <button id="generateBtn">Generar Fondo</button>
+
+  <canvas id="canvas" width="800" height="600"></canvas>
+
+  <p>
+    <a id="downloadLink" style="display:none;" download="bg.png">⬇️ Descargar fondo</a>
+  </p>
+
+  <script src="index.js"></script>
+</body>
+</html>
