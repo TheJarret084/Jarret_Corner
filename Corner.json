@@ -21,14 +21,7 @@
         "Bienvenido al Laboratorio de TheJarret084",
         "Basura y más, creados la mayoría por IA, por ideas mías"
       ],
-      "opciones": [
-        {
-          "titulo": "Funkier-pacher!",
-          "descripcion": "Antes llamado Macheteador de sprites, funcionaba con Python XD (y funcionaba muy bien).",
-          "tipo": "boton",
-          "url": "Material-Lab/Lab/Funkier-pacher!/Funkier-Pacher!.html",
-          "botonTexto": "Funkier-pacher!"
-        },
+      "opciones": [
         {
           "titulo": "RenownedBySprites",
           "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
