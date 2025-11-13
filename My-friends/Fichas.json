@@ -81,6 +81,12 @@
       "link": "https://funkymaker.kingamescreator.com/_app/@cubick"
     },
     {
+      "titulo": "Abelito",
+      "descripcion": "Placeholder",
+      "imagen": "Abelito.png",
+      "link": ""
+    },
+    {
       "titulo": "Alguien",
       "descripcion": "Placeholder.",
       "imagen": "",
@@ -99,4 +105,5 @@
       { "text": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" }
     ]
   }
+
 }
