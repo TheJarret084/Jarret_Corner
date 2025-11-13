@@ -83,13 +83,13 @@
     {
       "titulo": "Abelito",
       "descripcion": "Abelito?",
-      "imagen": "Abel-4k.png",
+      "imagen": "Images/Abel-4k.png",
       "link": "http://funkyatlas.abelitogamer.com/"
     },
     {
       "titulo": "Alguien",
       "descripcion": "Placeholder.",
-      "imagen": "",
+      "imagen": "Images/Placeholder-avatar.png",
       "link": "https://youtu.be/xvFZjo5PgG0?si=WQCtdqtt3TKPr06B"
     }
   ],
@@ -107,6 +107,7 @@
   }
 
 }
+
 
 
 
