@@ -7,7 +7,10 @@
         "opciones": [
           { "texto": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
           { "texto": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" },
-          { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" }
+          { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" },
+          { "texto": "FNMM Random Proyects", "url": "https://discord.gg/ABX8JMzg" },
+          { "texto": "Github", "url": "https://github.com/TheJarret084" },
+          { "texto": "Tiktok", "url": "https://www.tiktok.com/@thejarret08?_r=1&_t=ZS-91LxoGuLd2N" }
         ]
       }
     ]
@@ -87,6 +90,12 @@
       "link": "http://funkyatlas.abelitogamer.com/"
     },
     {
+      "titulo": "Yuhru1",
+      "descripcion": "No se, parece buena gente, y chartea niveles.",
+      "imagen": "Images/exjugadordeosuperez.webp",
+      "link": "https://funkymaker.kingamescreator.com/_app/@yuhru1"
+    },
+    {
       "titulo": "Alguien",
       "descripcion": "Placeholder.",
       "imagen": "Images/Placeholder-avatar.png",
@@ -107,6 +116,7 @@
   }
 
 }
+
 
 
 
