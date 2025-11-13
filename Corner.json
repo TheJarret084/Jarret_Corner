@@ -11,8 +11,10 @@
         "opciones": [
           { "texto": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
           { "texto": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" },
-          { "texto": "Amigos", "url": "My-friends/Amigos.html" },
-          { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" }
+          { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" },
+          { "texto": "FNMM Random Proyects", "url": "https://discord.gg/ABX8JMzg" },
+          { "texto": "Github", "url": "https://github.com/TheJarret084" },
+          { "texto": "Tiktok", "url": "https://www.tiktok.com/@thejarret08?_r=1&_t=ZS-91LxoGuLd2N" }
         ]
       }
     ],
@@ -75,4 +77,5 @@
   }
 }
 }
+
 
