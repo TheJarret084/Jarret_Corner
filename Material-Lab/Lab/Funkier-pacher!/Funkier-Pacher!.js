@@ -357,7 +357,7 @@
     const navBar = document.getElementById('nav-bar');
     if (!navBar || !dataGlobal) return;
     let html = '';
-    html += `<a href="../../index.html" class="nav-link"><i class="fa fa-home"></i> Menú Principal</a>`;
+    html += `<a href="../../../index.html" class="nav-link"><i class="fa fa-home"></i> Menú Principal</a>`;
     (dataGlobal.data?.nav || []).forEach(item => {
       if (item.tipo === 'dropdown') {
         html += `<div class="nav-dropdown"><button class="nav-dropbtn"><i class="fa fa-bars"></i> Más</button><div class="nav-dropdown-content">`;
