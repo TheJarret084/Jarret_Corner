@@ -21,7 +21,7 @@
         "Bienvenido al Laboratorio de TheJarret084",
         "Basura y más, creados la mayoría por IA, por ideas mías"
       ],
-      "opciones": [
+      "opciones": [
         {
           "titulo": "RenownedBySprites",
           "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
@@ -65,13 +65,12 @@
         "botonTexto": "VidToSheet"
       },
       {
-        "titulo": "Ñ",
-        "descripcion": "",
+        "titulo": "Funkier-pacher!",
+        "descripcion": "Versión descontinuada debido de problemas el xml, usable todavia, pero tiene problemas con frames rotados.",
         "tipo": "boton",
-        "url": "Material-Lab/Beta/bg/index.html",
-        "botonTexto": "BG"
+        "url": "Material-Lab/Lab/Funkier-pacher!/Funkier-pacher!.html",
+        "botonTexto": "Funkier-pacher!"
       }
     ]
   }
-}
 }
