@@ -5,12 +5,30 @@
         "tipo": "dropdown",
         "titulo": "Más",
         "opciones": [
-          { "texto": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
-          { "texto": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" },
-          { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" },
-          { "texto": "FNMM Random Proyects", "url": "https://discord.gg/ABX8JMzg" },
-          { "texto": "Github", "url": "https://github.com/TheJarret084" },
-          { "texto": "Tiktok", "url": "https://www.tiktok.com/@thejarret08?_r=1&_t=ZS-91LxoGuLd2N" }
+          {
+            "texto": "Youtube",
+            "url": "https://www.youtube.com/@TheJarret084"
+          },
+          {
+            "texto": "Funky Maker",
+            "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084"
+          },
+          {
+            "texto": "Mi Server de Discord",
+            "url": "https://discord.gg/wVteHjZ52t"
+          },
+          {
+            "texto": "FMM Random Proyects",
+            "url": "https://discord.gg/ABX8JMzg"
+          },
+          {
+            "texto": "Github",
+            "url": "https://github.com/TheJarret084"
+          },
+          {
+            "texto": "Tiktok",
+            "url": "https://www.tiktok.com/@thejarret08?_r=1&_t=ZS-91LxoGuLd2N"
+          }
         ]
       }
     ]
@@ -102,15 +120,12 @@
       "link": "https://youtu.be/xvFZjo5PgG0?si=WQCtdqtt3TKPr06B"
     }
   ],
- "footer": {
+  "footer": {
     "text": "¿No te gusta? No me importa igual... Nota: El material usado aqui no es de mi pertenencia, creditos a sus respectivos creadores",
     "contact": {
       "label": "Contáctame en Discord",
       "url": "https://discord.com/users/thejarret084",
       "icon": "fab fa-discord"
     }
-    
   }
-
-}
-
+}
