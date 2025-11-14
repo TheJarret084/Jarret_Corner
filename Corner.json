@@ -9,6 +9,7 @@
       {
         "tipo": "dropdown",
         "opciones": [
+          { "testo": "Mis Amigos", "url": "My-friends/Amigos.html"},
           { "texto": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
           { "texto": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" },
           { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" },
