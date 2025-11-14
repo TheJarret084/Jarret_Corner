@@ -108,11 +108,8 @@
       "label": "Contáctame en Discord",
       "url": "https://discord.com/users/thejarret084",
       "icon": "fab fa-discord"
-    },
-    "links": [
-      { "text": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
-      { "text": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" }
-    ]
+    }
+    
   }
 
 }
