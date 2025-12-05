@@ -5,14 +5,13 @@
     <title>Jarret-Corner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="Corner.css">
-    <link rel="icon" href="Material-Lab/Iconos/JazminNAVIDAD.ico" type="image/x-icon">
+    <link rel="icon" href="Material-Lab/Iconos/Defecto.ico" type="image/x-icon">
 </head>
 <body>
 
-    <!-- Pantalla de carga con copos -->
+    <!-- Pantalla de carga -->
     <div id="pantallaCarga">
         <div class="loader"></div>
-        <div id="snowflakes"></div>
     </div>
 
     <!-- Header -->
@@ -43,10 +42,8 @@
                 <button class="logs-control-btn" data-filter="ui">UI</button>
                 <button class="logs-control-btn" data-filter="frontend">Frontend</button>
                 <button class="logs-control-btn" data-filter="backend">Backend</button>
-<!--
                 <button class="logs-control-btn" id="add-log-btn">➕ Nueva</button>
                 <button class="logs-control-btn" id="export-logs-btn">💾 Exportar</button>
--->
             </div>
             <div id="logs-list"></div>
         </div>
@@ -77,6 +74,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Contenedor para copos de nieve (SE AÑADE AQUÍ) -->
+    <div id="snowflakes-container"></div>
 
     <script src="Corner.js" defer></script>
 </body>

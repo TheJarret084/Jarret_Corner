@@ -3,35 +3,93 @@ let seccionActual = 'laboratorio';
 let logsData = [];
 let currentLogFilter = 'all';
 
-// ================== FUNCIÓN DE COPOS DE NIEVE ==================
+// ================== FUNCIÓN DE COPOS DE NIEVE QUE SÍ FUNCIONA ==================
 function crearCoposDeNieve() {
-    const snowflakesContainer = document.getElementById('snowflakes');
-    if (!snowflakesContainer) return;
+    const container = document.getElementById('snowflakes-container');
+    if (!container) return;
     
     // Limpiar copos existentes
-    snowflakesContainer.innerHTML = '';
+    container.innerHTML = '';
     
-    // Crear 50 copos de nieve
-    for (let i = 0; i < 50; i++) {
+    // Crear 35 copos
+    for (let i = 0; i < 35; i++) {
         const snowflake = document.createElement('div');
         snowflake.className = 'snowflake';
         snowflake.innerHTML = '❄';
         
-        // Posición aleatoria
+        // Posición y propiedades aleatorias
         const left = Math.random() * 100;
-        const size = Math.random() * 1.5 + 0.5;
-        const duration = Math.random() * 5 + 5;
+        const size = Math.random() * 1.2 + 0.8; // Tamaño entre 0.8-2.0em
+        const duration = Math.random() * 10 + 8; // Duración 8-18 segundos
         const delay = Math.random() * 5;
+        const opacity = Math.random() * 0.6 + 0.3; // Opacidad 0.3-0.9
         
-        // Aplicar estilos
-        snowflake.style.left = `${left}%`;
-        snowflake.style.fontSize = `${size}em`;
-        snowflake.style.animationDuration = `${duration}s`;
-        snowflake.style.animationDelay = `${delay}s`;
-        snowflake.style.opacity = `${Math.random() * 0.7 + 0.3}`;
+        // Aplicar estilos directamente
+        snowflake.style.cssText = `
+            position: absolute;
+            left: ${left}%;
+            top: -20px;
+            font-size: ${size}em;
+            opacity: ${opacity};
+            z-index: 9998;
+            pointer-events: none;
+            user-select: none;
+            animation: snowFall ${duration}s linear ${delay}s infinite;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        `;
         
-        snowflakesContainer.appendChild(snowflake);
+        container.appendChild(snowflake);
+        
+        // Remover copo cuando termine su animación y crear uno nuevo
+        setTimeout(() => {
+            if (snowflake.parentNode) {
+                snowflake.remove();
+                // Crear nuevo copo después de un tiempo
+                setTimeout(() => {
+                    if (document.getElementById('snowflakes-container')) {
+                        crearNuevoCopo();
+                    }
+                }, Math.random() * 5000);
+            }
+        }, (duration + delay) * 1000);
     }
+}
+
+// Función para crear un solo copo nuevo
+function crearNuevoCopo() {
+    const container = document.getElementById('snowflakes-container');
+    if (!container) return;
+    
+    const snowflake = document.createElement('div');
+    snowflake.className = 'snowflake';
+    snowflake.innerHTML = '❄';
+    
+    const left = Math.random() * 100;
+    const size = Math.random() * 1.2 + 0.8;
+    const duration = Math.random() * 10 + 8;
+    const opacity = Math.random() * 0.6 + 0.3;
+    
+    snowflake.style.cssText = `
+        position: absolute;
+        left: ${left}%;
+        top: -20px;
+        font-size: ${size}em;
+        opacity: ${opacity};
+        z-index: 9998;
+        pointer-events: none;
+        user-select: none;
+        animation: snowFall ${duration}s linear 0s infinite;
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    `;
+    
+    container.appendChild(snowflake);
+    
+    // Remover después de animación
+    setTimeout(() => {
+        if (snowflake.parentNode) {
+            snowflake.remove();
+        }
+    }, duration * 1000);
 }
 
 // ================== PANTALLA DE CARGA ==================
@@ -39,9 +97,6 @@ function mostrarCarga(visible) {
     const carga = document.getElementById('pantallaCarga');
     if (carga) {
         carga.style.display = visible ? 'flex' : 'none';
-        if (visible) {
-            crearCoposDeNieve();
-        }
     }
 }
 
@@ -75,9 +130,9 @@ async function cargarLogsData() {
                 "id": "0",
                 "date": new Date().toISOString(),
                 "version": "v2.2.0",
-                "title": "Tema Navideño Activado",
-                "body": "Se ha aplicado el tema navideño con copos de nieve animados. ¡Felices fiestas!",
-                "tags": ["navidad", "ui", "feature"],
+                "title": "Sistema de Copos de Nieve Activado",
+                "body": "Se han añadido copos de nieve animados para el tema navideño. ¡Felices fiestas!",
+                "tags": ["navidad", "ui", "animacion"],
                 "important": true
             }
         ];
@@ -305,8 +360,21 @@ function cambiarFiltroLogs(filtro) {
 document.addEventListener('DOMContentLoaded', () => {
     cargarData();
     
-    // Crear copos en el fondo también (no solo en loading)
-    setTimeout(crearCoposDeNieve, 100);
+    // Iniciar copos de nieve después de cargar
+    setTimeout(() => {
+        crearCoposDeNieve();
+        
+        // Mantener copos activos
+        setInterval(() => {
+            const container = document.getElementById('snowflakes-container');
+            if (container) {
+                const flakes = container.querySelectorAll('.snowflake');
+                if (flakes.length < 20) {
+                    crearNuevoCopo();
+                }
+            }
+        }, 3000);
+    }, 1000);
 
     // Hamburger menu
     const hamburger = document.querySelector('.hamburger');
