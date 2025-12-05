@@ -5,13 +5,14 @@
     <title>Jarret-Corner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="Corner.css">
-    <link rel="icon" href="Material-Lab/Iconos/Defecto.ico" type="image/x-icon">
+    <link rel="icon" href="Material-Lab/Iconos/JazminNAVIDAD.ico" type="image/x-icon">
 </head>
 <body>
 
-    <!-- Pantalla de carga -->
+    <!-- Pantalla de carga con copos -->
     <div id="pantallaCarga">
         <div class="loader"></div>
+        <div id="snowflakes"></div>
     </div>
 
     <!-- Header -->
@@ -28,15 +29,54 @@
     <!-- Contenido principal -->
     <main class="contenido">
         <div id="contenido"></div>
+        
+        <!-- Contenedor para Laboratorio/Beta -->
         <div id="opciones-container">
             <div id="opciones"></div>
+        </div>
+        
+        <!-- Contenedor para Logs -->
+        <div id="logs-container" class="logs-container" style="display: none;">
+            <div class="logs-controls">
+                <button class="logs-control-btn active" data-filter="all">Todas</button>
+                <button class="logs-control-btn" data-filter="important">Importantes</button>
+                <button class="logs-control-btn" data-filter="ui">UI</button>
+                <button class="logs-control-btn" data-filter="frontend">Frontend</button>
+                <button class="logs-control-btn" data-filter="backend">Backend</button>
+<!--
+                <button class="logs-control-btn" id="add-log-btn">➕ Nueva</button>
+                <button class="logs-control-btn" id="export-logs-btn">💾 Exportar</button>
+-->
+            </div>
+            <div id="logs-list"></div>
         </div>
     </main>
 
     <!-- Footer -->
     <footer class="footer">
         © Jarret Labs 2025
+        <button id="beta-btn">🧪 Beta</button>
+        <button id="logs-btn">📝 Actualizaciones</button>
     </footer>
+
+    <!-- Modal para añadir logs -->
+    <div id="log-modal" class="log-modal">
+        <div class="log-modal-content">
+            <h3>➕ Nueva Actualización</h3>
+            <input type="text" id="new-log-title" placeholder="Título (ej: v2.2.0 - Mejoras)" />
+            <input type="text" id="new-log-version" placeholder="Versión (ej: v2.2.0)" />
+            <textarea id="new-log-body" placeholder="Descripción de la actualización..."></textarea>
+            <input type="text" id="new-log-tags" placeholder="Etiquetas separadas por coma (ui,frontend,etc)" />
+            <label>
+                <input type="checkbox" id="new-log-important">
+                Marcar como importante
+            </label>
+            <div class="log-modal-buttons">
+                <button class="logs-control-btn" id="cancel-log-btn">Cancelar</button>
+                <button class="logs-control-btn" id="save-log-btn">Guardar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="Corner.js" defer></script>
 </body>

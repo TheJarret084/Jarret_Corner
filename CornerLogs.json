@@ -1,0 +1,58 @@
+[
+  {
+    "date": "2025-12-05T16:30:00Z",
+    "version": "v2.1.0",
+    "title": "llego navidad putos, y yo me atrase",
+    "body": "Cambio toda la ui de la pagina PRINCIPAL para que se vea mas navideña, y se añadio este potente sistema de logs que pude escribir a parte, pero para mas simplicidad ChatGPT lo armo en uno solo.",
+    "tags": ["frontend", "Christmas🥹"],
+    "important": false
+  },
+  {
+    "date": "2025-10-26T15:00:00Z",
+    "version": "v2.2.0",
+    "title": "Mas entradas (Mis amigos)",
+    "body": "Division de Laboratorio, lado (Normal) y la zona (Beta) que es toda la mierda que no tiene un uso, pero simplemente existe, ademas se agrega una herramienta para desarmar niveles de Funky Maker, mas que todo para lograr comprimir los sprites pesados de este y lograr armarlo sin alterarlo, obvio si se redimenciona la imagen valio, pero ya lo arme, a gracias Yrik por la idea, ya podras optimizar tus niveles sin llamarme :].",
+    "tags": ["otros"],
+    "important": false
+  },
+  {
+    "date": "2025-10-20T15:00:00Z",
+    "version": "v2.1.0",
+    "title": "Mas mejoras",
+    "body": "Nueva nav-bar, y ahora puedes ver lo menos importante ahi, junto casi todas mis redes sociales, y el apartado Mis Amigos.",
+    "tags": ["ui"],
+    "important": false
+  },
+  {
+    "date": "2025-10-09T12:00:00Z",
+    "version": "v2.0.0",
+    "title": "Mejoras",
+    "body": "Se mejoró la carga del panel y se corrigió alineación en móviles, y con eso el lanzamiento Proyect-0000, y RenowredBySprites.",
+    "tags": ["ui", "frontend"],
+    "important": false
+  },
+  {
+    "date": "2025-10-05T09:30:00Z",
+    "version": "v1.2.0",
+    "title": "Intento de rotado",
+    "body": "Se intento mejorar funkier pacher, y de paso un estilo mas decente.",
+    "tags": ["Funkier-Pacher"],
+    "important": true
+  },
+  {
+    "date": "2025-08-11T18:45:00Z",
+    "version": "v1.1.0",
+    "title": "Organizacion",
+    "body": "Se se organizo mejor la pagina, tambien con todo el repositorio.",
+    "tags": ["frontend", "backend"],
+    "important": false
+  },
+  {
+    "date": "2025-09-02T11:00:00Z",
+    "version": "v1.0.0",
+    "title": "Lanzamiento inicial",
+    "body": "Lanzamiento de la pagina, Junto con solo Funkier Pacher.",
+    "tags": ["lanzamiento"],
+    "important": true
+  }
+]
