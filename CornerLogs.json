@@ -1,7 +1,7 @@
 [
   {
     "date": "2025-12-05T16:30:00Z",
-    "version": "v2.1.0",
+    "version": "v2.2.1",
     "title": "llego navidad putos, y yo me atrase",
     "body": "Cambio toda la ui de la pagina PRINCIPAL para que se vea mas navideña, y se añadio este potente sistema de logs que pude escribir a parte, pero para mas simplicidad ChatGPT lo armo en uno solo.",
     "tags": ["frontend", "Christmas🥹"],
