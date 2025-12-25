@@ -13,7 +13,7 @@
         <svg viewBox="0 0 24 24" class="logo" aria-hidden><path d="M3 12h6l3-9 3 18 6-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <h1>AltForge</h1>
       </div>
-      <p class="tag">Forja alternativas ALT desde tus pistas: empareja notas con eventos y descarga un JSON listo.</p>
+      <p class="tag">Forja alternativas ALT desde tus pistas — filtra notas por tiempo, nombre, id y props.</p>
     </header>
 
     <section class="card control">
@@ -32,8 +32,40 @@
         </label>
 
         <label class="small">
+          IDs (coma-separados)
+          <input id="idsFilter" type="text" placeholder="ej: 0,1,2" />
+        </label>
+
+        <label class="small">
+          Nombre/Tipo contiene
+          <input id="nameFilter" type="text" placeholder="ej: Fuck, specialNote" />
+        </label>
+
+        <label class="small">
+          Event name contiene
+          <input id="eventFilter" type="text" placeholder="ej: Camera, SomeEvent" />
+        </label>
+      </div>
+
+      <div class="controls-row" style="margin-top:8px;">
+        <label class="small">
           <input id="matchProps" type="checkbox" />
-          También buscar en <code>note.props.onPressEvent</code>
+          Buscar coincidencias en <code>note.props.onPressEvent</code>
+        </label>
+
+        <label class="small">
+          <input id="keepInStrum" type="checkbox" checked />
+          Mantener notas en su strumLine original
+        </label>
+
+        <label class="small">
+          <input id="oneNotePerStrum" type="checkbox" />
+          Una nota detectada → su propio strumLine (nuevo)
+        </label>
+
+        <label class="small">
+          <input id="oneFilePerStrum" type="checkbox" />
+          Generar un archivo por strumLine con coincidencias
         </label>
 
         <button id="processBtn" class="btn primary">Procesar y generar ALT</button>
@@ -48,7 +80,7 @@
           <strong id="summaryCount">0</strong> coincidencias encontradas
         </div>
         <div class="actions">
-          <button id="downloadBtn" class="btn">Descargar ALT</button>
+          <button id="downloadBtn" class="btn">Descargar ALT principal</button>
           <button id="copyBtn" class="btn">Copiar JSON</button>
         </div>
       </div>
@@ -71,7 +103,7 @@
         </div>
 
         <details open class="preview">
-          <summary>Previsualización JSON</summary>
+          <summary>Previsualización JSON (compacto)</summary>
           <pre id="jsonPreview" class="code"></pre>
         </details>
       </div>
