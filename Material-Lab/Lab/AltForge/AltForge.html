@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AltForge — Event extractor</title>
+  <link rel="stylesheet" href="AltForge.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" class="logo" aria-hidden><path d="M3 12h6l3-9 3 18 6-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h1>AltForge</h1>
+      </div>
+      <p class="tag">Forja alternativas ALT desde tus pistas: empareja notas con eventos y descarga un JSON listo.</p>
+    </header>
+
+    <section class="card control">
+      <div class="file-area" id="dropZone">
+        <input id="fileInput" type="file" accept=".json,.jsonc" />
+        <div class="drop-hint">
+          <strong>Arrastra aquí</strong> tu archivo <small>(o haz click)</small>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <label class="small">
+          Tolerancia (ms)
+          <input id="tolerance" type="range" min="0" max="200" value="1" />
+          <span id="tolVal">1</span> ms
+        </label>
+
+        <label class="small">
+          <input id="matchProps" type="checkbox" />
+          También buscar en <code>note.props.onPressEvent</code>
+        </label>
+
+        <button id="processBtn" class="btn primary">Procesar y generar ALT</button>
+      </div>
+
+      <div class="meta" id="fileMeta" aria-live="polite"></div>
+    </section>
+
+    <section class="card results" id="resultsCard" hidden>
+      <div class="results-top">
+        <div>
+          <strong id="summaryCount">0</strong> coincidencias encontradas
+        </div>
+        <div class="actions">
+          <button id="downloadBtn" class="btn">Descargar ALT</button>
+          <button id="copyBtn" class="btn">Copiar JSON</button>
+        </div>
+      </div>
+
+      <div class="tables">
+        <div class="table-wrap">
+          <table id="matchesTable">
+            <thead>
+              <tr>
+                <th>StrumLine</th>
+                <th>Note id</th>
+                <th>Time</th>
+                <th>Note sLen</th>
+                <th>Event</th>
+                <th>Event params</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <details open class="preview">
+          <summary>Previsualización JSON</summary>
+          <pre id="jsonPreview" class="code"></pre>
+        </details>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <small>AltForge · extrae notas con eventos · pensado para mania/json</small>
+    </footer>
+  </main>
+
+  <script src="AltForge.js"></script>
+</body>
+</html>
