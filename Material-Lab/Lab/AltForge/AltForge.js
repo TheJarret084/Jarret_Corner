@@ -1,5 +1,13 @@
-// AltForge.js — versión con filtros avanzados y opciones de salida
+// AltForge.js — Versión completa y segura
+// - Siempre exporta exactamente 4 strumLines (0..3) para game compatibility
+// - Filtra notas por tiempo, id, name/type substring, evento substring, props.onPressEvent
+// - Salida COMPACTA (JSON.stringify sin espacios)
+// - Opciones UI conectadas: tolerancia, ids, name, event, matchProps, keepInStrum, oneNotePerStrum, oneFilePerStrum
+// Nota sobre `oneNotePerStrum`: debido al requisito de 4 strumLines fijas, este modo toma
+// la primera nota detectada por cada índice 0..3 (si existe) en vez de crear strumLines extras.
+
 (function () {
+  // UI elements (debe coincidir con AltForge.html)
   const fileInput = document.getElementById("fileInput");
   const dropZone = document.getElementById("dropZone");
   const processBtn = document.getElementById("processBtn");
@@ -21,11 +29,14 @@
   const downloadBtn = document.getElementById("downloadBtn");
   const copyBtn = document.getElementById("copyBtn");
 
+  // State
   let parsedJson = null;
   let origFilename = "";
   let lastOutput = null;
 
+  // ---------- Helpers ----------
   function stripComments(t) {
+    // crude but effective for JSONC: remove /*...*/ and //...
     return t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   }
 
@@ -43,9 +54,10 @@
   }
 
   function findDifficultyName(json, fname) {
+    if (!json) return basename(fname || "unknown");
     if (json.difficulty) return String(json.difficulty);
     if (json.meta && json.meta["document-name"]) return String(json.meta["document-name"]);
-    return basename(fname);
+    return basename(fname || "unknown");
   }
 
   function parseIdList(s) {
@@ -56,72 +68,83 @@
     });
   }
 
-  function anyEventMatchByTime(eventsMap, t, tol) {
-    return eventsMap.some(e => Math.abs(e.time - t) <= tol);
-  }
-
-  function anyEventNameContains(eventsMap, substr) {
-    if (!substr) return false;
-    const sub = String(substr).toLowerCase();
-    return eventsMap.some(e => (e.name || "").toString().toLowerCase().includes(sub));
-  }
-
-  function noteHasPropEventMatch(note, eventsMap, substrMatchForEventName) {
-    if (!note || !note.props) return false;
-    const ope = note.props.onPressEvent;
-    if (!ope) return false;
-    const values = Array.isArray(ope) ? ope : [ope];
-    // if any of those values matches an event name exactly or contains substr filter, return true
-    for (const v of values) {
-      const vs = String(v).toLowerCase();
-      // exact match with event names
-      if (eventsMap.some(e => String(e.name).toLowerCase() === vs)) return true;
-      // substring match if user asked for eventFilter
-      if (substrMatchForEventName && anyEventNameContains(eventsMap, v)) return true;
-    }
-    return false;
-  }
-
   function collectEvents(json) {
     const events = Array.isArray(json.events) ? json.events : [];
-    return events.map(e => ({ time: Number(e.time), name: e.name || "", params: e.params || [] }));
+    return events.map(e => ({
+      time: Number(e.time),
+      name: e.name || "",
+      params: e.params ?? []
+    }));
   }
 
-  // filter logic: returns an array of matched note descriptors {strumLineIndex, note}
-  function findMatches(json, options) {
-    const eventsMap = collectEvents(json);
-    const sls = Array.isArray(json.strumLines) ? json.strumLines : [];
+  // find event(s) whose name contains substring (case-insensitive)
+  function findEventsByNameSub(events, substr) {
+    if (!substr) return [];
+    const sub = String(substr).toLowerCase();
+    return events.filter(e => (e.name || "").toString().toLowerCase().includes(sub));
+  }
 
-    const ids = options.ids || null;
-    const nameSub = options.nameSub ? String(options.nameSub).toLowerCase() : null;
-    const eventSub = options.eventSub ? String(options.eventSub).toLowerCase() : null;
-    const tol = Number(options.tolerance || 0);
-    const alsoProps = !!options.matchProps;
+  // ---------- Matching logic ----------
+  // Return array of {strumLine, note, matchedBy, matchedEvent (optional)}
+  function findMatches(json, opts) {
+    const events = collectEvents(json);
+    const strumLines = Array.isArray(json.strumLines) ? json.strumLines : [];
+
+    const ids = opts.ids || null;
+    const nameSub = opts.nameSub ? String(opts.nameSub).toLowerCase() : null;
+    const eventSub = opts.eventSub ? String(opts.eventSub).toLowerCase() : null;
+    const tol = Number(opts.tolerance || 0);
+    const alsoProps = !!opts.matchProps;
 
     const matches = [];
 
-    sls.forEach((sl, slIndex) => {
+    // If eventSub provided, pre-collect those events
+    const eventSubMatches = eventSub ? findEventsByNameSub(events, eventSub) : [];
+
+    strumLines.forEach((sl, slIndex) => {
       const notes = Array.isArray(sl.notes) ? sl.notes : [];
       notes.forEach(note => {
         const t = Number(note.time);
         let matched = false;
-        let matchedBy = "";
+        let matchedBy = null;
+        let matchedEvent = null;
 
-        // by time (event near note time)
-        if (anyEventMatchByTime(eventsMap, t, tol)) {
+        // 1) time-based: any event within tolerance
+        const evByTime = events.find(e => Math.abs(e.time - t) <= tol);
+        if (evByTime) {
           matched = true;
           matchedBy = "time";
+          matchedEvent = evByTime;
         }
 
-        // by props.onPressEvent
-        if (!matched && alsoProps && noteHasPropEventMatch(note, eventsMap, true)) {
-          matched = true;
-          matchedBy = "props.onPressEvent";
+        // 2) match by props.onPressEvent (exact name match to any event)
+        if (!matched && alsoProps && note?.props?.onPressEvent) {
+          const values = Array.isArray(note.props.onPressEvent) ? note.props.onPressEvent : [note.props.onPressEvent];
+          for (const v of values) {
+            const vs = String(v).toLowerCase();
+            const evExact = events.find(e => String(e.name).toLowerCase() === vs);
+            if (evExact) {
+              matched = true;
+              matchedBy = "props.onPressEvent (exact)";
+              matchedEvent = evExact;
+              break;
+            }
+            // also allow substring match vs eventSub if provided
+            if (eventSub && (String(v).toLowerCase().includes(eventSub))) {
+              // find any event containing eventSub within tolerance
+              const cand = eventSubMatches.find(e => Math.abs(e.time - t) <= tol);
+              if (cand) {
+                matched = true;
+                matchedBy = "props.onPressEvent (eventSub)";
+                matchedEvent = cand;
+                break;
+              }
+            }
+          }
         }
 
-        // by ids list
+        // 3) ids filter
         if (!matched && ids && ids.length) {
-          // id in original JSON is note.id (might be numeric or string)
           const nid = note.id;
           if (ids.some(i => i === nid || String(i) === String(nid))) {
             matched = true;
@@ -129,30 +152,32 @@
           }
         }
 
-        // by name/type substring
+        // 4) name/type substring on note (includes crude detection of weird names like "Fuck You")
         if (!matched && nameSub) {
           const t1 = (note.name || "").toString().toLowerCase();
           const t2 = (note.type || "").toString().toLowerCase();
           if (t1.includes(nameSub) || t2.includes(nameSub)) {
             matched = true;
-            matchedBy = "name/type";
+            matchedBy = "note name/type substring";
           }
         }
 
-        // by event name substring match (if user provided)
+        // 5) event name substring rule: if user provided eventSub, check if any event containing substring is near this note
         if (!matched && eventSub) {
-          if (anyEventNameContains(eventsMap, eventSub)) {
-            // but ensure there's at least an event containing that substring — we could accept the note if event substring exists anywhere
+          const nearEvent = eventSubMatches.find(e => Math.abs(e.time - t) <= tol);
+          if (nearEvent) {
             matched = true;
-            matchedBy = "event name substring";
+            matchedBy = "event name substring near note";
+            matchedEvent = nearEvent;
           }
         }
 
         if (matched) {
           matches.push({
             strumLine: slIndex,
-            note: note,
-            matchedBy
+            note,
+            matchedBy,
+            matchedEvent
           });
         }
       });
@@ -161,49 +186,60 @@
     return matches;
   }
 
-  // produce an output JSON that matches original format but with filtered notes
+  // ---------- Output production ----------
+  // ALWAYS produce exactly 4 strumLines (indices 0..3).
+  // Mapping rule: note.id => index = (note.id % 4 + 4) % 4
+  // If oneNotePerStrum option is true: keep only the first matched note per index (earliest by time)
   function produceOutputSameFormat(original, matches, opts) {
-    // deep-ish clone original but we will replace strumLines notes arrays
-    const out = JSON.parse(JSON.stringify(original));
-    const slCount = Array.isArray(original.strumLines) ? original.strumLines.length : 0;
-    // Initialize empty notes arrays
-    out.strumLines = (original.strumLines || []).map(sl => {
-      // copy everything but set notes to []
-      const copy = Object.assign({}, sl);
-      copy.notes = [];
-      return copy;
-    });
+    const out = JSON.parse(JSON.stringify(original || {}));
+    const templates = Array.isArray(original && original.strumLines) ? original.strumLines : [];
+    const baseScrollSpeed = original && (original.scrollSpeed ?? out.scrollSpeed) ? (original.scrollSpeed ?? out.scrollSpeed) : 3.1;
 
-    // place matches
-    if (opts.oneNotePerStrum) {
-      // create new strumLines where each matched note becomes its own strumLine
-      const generated = matches.map(m => {
-        const originalSL = original.strumLines && original.strumLines[m.strumLine] ? original.strumLines[m.strumLine] : {};
-        const keyCount = originalSL.keyCount || 4;
-        // copy a minimal strumLine object
-        return {
-          ... (originalSL ? { ...originalSL } : { keyCount }),
-          notes: [m.note]
-        };
-      });
-      out.strumLines = generated;
-    } else {
-      // usual: keep matched notes in their original strumLine index
-      matches.forEach(m => {
-        const idx = m.strumLine;
-        // if out.strumLines lacks that index (safe-guard)
-        if (!out.strumLines[idx]) {
-          // create placeholder strumLine
-          out.strumLines[idx] = { keyCount: 4, notes: [] };
-        }
-        out.strumLines[idx].notes.push(m.note);
+    // prepare 4 empty strumLines based on template 0..3 (preserve keyCount/scrollSpeed minimally)
+    const newStrumLines = [];
+    for (let i = 0; i < 4; i++) {
+      const t = templates[i] || {};
+      newStrumLines.push({
+        keyCount: (typeof t.keyCount !== "undefined") ? t.keyCount : 4,
+        scrollSpeed: (typeof t.scrollSpeed !== "undefined") ? t.scrollSpeed : baseScrollSpeed,
+        notes: []
       });
     }
 
-    // compact: return as object (downstream we'll stringify compact)
+    // group matches by mapped idx
+    const grouped = {0: [], 1: [], 2: [], 3: []};
+    matches.forEach(m => {
+      const nid = (m.note && typeof m.note.id !== "undefined") ? Number(m.note.id) : NaN;
+      let idx = 0;
+      if (Number.isFinite(nid)) idx = ((nid % 4) + 4) % 4;
+      grouped[idx].push(m);
+    });
+
+    // if oneNotePerStrum: for each idx pick the earliest note (smallest time)
+    if (opts.oneNotePerStrum) {
+      for (let i = 0; i < 4; i++) {
+        if (grouped[i].length === 0) continue;
+        // sort by time and take first
+        grouped[i].sort((a,b) => (Number(a.note.time) || 0) - (Number(b.note.time) || 0));
+        newStrumLines[i].notes.push(grouped[i][0].note);
+      }
+    } else {
+      // push all matched notes into mapped strumLine
+      for (let i = 0; i < 4; i++) {
+        for (const m of grouped[i]) {
+          newStrumLines[i].notes.push(m.note);
+        }
+      }
+    }
+
+    // final assignment: ensure exactly 4 strumLines
+    out.strumLines = newStrumLines;
+
+    // keep original top-level fields like events, scrollSpeed, etc (already via deep clone)
     return out;
   }
 
+  // Download compact JSON object
   function downloadCompactObject(obj, name) {
     const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
     const a = document.createElement("a");
@@ -213,26 +249,38 @@
     URL.revokeObjectURL(a.href);
   }
 
-  // multiples: one file per strumLine with matches
-  function downloadPerStrumFiles(original, matches, baseName) {
-    // group matches by strumLine
-    const grouped = {};
+  // If user wants one file per strumLine, produce exactly 4 files SL0..SL3
+  function downloadPerStrumFiles(original, matches, baseName, opts) {
+    // grouped by idx 0..3
+    const grouped = {0: [], 1: [], 2: [], 3: []};
     matches.forEach(m => {
-      (grouped[m.strumLine] = grouped[m.strumLine] || []).push(m);
+      const nid = (m.note && typeof m.note.id !== "undefined") ? Number(m.note.id) : NaN;
+      let idx = 0;
+      if (Number.isFinite(nid)) idx = ((nid % 4) + 4) % 4;
+      grouped[idx].push(m);
     });
 
-    Object.keys(grouped).forEach(slIndexStr => {
-      const slIndex = Number(slIndexStr);
-      // build new json where only this strumline has its matched notes
-      const out = JSON.parse(JSON.stringify(original));
-      out.strumLines = (original.strumLines || []).map((sl, idx) => {
-        return idx === slIndex ? { ...sl, notes: grouped[slIndex].map(x => x.note) } : { ...sl, notes: [] };
-      });
-      const filename = `${baseName}_SL${slIndex}.json`;
+    for (let i = 0; i < 4; i++) {
+      const out = JSON.parse(JSON.stringify(original || {}));
+      const templates = Array.isArray(original && original.strumLines) ? original.strumLines : [];
+      const baseScrollSpeed = original && (original.scrollSpeed ?? out.scrollSpeed) ? (original.scrollSpeed ?? out.scrollSpeed) : 3.1;
+
+      out.strumLines = [];
+      for (let j = 0; j < 4; j++) {
+        const tpl = templates[j] || {};
+        out.strumLines.push({
+          keyCount: (typeof tpl.keyCount !== "undefined") ? tpl.keyCount : 4,
+          scrollSpeed: (typeof tpl.scrollSpeed !== "undefined") ? tpl.scrollSpeed : baseScrollSpeed,
+          notes: (j === i) ? (grouped[i].map(x => x.note)) : []
+        });
+      }
+
+      const filename = `${baseName}_SL${i}.json`;
       downloadCompactObject(out, filename);
-    });
+    }
   }
 
+  // ---------- Rendering helpers ----------
   function renderMeta(file) {
     fileMeta.innerHTML = `<strong>${file.name}</strong> · ${(file.size / 1024 | 0)} KB`;
   }
@@ -246,8 +294,8 @@
         <td>${escapeHtml(String(m.note.id ?? ""))}</td>
         <td>${escapeHtml(String(m.note.time ?? ""))}</td>
         <td>${escapeHtml(String(m.note.sLen ?? ""))}</td>
-        <td>${escapeHtml(String(m.matchedBy))}</td>
-        <td>${escapeHtml(JSON.stringify(m.note.props ?? {}))}</td>
+        <td>${escapeHtml(String(m.matchedBy || ""))}</td>
+        <td>${escapeHtml(JSON.stringify(m.matchedEvent ? m.matchedEvent.name : (m.note.props || {})))}</td>
       `;
       matchesTableBody.appendChild(tr);
     });
@@ -255,10 +303,10 @@
   }
 
   function escapeHtml(s) {
-    return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   }
 
-  // Wiring events
+  // ---------- UI wiring ----------
   toleranceEl.addEventListener("input", () => {
     tolVal.textContent = toleranceEl.value;
   });
@@ -299,6 +347,7 @@
       }
       parsedJson = j;
       fileMeta.textContent = `Listo: ${file.name}`;
+      alert("Archivo cargado correctamente.");
     } catch (err) {
       parsedJson = null;
       fileMeta.textContent = `Error leyendo/parsing: ${err.message || err}`;
@@ -320,33 +369,36 @@
       keepInStrum: keepInStrum.checked
     };
 
+    // find matches
     const matches = findMatches(parsedJson, opts);
-    // if keepInStrum is false and oneNotePerStrum false, but user still wants a single file: we'll still place matches by original strumline
+
+    // produce output (always 4 strumLines)
     const output = produceOutputSameFormat(parsedJson, matches, opts);
+
+    const difficultyName = findDifficultyName(parsedJson, origFilename);
+    const mainFilename = `ALT${difficultyName}.json`;
 
     lastOutput = {
       obj: output,
-      filename: `ALT${findDifficultyName(parsedJson, origFilename)}.json`,
+      filename: mainFilename,
       matches
     };
 
-    // show preview compact
+    // render preview (compact)
     jsonPreview.textContent = JSON.stringify(output);
     renderMatchesTable(matches);
     resultsCard.hidden = false;
 
-    // automatic downloads depending on options
-    // main file
-    downloadCompactObject(output, lastOutput.filename);
+    // download main file (compact)
+    downloadCompactObject(output, mainFilename);
 
-    // if user requested one file per strumline, generate those too
+    // optionally download one file per strumLine (4 files)
     if (opts.oneFilePerStrum) {
-      const baseBase = `ALT${findDifficultyName(parsedJson, origFilename)}`;
-      downloadPerStrumFiles(parsedJson, matches, baseBase);
+      const baseBase = `ALT${difficultyName}`;
+      downloadPerStrumFiles(parsedJson, matches, baseBase, opts);
     }
 
-    // If user requested oneNotePerStrum but also oneFilePerStrum, we already downloaded main, and per strumline files.
-    alert(`Proceso completado. Se descargó: ${lastOutput.filename} (${matches.length} coincidencias).`);
+    alert(`Proceso completado. Generado ${mainFilename} (coincidencias: ${matches.length}).`);
   });
 
   downloadBtn.addEventListener("click", () => {
@@ -360,19 +412,12 @@
       await navigator.clipboard.writeText(JSON.stringify(lastOutput.obj));
       alert("JSON compacto copiado al portapapeles.");
     } catch (e) {
-      alert("No se pudo copiar automáticamente. Puedes usar la previsualización para copiar manualmente.");
+      alert("No se pudo copiar automáticamente. Usa la previsualización para copiar manualmente.");
     }
   });
-
-  // util
-  function parseIdList(s) {
-    if (!s) return null;
-    return s.split(",").map(x => x.trim()).filter(Boolean).map(x => {
-      const n = Number(x);
-      return Number.isFinite(n) ? n : x;
-    });
-  }
 
   // init
   tolVal.textContent = toleranceEl.value;
 })();
+
+// happy navidad a todos
