@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SpritemapsToFunkin — Descargas</title>
+
+<style>
+  body {
+    background: #0f0f14;
+    color: #e8e8ef;
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    padding: 28px 16px;
+    text-align: center;
+  }
+
+  h1 {
+    margin: 0;
+    letter-spacing: .5px;
+  }
+
+  p.subtitle {
+    opacity: .8;
+    margin-top: 6px;
+  }
+
+  .downloads {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+  }
+
+  .card {
+    background: #171722;
+    border: 1px solid #2a2a3a;
+    border-radius: 16px;
+    padding: 18px;
+    transition: transform .15s, box-shadow .15s;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .desc {
+    font-size: 14px;
+    opacity: .85;
+    margin-bottom: 14px;
+  }
+
+  .btn {
+    display: inline-block;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #6b6bff;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    transition: opacity .15s, transform .1s;
+    text-decoration: none;
+  }
+
+  .btn:hover {
+    opacity: .9;
+  }
+
+  .btn:active {
+    transform: scale(.97);
+  }
+
+  footer {
+    text-align: center;
+    opacity: .6;
+    font-size: 13px;
+    padding-bottom: 26px;
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>SpritemapsToFunkin</h1>
+  <p class="subtitle">Elige tu versión y libera los frames del caos pixelado ✨</p>
+</header>
+
+<section class="downloads">
+
+  <div class="card">
+    <div class="title">Windows (.exe)</div>
+    <div class="desc">Versión portable para Windows. Listo para abrir y usar.</div>
+    <a class="btn" id="winLink" href="#" download>Descargar</a>
+  </div>
+
+  <div class="card">
+    <div class="title">Windows ZIP</div>
+    <div class="desc">Versión comprimida. Extrae y ejecuta.</div>
+    <a class="btn" id="zipLink" href="#" download>Descargar</a>
+  </div>
+
+  <div class="card">
+    <div class="title">Linux (.AppImage)</div>
+    <div class="desc">Ejecutable universal para distribuciones Linux.</div>
+    <a class="btn" id="appImageLink" href="#" download>Descargar</a>
+  </div>
+
+  <!---
+  <div class="card">
+    <div class="title">Código Fuente</div>
+    <div class="desc">Repositorio del proyecto (opcional para desarrolladores).</div>
+    <a class="btn" id="repoLink" href="#" target="_blank">Ir al repositorio</a>
+  </div>
+-->
+</section>
+
+<footer>
+  SpritemapsToFunkin • by Jarret
+</footer>
+
+<script>
+  // Cambia aquí tus URLs de descarga
+  const LINKS = {
+    winExe: "URL_DEL_EXE",
+    winZip: "URL_DEL_ZIP",
+    appImage: "URL_DEL_APPIMAGE",
+    repo: "URL_DEL_REPO"
+  };
+
+  document.getElementById("winLink").href = LINKS.winExe;
+  document.getElementById("zipLink").href = LINKS.winZip;
+  document.getElementById("appImageLink").href = LINKS.appImage;
+  document.getElementById("repoLink").href = LINKS.repo;
+</script>
+
+</body>
+</html>
