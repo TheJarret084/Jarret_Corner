@@ -6,23 +6,25 @@
 /* ============================= */
 /* 🎨 PALETA (valores usados) */
 /* ============================= */
-/* rojo:          #d32f2f */
-/* rojo-oscuro:   #c62828 */
-/* rojo-claro:    #ff5252 */
-/* verde:         #2e7d32 */
-/* verde-oscuro:  #1b5e20 */
-/* verde-claro:   #4caf50 */
-/* dorado:        #ffd700 */
-/* blanco:        #ffffff */
-/* gris:          #f5f5f5 */
-/* sombra:        rgba(198, 40, 40, 0.3) */
+/* morado:         #6a1b9a */
+/* morado-oscuro:  #4a148c */
+/* morado-claro:   #7b1fa2 */
+/* azul:           #283593 */
+/* azul-oscuro:    #1a237e */
+/* azul-claro:     #42a5f5 */
+/* celeste:        #29b6f6 */
+/* celeste-oscuro: #0288d1 */
+/* dorado:         #ffd700 */
+/* blanco:         #ffffff */
+/* gris:           #f5f5f5 */
+/* sombra:         rgba(74, 20, 140, 0.3) */
 
 /* ============================= */
 /* 🌐 ESTILOS GENERALES */
 /* ============================= */
 body {
     font-family: 'Milky Nice', Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #2e7d32, #d32f2f);
+    background: linear-gradient(135deg, #6a1b9a, #283593);
     margin: 0;
     padding: 0;
     text-align: center;
@@ -81,7 +83,7 @@ body {
     left: 0;
     width: 100%;
     height: 60px;
-    background: linear-gradient(90deg, #d32f2f, #2e7d32);
+    background: linear-gradient(90deg, #4a148c, #283593);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -166,7 +168,7 @@ body {
     left: 0;
     width: 100%;
     height: 50px;
-    background-color: #1b5e20;
+    background-color: #1a237e;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -243,13 +245,13 @@ body {
 }
 
 #opciones-container::-webkit-scrollbar-thumb {
-    background: #ffd700;
+    background: #42a5f5;
     border-radius: 4px;
 }
 
 #opciones-container {
     scrollbar-width: thin;
-    scrollbar-color: #ffd700 rgba(255,255,255,0.1);
+    scrollbar-color: #42a5f5 rgba(255,255,255,0.1);
 }
 
 /* ============================= */
@@ -262,12 +264,12 @@ body {
     max-width: 250px;
     padding: 25px;
     border-radius: 20px;
-    background: linear-gradient(145deg, #2e7d32, #d32f2f);
+    background: linear-gradient(145deg, #7b1fa2, #512da8);
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
     gap: 12px;
-    border: 2px solid #ffd700;
+    border: 2px solid #42a5f5;
     transition: all 0.3s;
 }
 
@@ -277,7 +279,7 @@ body {
 }
 
 .contenedor-bonito h2 {
-    color: #ffd700;
+    color: #42a5f5;
     margin: 0;
     font-size: 1.3rem;
 }
@@ -295,8 +297,8 @@ body {
     padding: 8px 16px;
     border-radius: 10px;
     text-decoration: none;
-    background: #ffd700;
-    color: #d32f2f;
+    background: #29b6f6;
+    color: #fff;
     font-weight: 400;
     font-family: 'Milky Nice', sans-serif;
     transition: all 0.2s;
@@ -309,9 +311,9 @@ body {
 }
 
 .contenedor-bonito a.boton:hover {
-    background: #ffffff;
-    color: #1b5e20;
-    border: 2px solid #ffd700;
+    background: #0288d1;
+    color: #fff;
+    border: 2px solid #42a5f5;
 }
 
 /* ============================= */

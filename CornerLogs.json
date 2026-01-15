@@ -1,5 +1,21 @@
 [
   {
+    "date": "2026-1-15T16:30:00Z",
+    "version": "v2.2.1-2026/A",
+    "title": "Arreglo de la UI navideña, que se quedaron los colores y iconos",
+    "body": "Cambio toda la ui de la pagina PRINCIPAL para que se vea menos navideña.",
+    "tags": ["frontend"],
+    "important": false
+  },
+  {
+    "date": "2026-1-11T16:30:00Z",
+    "version": "v2.2.1-2026",
+    "title": "Se fue navidad ya, adios a todos",
+    "body": "Cambio toda la ui de la pagina PRINCIPAL, para volver a la normalidad.",
+    "tags": ["frontend"],
+    "important": false
+  },
+  {
     "date": "2025-12-05T16:30:00Z",
     "version": "v2.2.1",
     "title": "llego navidad putos, y yo me atrase",
