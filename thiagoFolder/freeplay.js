@@ -1,57 +1,68 @@
-// js/freeplay.js
+// js/freeplay.js (versión corregida y resistente)
+// ------------------------------------------------
 const freeplay = document.getElementById('freeplay');
+if (!freeplay) {
+  console.error('No existe #freeplay en el DOM. Crea <div id="freeplay"></div> en tu HTML.');
+}
+
 let songs = [];
 let curSelected = 0;
+let circle = null; // cache del elemento círculo
 
 // --- CONFIGS ---
 const ASSETS = {
   box: 'assets/ui/freeplaybox.png',
-  defaultIcon: 'assets/icons/default.png',
+  defaultIcon: 'assets/icons/jasmi.png',
   music: 'assets/music/breakfast.ogg'
 };
 
 // --- util ---
 function lerp(a, b, t) { return a + (b - a) * t; }
 
-// Intentar parsear JSONC si existe jsoncParser; si no, JSON.parse
-async function fetchJsoncOrJson(path) {
-  const res = await fetch(path);
-  const text = await res.text();
+// Fetch JSON simple (ahora usamos JSON limpio)
+async function fetchJson(path) {
   try {
+    const res = await fetch(path);
+    const text = await res.text();
     return JSON.parse(text);
-  } catch (e) {
-    if (typeof jsoncParser !== 'undefined' && jsoncParser.parse) {
-      return jsoncParser.parse(text);
-    } else {
-      console.warn('JSON parse failed and jsonc-parser not found. Returning empty array.');
-      return [];
-    }
+  } catch (err) {
+    console.warn('fetchJson error:', err);
+    return [];
   }
 }
 
 // --- LOAD / SPAWN ---
 async function loadSongs() {
-  const raw = await fetchJsoncOrJson('./anotherSongs.jsonc');
-  // soportar tanto { songs: [...] } como array directo
+  const raw = await fetchJson('./anotherSongs.json'); // archivo JSON (sin comentarios)
   songs = Array.isArray(raw) ? raw : (raw.songs || []);
+
+  // Si no hay canciones, usar placeholder NEUTRO 
   if (!songs.length) {
-    // placeholder
     songs = [{
-      name: 'test',
-      color: '#FFFFFF',
-      info: 'cancion de prueba',
+      name: 'No songs available',
+      color: '#2b2b2b',
+      info: 'Drop songs into anotherSongs.json',
       icon: '',
+      link: '',
       bpm: 100
     }];
   }
+
   spawnSongs(songs);
-  // marcar seleccionado visual luego de spawn
+
+  // cache circle reference after spawn (spawnSongs asegura que exista)
+  circle = document.getElementById('menuCircle');
+
   applySelectionImmediate();
 }
 
+// Crea los elementos visuales
 function spawnSongs(list) {
-  freeplay.innerHTML = ''; // limpiar
-  // opcional: añadir el círculo si no existe dentro del freeplay
+  // limpia y crea contenedor base
+  if (!freeplay) return;
+  freeplay.innerHTML = '';
+
+  // crear el círculo si no existe
   if (!document.getElementById('menuCircle')) {
     const circ = document.createElement('div');
     circ.className = 'menu-circle';
@@ -65,21 +76,20 @@ function spawnSongs(list) {
     item.dataset.index = i;
 
     // fondo de la tarjeta
-    item.style.background = song.color ?? '#444';
+    item.style.background = song.color ?? '#000000';
 
-    // caja (imagen de fondo)
+    // caja (imagen)
     const box = document.createElement('img');
     box.className = 'song-box';
     box.src = ASSETS.box;
+    box.alt = '';
     item.appendChild(box);
 
-    // icono: lo hago como div con background para poder mover el "sprite" usando background-position
+    // icono como div background (soporta sprite 300x150 con 2 frames)
     const iconWrap = document.createElement('div');
     iconWrap.className = 'song-icon';
     const iconPath = song.icon ? `assets/icons/${song.icon}` : ASSETS.defaultIcon;
     iconWrap.style.backgroundImage = `url("${iconPath}")`;
-    // asumir sprite de 300x150 con 2 frames horizontales (cada frame 150x150)
-    // posición inicial (deseleccionada)
     iconWrap.style.backgroundPosition = '0px 0px';
     iconWrap.style.backgroundSize = '300px 150px';
     item.appendChild(iconWrap);
@@ -101,12 +111,12 @@ function spawnSongs(list) {
     item.appendChild(mech);
 
     // click para seleccionar
-    item.addEventListener('click', (e) => {
+    item.addEventListener('click', () => {
       const idx = Number(item.dataset.index);
       setSelection(idx);
     });
 
-    // guardo refs para animar suavemente
+    // estado para animaciones
     item._state = {
       angle: 0,
       angleTarget: 0,
@@ -125,13 +135,12 @@ function spawnSongs(list) {
 // --- SELECTION LOGIC ---
 function setSelection(index) {
   const len = songs.length;
+  if (len === 0) return;
   // wrap safe
   if (index < 0) index = (index + len) % len;
   if (index >= len) index = index % len;
   curSelected = index;
-  // aplicar efectos (play music change optional)
   applySelectionImmediate();
-  // If the new song has bpm we update beat behavior automatically because update() reads songs[curSelected]
 }
 
 function applySelectionImmediate() {
@@ -140,24 +149,18 @@ function applySelectionImmediate() {
   const sel = document.querySelector(`.song-item[data-index="${curSelected}"]`);
   if (sel) sel.classList.add('selected');
 
-  // adjust icon background position (sprite shift)
+  // ajustar sprite de icono
   nodes.forEach(node => {
     const idx = Number(node.dataset.index);
     const iconDiv = node._state ? node._state.iconEl : node.querySelector('.song-icon');
     if (!iconDiv) return;
-    if (idx === curSelected) {
-      // seleccionado -> mover sprite a frame derecho (-150px)
-      iconDiv.style.backgroundPosition = '-150px 0px';
-    } else {
-      // deseleccionado -> frame izquierdo
-      iconDiv.style.backgroundPosition = '0px 0px';
-    }
+    iconDiv.style.backgroundPosition = (idx === curSelected) ? '-150px 0px' : '0px 0px';
   });
 }
 
 // --- ANIMATION / ARRANGE (arc) ---
 function computeDiff(i, cur, len) {
-  // compute circular diff so it loops around like el código haxe
+  if (!len) return 0;
   let diff = i - cur;
   const half = Math.floor(len / 2);
   if (diff < 0) {
@@ -174,23 +177,22 @@ function computeDiff(i, cur, len) {
 
 function applyLayoutSmooth(delta) {
   const nodes = Array.from(document.querySelectorAll('.song-item'));
-  const len = songs.length;
+  const len = songs.length || 1;
   nodes.forEach((node, i) => {
     const s = node._state;
+    // safety
+    if (!s) return;
     const diff = computeDiff(i, curSelected, len);
 
-    // clamp visual spread
     let clamped = diff;
     if (clamped > 3) clamped = 3;
     if (clamped < -3) clamped = -3;
 
-    // targets
-    s.angleTarget = clamped * 12; // menos angulo para web (12 deg por step)
-    s.yTarget = clamped * 120;     // separacion vertical
+    s.angleTarget = clamped * 12;
+    s.yTarget = clamped * 120;
     s.scaleTarget = clamped === 0 ? 1.06 : 0.88;
     s.opacityTarget = clamped === 0 ? 1 : 0.4;
 
-    // smooth towards targets
     s.angle = lerp(s.angle, s.angleTarget, 0.12);
     s.y = lerp(s.y, s.yTarget, 0.12);
     s.scale = lerp(s.scale, s.scaleTarget, 0.12);
@@ -201,30 +203,31 @@ function applyLayoutSmooth(delta) {
   });
 }
 
-// --- CIRCLE ANIMATION (safe) ---
-const circle = document.getElementById('menuCircle');
+// --- CIRCLE ANIMATION ---
 let circleRot = 0;
 function updateCircle(delta) {
+  if (!circle) circle = document.getElementById('menuCircle');
   if (!circle) return;
   circleRot += delta * 10;
-  // translateX(-50%) keep center, rotate smooth
   circle.style.transform = `translateX(-50%) rotate(${circleRot}deg)`;
 }
 
-// --- MUSIC ---
+// --- MUSIC (solo fondo: breakfast) ---
 const music = new Audio(ASSETS.music);
 music.preload = 'auto';
 music.loop = true;
-music.volume = 0.5;
+music.volume = 0.45;
 
-window.addEventListener('click', () => {
-  // reproducir musica solo una vez por interaccion
-  if (music.paused) {
-    music.play().catch(() => {/* autoplay blocked until user interacts */ });
-  }
-});
+let musicStarted = false;
+function tryStartMusic() {
+  if (musicStarted) return;
+  music.play().catch(() => {/* blocked until user interacts */ });
+  musicStarted = true;
+}
+window.addEventListener('click', tryStartMusic);
+window.addEventListener('keydown', tryStartMusic);
 
-// --- BEAT (usa BPM de la cancion seleccionada) ---
+// --- BEAT (usa BPM de la canción seleccionada) ---
 let beatTimer = 0;
 function updateBeat(delta) {
   if (!songs.length) return;
@@ -246,7 +249,6 @@ window.addEventListener('keydown', (e) => {
   } else if (e.key === 'ArrowLeft' || e.key === 'a') {
     setSelection(curSelected - 1);
   } else if (e.key === 'Enter') {
-    // Action on enter - you can use songs[curSelected].link to open funky maker or play detail
     const s = songs[curSelected];
     if (s && s.link) window.open(s.link, '_blank');
   }
@@ -258,7 +260,6 @@ function loop(now) {
   const delta = (now - last) / 1000;
   last = now;
 
-  // update visuals
   updateCircle(delta);
   applyLayoutSmooth(delta);
   updateBeat(delta);
@@ -268,7 +269,6 @@ function loop(now) {
 
 // start
 loadSongs().then(() => {
-  // ensure initial layout applied
   applySelectionImmediate();
   requestAnimationFrame(loop);
 });
