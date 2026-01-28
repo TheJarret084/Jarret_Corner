@@ -45,13 +45,6 @@
           "tipo": "boton",
           "url": "Material-Lab/Lab/Proyect/proyect.html",
           "botonTexto": "Name-Not-Found"
-        },
-        {
-          "titulo": "AltForge",
-          "descripcion": "Agregar una decripcion aqui.",
-          "tipo": "boton",
-          "url": "Material-Lab/Lab/AltForge/index.html",
-          "botonTexto": "AltForge"
         }
       ]
     },
