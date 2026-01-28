@@ -1,0 +1,21 @@
+{
+  "name": "jarret_corner",
+  "version": "2.2.2",
+  "description": "todo mis proyectos y demas cosas estaran aqui, normalmente cosas basicas, y funcionen de milagro, pero dejare que todo siga porque tengo pereza",
+  "main": "Corner.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheJarret084/Jarret_Corner.git"
+  },
+  "keywords": [],
+  "author": "Jarret",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/TheJarret084/Jarret_Corner/issues"
+  },
+  "homepage": "https://github.com/TheJarret084/Jarret_Corner#readme"
+}
