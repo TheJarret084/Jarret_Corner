@@ -11,7 +11,7 @@ let circle = null; // cache del elemento círculo
 
 // --- CONFIGS ---
 const ASSETS = {
-  box: 'assets/ui/freeplaybox.png',
+  box: 'assets/images/freeplaybox.png',
   defaultIcon: 'assets/icons/jasmi.png',
   music: 'assets/music/breakfast.ogg'
 };
