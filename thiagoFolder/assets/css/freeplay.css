@@ -79,110 +79,6 @@ body.beat {
 }
 
 /* =========================
-   ITEM DE CANCIÓN
-========================= */
-
-.song-item {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-
-    width: 420px;
-    height: 220px;
-
-    transform: translate(-50%, -50%);
-    transform-origin: center;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    pointer-events: auto;
-}
-
-/* =========================
-   CAJA (FREEPLAYBOX)
-========================= */
-
-.song-box {
-    position: absolute;
-    width: 100%;
-    height: auto;
-
-    image-rendering: pixelated;
-    pointer-events: none;
-}
-
-/* =========================
-   ICONO (SPRITE)
-========================= */
-
-.song-icon {
-    position: absolute;
-    top: -55px;
-    left: 50%;
-    transform: translateX(-50%);
-
-    width: 150px;
-    height: 150px;
-
-    background-repeat: no-repeat;
-    background-size: 300px 150px;
-    background-position: 0 0;
-
-    image-rendering: pixelated;
-    pointer-events: none;
-}
-
-/* =========================
-   TEXTO
-========================= */
-
-.song-name,
-.song-info,
-.song-mechanics {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-
-    color: #fff;
-    text-shadow:
-        2px 2px 0 #000,
-        -2px 2px 0 #000,
-        2px -2px 0 #000,
-        -2px -2px 0 #000;
-}
-
-.song-name {
-    bottom: 92px;
-    font-size: 32px;
-}
-
-.song-info {
-    bottom: 52px;
-    font-size: 20px;
-    opacity: 0.95;
-    white-space: pre-line;
-}
-
-.song-mechanics {
-    bottom: 14px;
-    font-size: 28px;
-}
-
-/* =========================
-   ESTADOS
-========================= */
-
-.song-item.dim {
-    opacity: 0.4;
-}
-
-.song-item.selected {
-    opacity: 1;
-}
-
-/* =========================
    OVERLAY
 ========================= */
 
@@ -305,4 +201,113 @@ body.beat {
         right: 48px;
         bottom: env(safe-area-inset-bottom, 48px);
     }
+}
+
+
+/* =========================
+   ITEM DE CANCIÓN
+========================= */
+
+.song-item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+
+    width: 420px;
+    height: 220px;
+
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    transition: transform 0.08s linear, opacity 0.08s linear;
+    will-change: transform, opacity;
+
+    pointer-events: auto;
+}
+
+/* =========================
+   CAJA (FREEPLAYBOX)
+========================= */
+
+.song-box {
+    position: absolute;
+    width: 100%;
+    height: auto;
+
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+/* =========================
+   ICONO (2 estados OFF / ON)
+========================= */
+
+.song-icon {
+    position: absolute;
+    top: -55px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 150px;
+    height: 150px;
+
+    background-repeat: no-repeat;
+    background-size: 300px 150px;
+    /* 2 frames */
+    background-position: 0 0;
+
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+/* =========================
+   TEXTO
+========================= */
+
+.song-name,
+.song-info,
+.song-mechanics {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+
+    color: #fff;
+    text-shadow:
+        2px 2px 0 #000,
+        -2px 2px 0 #000,
+        2px -2px 0 #000,
+        -2px -2px 0 #000;
+}
+
+.song-name {
+    bottom: 92px;
+    font-size: 32px;
+}
+
+.song-info {
+    bottom: 52px;
+    font-size: 20px;
+    opacity: 0.95;
+    white-space: pre-line;
+}
+
+.song-mechanics {
+    bottom: 14px;
+    font-size: 28px;
+}
+
+/* =========================
+   ESTADOS
+========================= */
+
+.song-item.dim {
+    opacity: 0.4;
+}
+
+.song-item.selected {
+    opacity: 1;
 }
