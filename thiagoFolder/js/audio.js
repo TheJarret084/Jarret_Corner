@@ -3,7 +3,7 @@ let bgMusic = null;
 let musicStarted = false;
 let beatAcc = 0;
 
-export function initAudio(path = './../assets/music/freakyMenu.ogg') {
+export function initAudio(path = './assets/music/freakyMenu.ogg') {
     bgMusic = new Audio(path);
     bgMusic.preload = 'auto';
     bgMusic.loop = true;

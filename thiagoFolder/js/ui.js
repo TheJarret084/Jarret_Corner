@@ -37,7 +37,7 @@ function createSongItem(song, i) {
 
     const box = document.createElement('img');
     box.className = 'song-box';
-    box.src = 'assets/ui/freeplaybox.png';
+    box.src = 'assets/images/freeplaybox.png';
     box.alt = '';
     item.appendChild(box);
 
