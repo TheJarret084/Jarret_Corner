@@ -64,6 +64,11 @@ function createSongItem(song, i) {
     mech.textContent = song.mechanics || (song.bpm ? `${song.bpm} BPM` : '');
     item.appendChild(mech);
 
+    const category = document.createElement('div');
+    category.className = 'song-category';
+    category.textContent = song.category ? `Category: ${song.category}` : '';
+    item.appendChild(category);
+
     item.addEventListener('click', () => setSelection(i));
 
     // animation state

@@ -7,6 +7,7 @@
     "icon": "pngshaggy.png",
     "bpm": 175,
     "mechanics": "Que no te baje mucha vida",
+    "category": "Shaggy's Alternate Universes",
     "infoExtra": {
       "gertrudis": true,
       "note": "Este nivel el enemigo principal baja vida si te descuidas, se recomienda optimizar el nivel antes de Jugar",
