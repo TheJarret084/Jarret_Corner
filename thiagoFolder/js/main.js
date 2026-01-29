@@ -25,7 +25,10 @@ async function start() {
     // --------------------
     // 📦 CARGAR CANCIONES (1 sola vez)
     // --------------------
-    await loadSongs('./anotherSongs.json');
+    await loadSongs([
+        './JarretSongs.json',
+        './ThiagoSongs.json'
+    ]);
     UI.spawnSongs();
 
     // --------------------
