@@ -28,11 +28,13 @@ export function showOverlay(song) {
     const mechanics = document.getElementById('ov-mechanics');
     const note = document.getElementById('ov-note');
     const img = document.getElementById('ov-image');
+    const category = document.getElementById('ov-category');
 
     // RESET
     mechanics.style.display = 'none';
     note.style.display = 'none';
     img.style.display = 'none';
+    category.style.display = 'none';
     overlay.classList.remove('compact');
 
     // INFO BASE
@@ -51,6 +53,11 @@ export function showOverlay(song) {
         if (extra.note) {
             note.textContent = extra.note;
             note.style.display = 'block';
+        }
+
+        if (song.category) {
+            category.textContent = `Category: ${song.category}`;
+            category.style.display = 'block';
         }
 
         if (extra.image) {
