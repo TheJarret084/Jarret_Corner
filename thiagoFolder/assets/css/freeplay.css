@@ -181,9 +181,11 @@ body.beat {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.85);
+
     display: flex;
     justify-content: center;
     align-items: center;
+
     z-index: 999;
 }
 
@@ -192,12 +194,18 @@ body.beat {
 }
 
 .overlay-box {
-    width: 960px;
-    height: 540px;
+    width: clamp(320px, 90vw, 1100px);
+    aspect-ratio: 16 / 9;
+
+    max-height: 90vh;
+
     border: 2px solid white;
-    padding: 24px;
+    padding: clamp(16px, 3vw, 32px);
+
     display: flex;
     flex-direction: column;
+
+    background: black;
 }
 
 @media (hover: none) and (pointer: coarse) {
