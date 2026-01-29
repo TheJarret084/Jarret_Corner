@@ -100,7 +100,7 @@ export function applySelectionImmediate() {
         const idx = Number(node.dataset.index);
         const iconEl = (node._state && node._state.iconEl) ? node._state.iconEl : node.querySelector('.song-icon');
         if (!iconEl) return;
-        iconEl.style.backgroundPosition = (idx === curSelected) ? '-150px 0px' : '0px 0px';
+        iconEl.style.backgroundPosition = (idx === curSelected) ? '0px 0px' : '-150px 0px';
     });
 }
 
