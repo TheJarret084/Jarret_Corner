@@ -1,4 +1,5 @@
 // main.js
+import { initMobileEnterButton } from './enterButton.js';
 import { loadSongs, getSong } from './data.js';
 import * as UI from './ui.js';
 import * as Audio from './audio.js';
@@ -33,9 +34,17 @@ async function start() {
     enableEnterToPlay();
 
     // --------------------
-    // 🎮 GAMEPAD
+    // Mobile ENTER BUTTON
     // --------------------
-    //enableGamepadSupport(); // <-- Es una mierda por ahora
+    const song = getSong(UI.getSelected());
+    if (song) {
+        // es EXACTAMENTE como presionar Enter
+        window.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Enter' })
+        );
+        initMobileEnterButton();
+    }
+
 
     // --------------------
     // ⌨️ TECLADO - NAVEGACIÓN

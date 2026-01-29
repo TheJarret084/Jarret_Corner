@@ -242,17 +242,22 @@ body.beat {
 .btn-icon {
     width: 32px;
     height: 32px;
-    background-image: url('../images/botones.png');
+    background-image: url('./assets/ui/botones.png');
     background-repeat: no-repeat;
     image-rendering: pixelated;
+    touch-action: manipulation;
+    user-select: none;
 }
 
 /* OFF */
+/*
 .btn-enter-off {
     background-position: 0px 0px;
 }
-
+*/
 /* ON */
+/*
 .btn-enter-on {
     background-position: -32px 0px;
-}
+} 
+*/
