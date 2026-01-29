@@ -127,25 +127,37 @@ export function enableEnterToPlay() {
 let lastGamepadPress = false;
 
 export function enableGamepadSupport() {
+
+    let lastPressed = false;
+
     function pollGamepad() {
-        const pads = navigator.getGamepads();
-        const pad = pads[0];
+        const pad = navigator.getGamepads()[0];
         if (!pad) {
             requestAnimationFrame(pollGamepad);
             return;
         }
 
-        // Botón A (0) o Start (9)
-        const pressed = pad.buttons[0].pressed || pad.buttons[9].pressed;
+        // A (0) o Start (9)
+        const pressed =
+            pad.buttons[0]?.pressed ||
+            pad.buttons[9]?.pressed;
 
-        if (pressed && !lastGamepadPress) {
-            if (overlayVisible && currentSong) {
-                playConfirmSound();
-                confirmAndPlay();
-            }
+        // PRESIONA
+        if (pressed && !lastPressed) {
+            updateEnterVisual(true);
+
+            // aquí decides qué hace el gamepad
+            // 1) simular Enter
+            // 2) confirmar directamente
+            confirmAndPlay?.();
         }
 
-        lastGamepadPress = pressed;
+        // SUELTA
+        if (!pressed && lastPressed) {
+            updateEnterVisual(false);
+        }
+
+        lastPressed = pressed;
         requestAnimationFrame(pollGamepad);
     }
 
