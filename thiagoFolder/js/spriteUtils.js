@@ -2,28 +2,55 @@
 
 let spriteData = null;
 let spriteImage = null;
+let readyPromise = null;
+let readyResolve = null;
 
 /**
- * Carga el JSON exportado por Aseprite
- * y precarga la imagen del spritesheet
+ * Carga el JSON de Aseprite + imagen del spritesheet
+ * Devuelve una promesa que se resuelve cuando TODO está listo
  */
-export async function loadSpriteSheet(jsonPath, imageBasePath = './assets/images/') {
-    const res = await fetch(jsonPath);
-    spriteData = await res.json();
+export function loadSpriteSheet(
+    jsonPath,
+    imageBasePath = './assets/images/'
+) {
+    if (readyPromise) return readyPromise; // evita doble carga
 
-    spriteImage = new Image();
-    spriteImage.src = imageBasePath + spriteData.meta.image;
+    readyPromise = new Promise(async (resolve, reject) => {
+        readyResolve = resolve;
 
-    await spriteImage.decode();
+        try {
+            const res = await fetch(jsonPath);
+            spriteData = await res.json();
 
-    console.log('🧩 SpriteSheet cargado:', spriteData.meta.image);
+            spriteImage = new Image();
+            spriteImage.src = imageBasePath + spriteData.meta.image;
+
+            await spriteImage.decode();
+
+            console.log('🧩 SpriteSheet cargado:', spriteData.meta.image);
+            resolve(true);
+        } catch (err) {
+            console.error('❌ Error cargando spritesheet', err);
+            reject(err);
+        }
+    });
+
+    return readyPromise;
 }
 
 /**
  * Aplica un frame del JSON a un elemento
+ * Si aún no está listo, espera automáticamente
  */
-export function setSpriteFrame(el, frameName) {
-    if (!spriteData || !spriteImage || !el) return;
+export async function setSpriteFrame(el, frameName) {
+    if (!el) return;
+
+    if (!readyPromise) {
+        console.warn('⚠️ SpriteSheet no cargado aún');
+        return;
+    }
+
+    await readyPromise;
 
     const frame = spriteData.frames[frameName]?.frame;
     if (!frame) {

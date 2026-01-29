@@ -1,3 +1,4 @@
+// enterButton.js
 import { setSpriteFrame } from './spriteUtils.js';
 
 const enterIcon = document.getElementById('btn-enter');
@@ -5,34 +6,45 @@ const enterIcon = document.getElementById('btn-enter');
 export function initMobileEnterButton(onEnter) {
     if (!enterIcon) return;
 
-    // estado OFF inicial
+    // estado inicial
     setSpriteFrame(enterIcon, 'ENTER OFF');
 
-    // Detectar mitad tocada en touchend
+    /* ===== TOUCH (mobile) ===== */
     enterIcon.addEventListener('touchend', e => {
         e.preventDefault();
-        if (!e.changedTouches || e.changedTouches.length === 0) return;
-        const touch = e.changedTouches[0];
+
+        const touch = e.changedTouches?.[0];
+        if (!touch) return;
+
         const rect = enterIcon.getBoundingClientRect();
         const y = touch.clientY - rect.top;
+
         if (y < rect.height / 2) {
-            // Mitad superior: solo mostrar OFF
+            // mitad superior → solo OFF
             setSpriteFrame(enterIcon, 'ENTER OFF');
         } else {
-            // Mitad inferior: mostrar ON y ejecutar acción
+            // mitad inferior → ON + acción
             setSpriteFrame(enterIcon, 'ENTER ON');
-            setTimeout(() => setSpriteFrame(enterIcon, 'ENTER OFF'), 100); // Breve feedback visual
+
+            setTimeout(() => {
+                setSpriteFrame(enterIcon, 'ENTER OFF');
+            }, 120);
+
             onEnter?.();
         }
     });
 
-    // soporte mouse (por si acaso)
-    enterIcon.addEventListener('mousedown', e => {
+    /* ===== MOUSE (desktop fallback) ===== */
+    enterIcon.addEventListener('mousedown', () => {
         setSpriteFrame(enterIcon, 'ENTER ON');
     });
 
-    enterIcon.addEventListener('mouseup', e => {
+    enterIcon.addEventListener('mouseup', () => {
         setSpriteFrame(enterIcon, 'ENTER OFF');
         onEnter?.();
+    });
+
+    enterIcon.addEventListener('mouseleave', () => {
+        setSpriteFrame(enterIcon, 'ENTER OFF');
     });
 }
