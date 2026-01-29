@@ -242,7 +242,7 @@ body.beat {
 .btn-icon {
     width: 32px;
     height: 32px;
-    background-image: url('./assets/ui/botones.png');
+    background-image: url('../assets/ui/botones.png');
     background-repeat: no-repeat;
     image-rendering: pixelated;
     touch-action: manipulation;
