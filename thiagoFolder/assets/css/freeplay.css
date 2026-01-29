@@ -193,6 +193,12 @@ body.beat {
     flex-direction: column;
 }
 
+@media (hover: none) and (pointer: coarse) {
+    .overlay-box {
+        display: block;
+    }
+}
+
 .overlay-content {
     flex: 1;
     display: flex;
