@@ -2,6 +2,11 @@
 import { loadSongs, getSong } from './data.js';
 import * as UI from './ui.js';
 import * as Audio from './audio.js';
+import {
+    preloadSongs,
+    showOverlay,
+    enableEnterToPlay
+} from './infoGeneral.js';
 
 async function start() {
     // init UI
@@ -41,6 +46,11 @@ async function start() {
         requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
+    await preloadSongs();
+    enableEnterToPlay();
+
+    // cuando selecciones una canción
+    showOverlay(song);
 }
 
 start().catch(err => console.error(err));

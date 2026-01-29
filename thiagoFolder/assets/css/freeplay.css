@@ -169,3 +169,68 @@ body.beat {
 .song-item.selected {
     opacity: 1;
 }
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.overlay-box {
+    width: 960px;
+    height: 540px;
+    border: 2px solid white;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.overlay-content {
+    flex: 1;
+    display: flex;
+    gap: 24px;
+}
+
+.overlay-text {
+    flex: 1;
+    font-family: "VCR";
+}
+
+.overlay-image {
+    width: 360px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.overlay-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.overlay-actions button,
+.overlay-footer button {
+    font-family: "VCR";
+    font-size: 18px;
+}
+
+/* caso gertrudis === true*/
+
+.overlay-box.compact {
+    width: 720px;
+}

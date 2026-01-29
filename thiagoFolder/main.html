@@ -9,7 +9,40 @@
 </head>
 
 <body>
+    <!-- Seccion freeplay, salen las cards-->
     <div id="freeplay"></div>
+
+    <!-- Level info y mas-->
+
+    <div id="infoOverlay" class="overlay hidden">
+        <div class="overlay-box">
+
+            <div class="overlay-content">
+                <!-- izquierda -->
+                <div class="overlay-text">
+                    <h2 id="ov-title"></h2>
+                    <p id="ov-info"></p>
+                    <p id="ov-mechanics"></p>
+                    <p id="ov-note"></p>
+                </div>
+
+                <!-- derecha -->
+                <div class="overlay-image">
+                    <img id="ov-image" />
+                </div>
+            </div>
+
+            <!-- footer -->
+            <div class="overlay-footer">
+                <button id="ov-creator">Creador</button>
+                <div class="overlay-actions">
+                    <button id="ov-back">Salir</button>
+                    <button id="ov-play">Jugar</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
     <script type="module" src="./js/main.js"></script>
 </body>
