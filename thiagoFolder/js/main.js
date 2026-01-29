@@ -42,7 +42,9 @@ async function start() {
         window.dispatchEvent(
             new KeyboardEvent('keydown', { key: 'Enter' })
         );
-        initMobileEnterButton();
+        initMobileEnterButton(() => {
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        });
     }
 
 

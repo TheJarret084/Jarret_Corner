@@ -239,14 +239,31 @@ body.beat {
    BOTÓN PARA MOBIL, ENTER
 ========================= */
 
+
+/* Botón Enter: solo visible en mobile, fijo abajo a la derecha */
 .btn-icon {
-    width: 32px;
-    height: 32px;
+    display: none;
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 64px;
+    height: 64px;
+    z-index: 1000;
     background-image: url('../images/botones.png');
     background-repeat: no-repeat;
+    background-size: 64px 64px;
     image-rendering: pixelated;
     touch-action: manipulation;
     user-select: none;
+    opacity: 0.95;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px #000a;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .btn-icon {
+        display: block;
+    }
 }
 
 /* OFF */
