@@ -13,7 +13,7 @@ async function start() {
     window.addEventListener('keydown', Audio.tryStartMusic);
 
     // load songs
-    await loadSongs('./../anotherSongs.json');
+    await loadSongs('./anotherSongs.json');
     UI.spawnSongs(); // crea DOM
 
     // keyboard handlers (selection + enter)
