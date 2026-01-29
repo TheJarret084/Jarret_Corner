@@ -8,7 +8,7 @@
 }
 
 /* =========================
-   RESET / BASE
+   BASE
 ========================= */
 
 * {
@@ -18,25 +18,28 @@
 
 body {
     margin: 0;
-    background: #000;
+    width: 100vw;
+    height: 100vh;
     overflow: hidden;
+
+    background: #000;
+    color: #fff;
     font-family: "VCR", monospace;
-    color: white;
 }
 
-/* Beat flash (opcional) */
+/* Beat flash (JS lo activa) */
 body.beat {
     filter: brightness(1.1);
 }
 
 /* =========================
-   CONTENEDOR PRINCIPAL
+   CONTENEDOR
 ========================= */
 
 #freeplay {
     position: relative;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
 }
 
 /* =========================
@@ -52,7 +55,7 @@ body.beat {
     top: -300px;
     transform: translateX(-50%);
 
-    background: url("../assets/images/menucircle.png") no-repeat center;
+    background: url("../images/menucircle.png") center no-repeat;
     background-size: contain;
 
     opacity: 0.8;
@@ -71,16 +74,18 @@ body.beat {
     width: 420px;
     height: 220px;
 
-    transform-origin: center center;
-    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transform-origin: center;
 
     display: flex;
     justify-content: center;
     align-items: center;
+
+    pointer-events: auto;
 }
 
 /* =========================
-   CAJA FREEPLAY
+   CAJA (FREEPLAYBOX)
 ========================= */
 
 .song-box {
@@ -89,28 +94,33 @@ body.beat {
     height: auto;
 
     image-rendering: pixelated;
+    pointer-events: none;
 }
 
 /* =========================
-   ICONO DE PERSONAJE
+   ICONO (SPRITE 2 FRAMES)
 ========================= */
 
 .song-icon {
-    width: 150px;
-    height: 150px;
-    background-repeat: no-repeat;
-    background-size: 300px 150px;
-    /* ancho total del sprite, alto total */
-    pointer-events: none;
     position: absolute;
     top: -55px;
     left: 50%;
     transform: translateX(-50%);
+
+    width: 150px;
+    height: 150px;
+
+    background-repeat: no-repeat;
+    background-size: 300px 150px;
+    /* 2 frames */
+    background-position: 0px 0px;
+
+    image-rendering: pixelated;
+    pointer-events: none;
 }
 
-
 /* =========================
-   TEXTO (OUTLINE TIPO FLXTEXT)
+   TEXTO
 ========================= */
 
 .song-name,
@@ -119,8 +129,8 @@ body.beat {
     position: absolute;
     width: 100%;
     text-align: center;
-    color: white;
 
+    color: #fff;
     text-shadow:
         2px 2px 0 #000,
         -2px 2px 0 #000,
@@ -130,105 +140,32 @@ body.beat {
 
 /* Nombre */
 .song-name {
-    font-size: 32px;
     bottom: 92px;
+    font-size: 32px;
 }
 
 /* Info */
 .song-info {
-    font-size: 20px;
     bottom: 52px;
-    white-space: pre-line;
+    font-size: 20px;
     opacity: 0.95;
+    white-space: pre-line;
 }
 
-/* Mecánicas */
+/* BPM / mecánicas */
 .song-mechanics {
-    font-size: 28px;
     bottom: 14px;
+    font-size: 28px;
 }
 
 /* =========================
-   ICONOS DE MECÁNICAS
+   ESTADOS (JS CONTROLA OPACITY)
 ========================= */
 
-.icon-slide,
-.icon-roll {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-
-    bottom: -64px;
-    opacity: 0;
-
-    image-rendering: pixelated;
-}
-
-.icon-slide {
-    left: 34%;
-}
-
-.icon-roll {
-    right: 34%;
-}
-
-/* =========================
-   EFECTOS VISUALES EXTRA
-========================= */
-
-/* Canciones no seleccionadas */
 .song-item.dim {
     opacity: 0.4;
 }
 
-/* Seleccionada */
 .song-item.selected {
     opacity: 1;
-}
-
-/* =========================
-   OVERLAY (MENÚ MECÁNICAS / INFO)
-========================= */
-
-.overlay {
-    position: fixed;
-    inset: 0;
-
-    background: rgba(0, 0, 0, 0.75);
-    display: none;
-
-    justify-content: center;
-    align-items: center;
-}
-
-.overlay.active {
-    display: flex;
-}
-
-.overlay-box {
-    width: 960px;
-    height: 540px;
-
-    background: rgba(0, 0, 0, 0.9);
-    border: 2px solid white;
-
-    padding: 24px;
-}
-
-.overlay h1 {
-    font-size: 48px;
-    margin: 0 0 16px 0;
-}
-
-.overlay p {
-    font-size: 24px;
-    line-height: 1.4;
-}
-
-/* =========================
-   UTILIDADES
-========================= */
-
-.hidden {
-    display: none !important;
 }
