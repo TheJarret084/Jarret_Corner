@@ -285,25 +285,16 @@ body.beat {
 ========================= */
 
 .btn-icon {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
     display: none;
     position: fixed;
-    right: 24px;
-    bottom: 24px;
-
-    width: 64px;
-    height: 64px;
-
-    z-index: 1000;
-    background-image: url('../images/botones.png');
-    background-repeat: no-repeat;
-    background-size: contain;
-
-    image-rendering: pixelated;
-    touch-action: manipulation;
-    opacity: 0.95;
-
-    border-radius: 50%;
-    box-shadow: 0 2px 8px #000a;
+    width: 128px;
+    height: 128px;
+    right: 48px;
+    bottom: 48px;
+    z-index: 2000;
 }
 
 @media (hover: none) and (pointer: coarse) {

@@ -1,50 +1,47 @@
-// enterButton.js
-import { setSpriteFrame } from './spriteUtils.js';
-
 const enterIcon = document.getElementById('btn-enter');
+
+const IMG_OFF = './assets/images/boton-0001.png';
+const IMG_ON = './assets/images/boton-0002.png';
+
+function preloadImages() {
+    [IMG_OFF, IMG_ON].forEach(src => {
+        const img = new Image();
+        img.src = src;
+    });
+}
 
 export function initMobileEnterButton(onEnter) {
     if (!enterIcon) return;
 
-    // estado inicial
-    setSpriteFrame(enterIcon, 'ENTER OFF');
+    preloadImages();
 
-    /* ===== TOUCH (mobile) ===== */
+    // estado inicial
+    enterIcon.style.backgroundImage = `url(${IMG_OFF})`;
+
+    /* ===== MOBILE ===== */
     enterIcon.addEventListener('touchend', e => {
         e.preventDefault();
 
-        const touch = e.changedTouches?.[0];
-        if (!touch) return;
+        enterIcon.style.backgroundImage = `url(${IMG_ON})`;
 
-        const rect = enterIcon.getBoundingClientRect();
-        const y = touch.clientY - rect.top;
+        setTimeout(() => {
+            enterIcon.style.backgroundImage = `url(${IMG_OFF})`;
+        }, 120);
 
-        if (y < rect.height / 2) {
-            // mitad superior → solo OFF
-            setSpriteFrame(enterIcon, 'ENTER OFF');
-        } else {
-            // mitad inferior → ON + acción
-            setSpriteFrame(enterIcon, 'ENTER ON');
-
-            setTimeout(() => {
-                setSpriteFrame(enterIcon, 'ENTER OFF');
-            }, 120);
-
-            onEnter?.();
-        }
+        onEnter?.();
     });
 
-    /* ===== MOUSE (desktop fallback) ===== */
+    /* ===== DESKTOP (fallback) ===== */
     enterIcon.addEventListener('mousedown', () => {
-        setSpriteFrame(enterIcon, 'ENTER ON');
+        enterIcon.style.backgroundImage = `url(${IMG_ON})`;
     });
 
     enterIcon.addEventListener('mouseup', () => {
-        setSpriteFrame(enterIcon, 'ENTER OFF');
+        enterIcon.style.backgroundImage = `url(${IMG_OFF})`;
         onEnter?.();
     });
 
     enterIcon.addEventListener('mouseleave', () => {
-        setSpriteFrame(enterIcon, 'ENTER OFF');
+        enterIcon.style.backgroundImage = `url(${IMG_OFF})`;
     });
 }
