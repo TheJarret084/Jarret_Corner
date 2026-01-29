@@ -1,3 +1,10 @@
+/* Overlay inmune al beat (brillo/movimiento) */
+.overlay,
+.overlay * {
+    filter: none !important;
+    will-change: unset !important;
+}
+
 /* =========================
    FUENTE
 ========================= */

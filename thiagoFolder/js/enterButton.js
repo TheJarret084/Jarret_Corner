@@ -8,25 +8,30 @@ export function initMobileEnterButton(onEnter) {
     // estado OFF inicial
     setSpriteFrame(enterIcon, 'ENTER OFF');
 
-    // ⬇️ PRESIONAR
-    enterIcon.addEventListener('touchstart', e => {
-        e.preventDefault();
-        setSpriteFrame(enterIcon, 'ENTER ON');
-    });
-
-    // ⬆️ SOLTAR = ENTER
+    // Detectar mitad tocada en touchend
     enterIcon.addEventListener('touchend', e => {
         e.preventDefault();
-        setSpriteFrame(enterIcon, 'ENTER OFF');
-        onEnter?.();
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        const touch = e.changedTouches[0];
+        const rect = enterIcon.getBoundingClientRect();
+        const y = touch.clientY - rect.top;
+        if (y < rect.height / 2) {
+            // Mitad superior: solo mostrar OFF
+            setSpriteFrame(enterIcon, 'ENTER OFF');
+        } else {
+            // Mitad inferior: mostrar ON y ejecutar acción
+            setSpriteFrame(enterIcon, 'ENTER ON');
+            setTimeout(() => setSpriteFrame(enterIcon, 'ENTER OFF'), 100); // Breve feedback visual
+            onEnter?.();
+        }
     });
 
     // soporte mouse (por si acaso)
-    enterIcon.addEventListener('mousedown', () => {
+    enterIcon.addEventListener('mousedown', e => {
         setSpriteFrame(enterIcon, 'ENTER ON');
     });
 
-    enterIcon.addEventListener('mouseup', () => {
+    enterIcon.addEventListener('mouseup', e => {
         setSpriteFrame(enterIcon, 'ENTER OFF');
         onEnter?.();
     });
