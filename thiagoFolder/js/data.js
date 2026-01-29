@@ -1,7 +1,7 @@
 // data.js
 export let songs = [];
 
-export async function loadSongs(path = 'anotherSongs.json') {
+export async function loadSongs(path = './anotherSongs.json') {
     try {
         const r = await fetch(path);
         const txt = await r.text();
