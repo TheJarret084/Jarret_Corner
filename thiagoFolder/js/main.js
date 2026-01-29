@@ -3,36 +3,68 @@ import { loadSongs, getSong } from './data.js';
 import * as UI from './ui.js';
 import * as Audio from './audio.js';
 import {
-    preloadSongs,
     showOverlay,
-    enableEnterToPlay
+    enableEnterToPlay,
+    enableGamepadSupport
 } from './infoGeneral.js';
 
 async function start() {
-    // init UI
+    // --------------------
+    // 🧱 UI
+    // --------------------
     UI.initUI('freeplay');
 
-    // init audio (fondo)
+    // --------------------
+    // 🔊 AUDIO FONDO
+    // --------------------
     Audio.initAudio('./assets/music/freakyMenu.ogg');
     window.addEventListener('click', Audio.tryStartMusic);
     window.addEventListener('keydown', Audio.tryStartMusic);
 
-    // load songs
+    // --------------------
+    // 📦 CARGAR CANCIONES (1 sola vez)
+    // --------------------
     await loadSongs('./anotherSongs.json');
-    UI.spawnSongs(); // crea DOM
+    UI.spawnSongs();
 
-    // keyboard handlers (selection + enter)
+    // --------------------
+    // ⌨️ ENTER x2 (overlay)
+    // --------------------
+    enableEnterToPlay();
+
+    // --------------------
+    // 🎮 GAMEPAD
+    // --------------------
+    //enableGamepadSupport(); // <-- Es una mierda por ahora
+
+    // --------------------
+    // ⌨️ TECLADO - NAVEGACIÓN
+    // --------------------
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight' || e.key === 'd') UI.setSelection(UI.getSelected() + 1);
-        if (e.key === 'ArrowLeft' || e.key === 'a') UI.setSelection(UI.getSelected() - 1);
+
+        // mover selección
+        if (e.key === 'ArrowRight' || e.key === 'd') {
+            UI.setSelection(UI.getSelected() + 1);
+        }
+
+        if (e.key === 'ArrowLeft' || e.key === 'a') {
+            UI.setSelection(UI.getSelected() - 1);
+        }
+
+        // ENTER = abrir overlay (1er Enter)
         if (e.key === 'Enter') {
-            const s = getSong(UI.getSelected());
-            if (s && s.link) window.open(s.link, '_blank');
+            const song = getSong(UI.getSelected());
+            if (song) {
+                showOverlay(song);
+            }
         }
     });
 
-    // start loop
+    // --------------------
+    // 🔁 LOOP PRINCIPAL
+    // --------------------
     let last = performance.now();
+
     function loop(now) {
         const delta = (now - last) / 1000;
         last = now;
@@ -45,12 +77,8 @@ async function start() {
 
         requestAnimationFrame(loop);
     }
-    requestAnimationFrame(loop);
-    await preloadSongs();
-    enableEnterToPlay();
 
-    // cuando selecciones una canción
-    showOverlay(song);
+    requestAnimationFrame(loop);
 }
 
-start().catch(err => console.error(err));
+start().catch(console.error);

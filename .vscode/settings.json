@@ -1,6 +1,4 @@
 {
-  "files.exclude": {
-    "node_modules/": true
-  },
-    "editor.formatOnSave": true
+  "files.exclude": {},
+  "editor.formatOnSave": true
 }

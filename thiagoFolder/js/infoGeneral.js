@@ -1,27 +1,52 @@
+// infoGeneral.js
+let currentSong = null;
+let overlayVisible = false;
+
+// --------------------
+// 🔊 SONIDO CONFIRMAR
+// --------------------
+const confirmSound = new Audio('./assets/sounds/confirm.ogg');
+confirmSound.volume = 0.6;
+
+function playConfirmSound() {
+    confirmSound.currentTime = 0;
+    confirmSound.play().catch(() => { });
+}
+
+// --------------------
+// 🎴 OVERLAY
+// --------------------
 export function showOverlay(song) {
+    if (!song) return;
+
+    currentSong = song;
+    overlayVisible = true;
+
+    const overlay = document.getElementById('infoOverlay');
     const title = document.getElementById('ov-title');
     const info = document.getElementById('ov-info');
     const mechanics = document.getElementById('ov-mechanics');
     const note = document.getElementById('ov-note');
     const img = document.getElementById('ov-image');
 
-    title.textContent = song.name ?? '';
-    info.textContent = song.info ?? '';
-
-    // RESET visual (importante)
+    // RESET
     mechanics.style.display = 'none';
     note.style.display = 'none';
     img.style.display = 'none';
+    overlay.classList.remove('compact');
+
+    // INFO BASE
+    title.textContent = song.name ?? '';
+    info.textContent = song.info ?? '';
 
     const extra = song.infoExtra;
 
-    // 👉 SOLO si gertrudis es true
+    // INFO EXTRA
     if (extra?.gertrudis === true) {
-        /*
         if (song.mechanics) {
-          mechanics.textContent = song.mechanics;
-          mechanics.style.display = 'block';
-        } */
+            mechanics.textContent = song.mechanics;
+            mechanics.style.display = 'block';
+        }
 
         if (extra.note) {
             note.textContent = extra.note;
@@ -29,23 +54,96 @@ export function showOverlay(song) {
         }
 
         if (extra.image) {
-            img.src = `assets/images/${extra.image}`;
+            img.src = `assets/images/other/${extra.image}`;
             img.style.display = 'block';
         }
     } else {
-        overlay.classList.toggle('compact', extra?.gertrudis !== true);
+        overlay.classList.add('compact');
     }
 
-    document.getElementById('ov-play').onclick = () => {
-        window.open(song.link, '_blank');
-    };
-
+    // BOTONES
+    document.getElementById('ov-play').onclick = confirmAndPlay;
     document.getElementById('ov-back').onclick = hideOverlay;
 
-    document.getElementById('ov-creator').onclick = () => {
-        if (!song.infoCreator) return;
-        alert(`Creado por ${song.infoCreator.name}`);
-    };
+    overlay.classList.remove('hidden');
+}
 
-    document.getElementById('infoOverlay').classList.remove('hidden');
+// --------------------
+// ❌ OCULTAR
+// --------------------
+export function hideOverlay() {
+    document.getElementById('infoOverlay').classList.add('hidden');
+    overlayVisible = false;
+    currentSong = null;
+}
+
+// --------------------
+// ▶️ CONFIRMAR + JUGAR
+// --------------------
+function confirmAndPlay() {
+    if (!currentSong?.link) return;
+    playConfirmSound();
+    setTimeout(() => {
+        window.open(currentSong.link, '_blank');
+    }, 120);
+}
+
+// --------------------
+// ⌨️ ENTER x2
+// --------------------
+let enterCount = 0;
+let enterTimer = null;
+
+export function enableEnterToPlay() {
+    window.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        if (!overlayVisible || !currentSong) return;
+
+        enterCount++;
+        playConfirmSound();
+
+        clearTimeout(enterTimer);
+        enterTimer = setTimeout(() => {
+            enterCount = 0;
+        }, 500);
+
+        if (enterCount >= 2) {
+            enterCount = 0;
+            confirmAndPlay();
+        }
+    });
+}
+
+// --------------------
+// 🎮 GAMEPAD SOPORTE
+// --------------------
+let lastGamepadPress = false;
+
+export function enableGamepadSupport() {
+    function pollGamepad() {
+        const pads = navigator.getGamepads();
+        const pad = pads[0];
+        if (!pad) {
+            requestAnimationFrame(pollGamepad);
+            return;
+        }
+
+        // Botón A (0) o Start (9)
+        const pressed = pad.buttons[0].pressed || pad.buttons[9].pressed;
+
+        if (pressed && !lastGamepadPress) {
+            if (overlayVisible && currentSong) {
+                playConfirmSound();
+                confirmAndPlay();
+            }
+        }
+
+        lastGamepadPress = pressed;
+        requestAnimationFrame(pollGamepad);
+    }
+
+    window.addEventListener('gamepadconnected', () => {
+        console.log('🎮 Gamepad conectado');
+        pollGamepad();
+    });
 }
