@@ -1,10 +1,22 @@
 [
   {
+    "date": "2026-1-28T020:25:00Z",
+    "version": "v2.2.2-2026-B",
+    "title": "Nuevo apartado",
+    "body": "Un shaggy aqui... y otro alla, deberias derrotarlos a todos?, no se solo te informo que Shaggyverse collection ya esta disponible. (Solo 4keys disponible)",
+    "tags": [
+      "New part"
+    ],
+    "important": false
+  },
+  {
     "date": "2026-1-15T09:55:00Z",
     "version": "v2.2.2",
     "title": "Nueva herramienta",
     "body": "AltForce (Jarret y ese nombre de mierda?) es una herramienta para generar charts para Funky Maker, y esto lo que hace es agarrar todos los noteTypes del json que metas (Solo disponible para versiones de Codename Engine), asi genera un chart.json o varios si asi lo quieres.",
-    "tags": ["New Tool"],
+    "tags": [
+      "New Tool"
+    ],
     "important": true
   },
   {
@@ -12,7 +24,9 @@
     "version": "v2.2.1-2026/A",
     "title": "Arreglo de la UI navideña, que se quedaron los colores y iconos",
     "body": "Cambio toda la ui de la pagina PRINCIPAL para que se vea menos navideña.",
-    "tags": ["frontend"],
+    "tags": [
+      "frontend"
+    ],
     "important": false
   },
   {
@@ -20,7 +34,9 @@
     "version": "v2.2.1-2026",
     "title": "Se fue navidad ya, adios a todos",
     "body": "Cambio toda la ui de la pagina PRINCIPAL, para volver a la normalidad.",
-    "tags": ["frontend"],
+    "tags": [
+      "frontend"
+    ],
     "important": false
   },
   {
@@ -28,7 +44,10 @@
     "version": "v2.2.1",
     "title": "llego navidad putos, y yo me atrase",
     "body": "Cambio toda la ui de la pagina PRINCIPAL para que se vea mas navideña, y se añadio este potente sistema de logs que pude escribir a parte, pero para mas simplicidad ChatGPT lo armo en uno solo.",
-    "tags": ["frontend", "Christmas🥹"],
+    "tags": [
+      "frontend",
+      "Christmas🥹"
+    ],
     "important": false
   },
   {
@@ -36,7 +55,9 @@
     "version": "v2.2.0",
     "title": "Mas entradas (Mis amigos)",
     "body": "Division de Laboratorio, lado (Normal) y la zona (Beta) que es toda la mierda que no tiene un uso, pero simplemente existe, ademas se agrega una herramienta para desarmar niveles de Funky Maker, mas que todo para lograr comprimir los sprites pesados de este y lograr armarlo sin alterarlo, obvio si se redimenciona la imagen valio, pero ya lo arme, a gracias Yrik por la idea, ya podras optimizar tus niveles sin llamarme :].",
-    "tags": ["otros"],
+    "tags": [
+      "otros"
+    ],
     "important": false
   },
   {
@@ -44,7 +65,9 @@
     "version": "v2.1.0",
     "title": "Mas mejoras",
     "body": "Nueva nav-bar, y ahora puedes ver lo menos importante ahi, junto casi todas mis redes sociales, y el apartado Mis Amigos.",
-    "tags": ["ui"],
+    "tags": [
+      "ui"
+    ],
     "important": false
   },
   {
@@ -52,7 +75,10 @@
     "version": "v2.0.0",
     "title": "Mejoras",
     "body": "Se mejoró la carga del panel y se corrigió alineación en móviles, y con eso el lanzamiento Proyect-0000, y RenowredBySprites.",
-    "tags": ["ui", "frontend"],
+    "tags": [
+      "ui",
+      "frontend"
+    ],
     "important": false
   },
   {
@@ -60,7 +86,9 @@
     "version": "v1.2.0",
     "title": "Intento de rotado",
     "body": "Se intento mejorar funkier pacher, y de paso un estilo mas decente.",
-    "tags": ["Funkier-Pacher"],
+    "tags": [
+      "Funkier-Pacher"
+    ],
     "important": true
   },
   {
@@ -68,7 +96,10 @@
     "version": "v1.1.0",
     "title": "Organizacion",
     "body": "Se se organizo mejor la pagina, tambien con todo el repositorio.",
-    "tags": ["frontend", "backend"],
+    "tags": [
+      "frontend",
+      "backend"
+    ],
     "important": false
   },
   {
@@ -76,7 +107,9 @@
     "version": "v1.0.0",
     "title": "Lanzamiento inicial",
     "body": "Lanzamiento de la pagina, Junto con solo Funkier Pacher.",
-    "tags": ["lanzamiento"],
+    "tags": [
+      "lanzamiento"
+    ],
     "important": true
   }
 ]

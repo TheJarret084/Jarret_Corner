@@ -9,13 +9,50 @@
       {
         "tipo": "dropdown",
         "opciones": [
-          { "texto": "Mis Amigos", "url": "My-friends/Amigos.html"},
-          { "texto": "Youtube", "url": "https://www.youtube.com/@TheJarret084" },
-          { "texto": "Funky Maker", "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084" },
-          { "texto": "Mi Server de Discord", "url": "https://discord.gg/wVteHjZ52t" },
-          { "texto": "FNMM Random Proyects", "url": "https://discord.gg/ABX8JMzg" },
-          { "texto": "Github", "url": "https://github.com/TheJarret084" },
-          { "texto": "Tiktok", "url": "https://www.tiktok.com/@thejarret08?_r=1&_t=ZS-91LxoGuLd2N" }
+          {
+            "texto": "#",
+            "url": "index.html"
+          },
+          {
+            "texto": "Material-Lab",
+            "url": "Material-Lab/Material-Lab.html"
+          },
+          {
+            "texto": "Shaggyverse Collection",
+            "url": "thiagoFolder/main.html"
+          },
+          {
+            "texto": "Mis Amigos",
+            "url": "My-friends/Amigos.html"
+          },
+          {
+            "texto": "Youtube",
+            "url": "https://www.youtube.com/@TheJarret084"
+          },
+          {
+            "texto": "Funky Maker",
+            "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084"
+          },
+          {
+            "texto": "Mi Server de Discord",
+            "url": "https://discord.gg/wVteHjZ52t"
+          },
+          {
+            "texto": "FNMM Random Proyects",
+            "url": "https://discord.gg/ABX8JMzg"
+          },
+          {
+            "texto": "Github",
+            "url": "https://github.com/TheJarret084"
+          },
+          {
+            "texto": "Tiktok",
+            "url": "https://www.tiktok.com/@thejarret08?_r=1&_t=ZS-91LxoGuLd2N"
+          },
+          {
+            "texto": "Shaggys?",
+            "url": "thiagoFolder/main.html"
+          }
         ]
       }
     ],
@@ -49,35 +86,32 @@
       ]
     },
     "beta": {
-   "contenido": [
-     "Aquí encontrarás las cosas que nuncan tendran una funcion, pero existen."
-    ],
-   "opciones": [
-      {
-        "titulo": "Idea Estúpida",
-        "descripcion": "Idea estúpida, de un estúpido",
-        "tipo": "boton",
-        "url": "Material-Lab/Beta/Idea_estupida/El_Shader-inador.html",
-        "botonTexto": "Tunea-tu-imagen-inador!"
-      }, 
-      {
-        "titulo": "VidToSheet",
-        "descripcion": "Convierte videos en cuvierta para SpriteSheet.",
-        "tipo": "boton",
-        "url": "Material-Lab/Beta/VidToSheet/VidToSheet.html",
-        "botonTexto": "VidToSheet"
-      },
-      {
-        "titulo": "Funkier-pacher!",
-        "descripcion": "Versión descontinuada debido de problemas el xml, usable todavia, pero tiene problemas con frames rotados.",
-        "tipo": "boton",
-        "url": "Material-Lab/Lab/Funkier-pacher!/Funkier-Pacher!.html",
-        "botonTexto": "Funkier-pacher!"
-      }
-    ]
+      "contenido": [
+        "Aquí encontrarás las cosas que nuncan tendran una funcion, pero existen."
+      ],
+      "opciones": [
+        {
+          "titulo": "Idea Estúpida",
+          "descripcion": "Idea estúpida, de un estúpido",
+          "tipo": "boton",
+          "url": "Material-Lab/Beta/Idea_estupida/El_Shader-inador.html",
+          "botonTexto": "Tunea-tu-imagen-inador!"
+        },
+        {
+          "titulo": "VidToSheet",
+          "descripcion": "Convierte videos en cuvierta para SpriteSheet.",
+          "tipo": "boton",
+          "url": "Material-Lab/Beta/VidToSheet/VidToSheet.html",
+          "botonTexto": "VidToSheet"
+        },
+        {
+          "titulo": "Funkier-pacher!",
+          "descripcion": "Versión descontinuada debido de problemas el xml, usable todavia, pero tiene problemas con frames rotados.",
+          "tipo": "boton",
+          "url": "Material-Lab/Lab/Funkier-pacher!/Funkier-Pacher!.html",
+          "botonTexto": "Funkier-pacher!"
+        }
+      ]
+    }
   }
 }
-}
-
-
-

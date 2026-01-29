@@ -1,1 +1,3 @@
 ThiagoCollection - Shaggyverse collection
+
+musica no precarga arreglar despues
