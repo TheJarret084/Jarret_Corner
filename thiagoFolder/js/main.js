@@ -8,7 +8,7 @@ async function start() {
     UI.initUI('freeplay');
 
     // init audio (fondo)
-    Audio.initAudio('./../assets/music/freakyMenu.ogg');
+    Audio.initAudio('./assets/music/freakyMenu.ogg');
     window.addEventListener('click', Audio.tryStartMusic);
     window.addEventListener('keydown', Audio.tryStartMusic);
 
