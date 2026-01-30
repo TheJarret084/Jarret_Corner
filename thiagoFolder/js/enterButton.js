@@ -1,47 +1,42 @@
-const enterIcon = document.getElementById('btn-enter');
-
-const IMG_OFF = './assets/images/boton-0001.png';
-const IMG_ON = './assets/images/boton-0002.png';
-
-function preloadImages() {
-    [IMG_OFF, IMG_ON].forEach(src => {
-        const img = new Image();
-        img.src = src;
+function preload(srcs = []) {
+    srcs.forEach(s => {
+        const i = new Image();
+        i.src = s;
     });
 }
 
-export function initMobileEnterButton(onEnter) {
-    if (!enterIcon) return;
+export function initMobileButton(el, imgOff, imgOn, onPress) {
+    if (!el) return;
 
-    preloadImages();
+    preload([imgOff, imgOn]);
 
     // estado inicial
-    enterIcon.style.backgroundImage = `url(${IMG_OFF})`;
+    el.style.backgroundImage = `url(${imgOff})`;
 
     /* ===== MOBILE ===== */
-    enterIcon.addEventListener('touchend', e => {
+    el.addEventListener('touchstart', e => {
         e.preventDefault();
-
-        enterIcon.style.backgroundImage = `url(${IMG_ON})`;
-
-        setTimeout(() => {
-            enterIcon.style.backgroundImage = `url(${IMG_OFF})`;
-        }, 120);
-
-        onEnter?.();
+        el.style.backgroundImage = `url(${imgOn})`;
     });
 
-    /* ===== DESKTOP (fallback) ===== */
-    enterIcon.addEventListener('mousedown', () => {
-        enterIcon.style.backgroundImage = `url(${IMG_ON})`;
+    el.addEventListener('touchend', e => {
+        e.preventDefault();
+        el.style.backgroundImage = `url(${imgOff})`;
+        onPress?.();
     });
 
-    enterIcon.addEventListener('mouseup', () => {
-        enterIcon.style.backgroundImage = `url(${IMG_OFF})`;
-        onEnter?.();
+    /* ===== DESKTOP FALLBACK ===== */
+    el.addEventListener('mousedown', () => {
+        el.style.backgroundImage = `url(${imgOn})`;
     });
 
-    enterIcon.addEventListener('mouseleave', () => {
-        enterIcon.style.backgroundImage = `url(${IMG_OFF})`;
+    el.addEventListener('mouseup', () => {
+        el.style.backgroundImage = `url(${imgOff})`;
+        onPress?.();
+    });
+
+    el.addEventListener('mouseleave', () => {
+        el.style.backgroundImage = `url(${imgOff})`;
     });
 }
+

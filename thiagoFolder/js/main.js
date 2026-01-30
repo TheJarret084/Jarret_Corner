@@ -1,5 +1,5 @@
 // main.js
-import { initMobileEnterButton } from './enterButton.js';
+import { initMobileButton } from './enterButton.js';
 import { loadSongs, getSong } from './data.js';
 import * as UI from './ui.js';
 import * as Audio from './audio.js';
@@ -36,16 +36,48 @@ async function start() {
     // --------------------
     // Mobile ENTER BUTTON
     // --------------------
-    const song = getSong(UI.getSelected());
-    if (song) {
-        // es EXACTAMENTE como presionar Enter
-        window.dispatchEvent(
-            new KeyboardEvent('keydown', { key: 'Enter' })
-        );
-        initMobileEnterButton(() => {
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-        });
-    }
+    const btnEnter = document.getElementById('btn-enter');
+
+    initMobileButton(
+        btnEnter,
+        './assets/images/botones/boton-0001.png',
+        './assets/images/botones/boton-0002.png',
+        () => {
+            console.log('ENTER');
+            // aquí llamas a confirmar canción
+        }
+    );
+
+    // --------------------
+    // Mobile left BUTTON
+    // --------------------
+
+    const btnLeft = document.getElementById('btn-left');
+
+    initMobileButton(
+        btnLeft,
+        './assets/images/botones/SpriteB-0001.png',
+        './assets/images/botones/SpriteB-0002.png',
+        () => {
+            setSelection(curSelected - 1);
+        }
+    );
+
+    // --------------------
+    // Mobile left BUTTON
+    // --------------------
+
+    const btnRight = document.getElementById('btn-right');
+
+    initMobileButton(
+        btnRight,
+        './assets/images/botones/Sprite-0001.png',
+        './assets/images/botones/Sprite-0002.png',
+        () => {
+            setSelection(curSelected + 1);
+        }
+    );
+
 
 
     // --------------------

@@ -177,29 +177,73 @@ body.beat {
 }
 
 /* =========================
-   BOTÓN ENTER (MOBILE)
+   BOTONES MOBILE (BASE)
 ========================= */
 
-.btn-icon {
+.mobile-btn {
+    position: fixed;
+    z-index: 2000;
+
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    display: none;
-    position: fixed;
+
     width: 256px;
     height: 256px;
+
+    display: none;
+
+    touch-action: manipulation;
+    user-select: none;
+}
+
+/* =========================
+   BOTÓN ENTER
+========================= */
+
+.btn-enter {
     right: 96px;
     bottom: 96px;
-    z-index: 2000;
+}
+
+/* =========================
+   BOTÓN LEFT
+========================= */
+
+.btn-left {
+    left: 96px;
+    bottom: 96px;
+}
+
+/* =========================
+   BOTÓN RIGHT
+========================= */
+
+.btn-right {
+    left: 352px;
+    bottom: 96px;
 }
 
 @media (hover: none) and (pointer: coarse) {
-    .btn-icon {
+    .mobile-btn {
         display: block;
+
         width: 216px;
         height: 216px;
-        right: 48px;
+
         bottom: env(safe-area-inset-bottom, 48px);
+    }
+
+    .btn-enter {
+        right: 48px;
+    }
+
+    .btn-left {
+        left: 48px;
+    }
+
+    .btn-right {
+        left: 264px;
     }
 }
 
