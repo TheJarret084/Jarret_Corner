@@ -236,9 +236,12 @@ export function updateLayout(delta) {
 
         if (visible) {
             const angle = diff * ARC_ANGLE_STEP * (Math.PI / 180);
+            const ARC_HEIGHT = 140; // altura del arco (panza)
+
 
             s.xTarget = Math.sin(angle) * ARC_RADIUS;
-            s.yTarget = Math.cos(angle) * 60;
+            s.yTarget = (1 - Math.cos(angle)) * ARC_HEIGHT;
+
             s.scaleTarget = diff === 0 ? 1.06 : 0.88;
             s.opacityTarget = diff === 0 ? 1 : 0.75;
 
