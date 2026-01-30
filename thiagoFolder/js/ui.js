@@ -39,7 +39,7 @@ let circleEl = null;
 let items = []; // referencia a los .song-item creados
 
 // CONFIG: mostramos centro ± VISIBLE_RANGE (=> total VISIBLE_COUNT = 2*VISIBLE_RANGE+1)
-const VISIBLE_RANGE = 2; // muestra 5 fichas (2 a cada lado + la central)
+const VISIBLE_RANGE = 0; // muestra 5 fichas (2 a cada lado + la central)
 const VISIBLE_COUNT = VISIBLE_RANGE * 2 + 1;
 
 // CÍRCULO
