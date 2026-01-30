@@ -112,8 +112,9 @@ async function start() {
         const delta = (now - last) / 1000;
         last = now;
 
-        UI.updateCircle(delta);
         UI.updateLayout(delta);
+        UI.updateCircle(delta);
+
 
         const bpm = getSong(UI.getSelected())?.bpm ?? 100;
         Audio.updateBeat(bpm, delta);

@@ -355,3 +355,48 @@ body.beat {
 .song-item.selected {
     opacity: 1;
 }
+
+/* =========================
+   LOADING SCREEN
+========================= */
+
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 5000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-circle {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 6px solid rgba(255, 255, 255, 0.2);
+    border-top-color: white;
+
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    position: absolute;
+    bottom: 20%;
+    font-family: "VCR";
+    font-size: 24px;
+    color: #5c0000;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+}
