@@ -1,12 +1,13 @@
 // ui.js
-// UI de Freeplay — arco horizontal real, loader, beat-zoom, salida
+// Freeplay UI — arco horizontal estilo FNF
 // Importa: { songs, getSong, count } desde data.js
 
-import { songs, getSong, count } from './data.js';
+import { songs, count } from './data.js';
 
 /* =========================
-   🔄 LOADER
+   LOADER
 ========================= */
+
 let loaderEl = null;
 let loaderActive = false;
 
@@ -28,6 +29,7 @@ export function hideLoader(force = false) {
     loaderActive = false;
 
     if (!loaderEl) return;
+
     loaderEl.classList.add('loading-hidden');
     setTimeout(() => {
         loaderEl?.remove();
@@ -36,49 +38,41 @@ export function hideLoader(force = false) {
 }
 
 /* =========================
-   📦 ESTADO GLOBAL
+   ESTADO GENERAL
 ========================= */
+
 let container = null;
 let circleEl = null;
-let items = [];
 let curSelected = 0;
+let items = [];
 
-/* =========================
-   👁️ VISIBILIDAD
-========================= */
-const VISIBLE_RANGE = 2; // 5 fichas visibles
+/* visibles: centro ±2 = 5 */
+const VISIBLE_RANGE = 2;
 
-/* =========================
-   🌙 ARCO HORIZONTAL
-========================= */
-const ARC_RADIUS = 320;
-const ARC_SPACING = 0.45;
+/* arco */
+const ARC_RADIUS = 360;
+const ARC_ANGLE_STEP = 22;
 
-/* =========================
-   🔄 CÍRCULO CENTRAL
-========================= */
+/* círculo */
 let circleRot = 0;
 let circleRotVel = 0;
 const CIRCLE_DAMP = 6;
 
-/* =========================
-   🎥 CÁMARA / ZOOM
-========================= */
+/* zoom beat */
 let cameraZoom = 1;
 let cameraZoomTarget = 1;
 const ZOOM_DECAY = 4;
 
-/* =========================
-   🚪 SALIDA
-========================= */
+/* salida */
 let exiting = false;
 let exitCallback = null;
 let exitProgress = 0;
 const EXIT_SPEED = 0.9;
 
 /* =========================
-   🧰 UTILS
+   UTIL
 ========================= */
+
 function lerp(a, b, t) {
     return a + (b - a) * t;
 }
@@ -87,7 +81,6 @@ function computeDiff(i, cur, len) {
     if (!len) return 0;
     let diff = i - cur;
     const half = Math.floor(len / 2);
-
     if (diff < 0) {
         diff -= half;
         diff %= len;
@@ -101,18 +94,20 @@ function computeDiff(i, cur, len) {
 }
 
 /* =========================
-   🧱 INIT UI
+   INIT
 ========================= */
+
 export function initUI(containerId = 'freeplay') {
     container = document.getElementById(containerId);
     if (!container) throw new Error(`#${containerId} not found`);
 
     if (!document.getElementById('menuCircle')) {
-        const circ = document.createElement('div');
-        circ.id = 'menuCircle';
-        circ.className = 'menu-circle';
-        container.appendChild(circ);
+        const c = document.createElement('div');
+        c.id = 'menuCircle';
+        c.className = 'menu-circle';
+        container.appendChild(c);
     }
+
     circleEl = document.getElementById('menuCircle');
 
     container.style.transformOrigin = '50% 50%';
@@ -120,8 +115,9 @@ export function initUI(containerId = 'freeplay') {
 }
 
 /* =========================
-   🎵 CREAR CANCIONES
+   SPAWN
 ========================= */
+
 export function spawnSongs() {
     container.querySelectorAll('.song-item')?.forEach(n => n.remove());
     items = [];
@@ -129,8 +125,8 @@ export function spawnSongs() {
     songs.forEach((song, i) => {
         const item = createSongItem(song, i);
         container.appendChild(item);
-        items.push(item);
         initItemState(item);
+        items.push(item);
     });
 
     applySelectionImmediate();
@@ -140,7 +136,6 @@ function createSongItem(song, i) {
     const item = document.createElement('div');
     item.className = 'song-item';
     item.dataset.index = i;
-    item.style.background = song.color ?? '#444';
 
     const box = document.createElement('img');
     box.className = 'song-box';
@@ -151,44 +146,60 @@ function createSongItem(song, i) {
     icon.className = 'song-icon';
     icon.style.backgroundImage = `url("assets/icons/${song.icon || 'default.png'}")`;
     icon.style.backgroundSize = '300px 150px';
-    icon.style.backgroundPosition = '0px 0px';
     item.appendChild(icon);
 
-    const title = document.createElement('div');
-    title.className = 'song-name';
-    title.textContent = song.name || 'Unknown';
-    item.appendChild(title);
+    const name = document.createElement('div');
+    name.className = 'song-name';
+    name.textContent = song.name || 'Unknown';
+    item.appendChild(name);
+
+    const info = document.createElement('div');
+    info.className = 'song-info';
+    info.textContent = song.info || '';
+    item.appendChild(info);
+
+    const mech = document.createElement('div');
+    mech.className = 'song-mechanics';
+    mech.textContent = song.bpm ? `${song.bpm} BPM` : '';
+    item.appendChild(mech);
 
     item.addEventListener('click', () => setSelection(i));
+
     return item;
 }
 
 function initItemState(item) {
     item._state = {
-        x: 0, xTarget: 0,
-        y: -700, yTarget: -700,
-        scale: 1, scaleTarget: 1,
-        opacity: 0, opacityTarget: 0
+        x: 0,
+        y: -800,
+        xTarget: 0,
+        yTarget: -800,
+        scale: 0.9,
+        scaleTarget: 0.9,
+        opacity: 0,
+        opacityTarget: 0
     };
 
+    item.style.transform =
+        'translate(-50%, -50%) translate(0px, -800px) scale(0.9)';
+    item.style.opacity = 0;
     item.style.visibility = 'hidden';
     item.style.pointerEvents = 'none';
-    item.style.willChange = 'transform, opacity';
 }
 
 /* =========================
-   🎯 SELECCIÓN
+   SELECCIÓN
 ========================= */
+
 export function setSelection(index) {
     const len = count();
     if (!len) return;
 
-    index = (index + len) % len;
-    const diff = index - curSelected;
+    if (index < 0) index = (index + len) % len;
+    if (index >= len) index %= len;
 
-    if (diff !== 0) {
-        circleRotVel += diff * 18;
-    }
+    const diff = index - curSelected;
+    if (diff !== 0) circleRotVel += diff * 18;
 
     curSelected = index;
     applySelectionImmediate();
@@ -198,41 +209,49 @@ export function getSelected() {
     return curSelected;
 }
 
-export function applySelectionImmediate() {
-    document.querySelectorAll('.song-item').forEach(n => {
-        const idx = Number(n.dataset.index);
-        const icon = n.querySelector('.song-icon');
-        icon.style.backgroundPosition =
-            idx === curSelected ? '-150px 0px' : '0px 0px';
+function applySelectionImmediate() {
+    document.querySelectorAll('.song-item').forEach(el => {
+        const idx = Number(el.dataset.index);
+        el.classList.toggle('selected', idx === curSelected);
+
+        const icon = el.querySelector('.song-icon');
+        if (icon) {
+            icon.style.backgroundPosition =
+                idx === curSelected ? '-150px 0px' : '0px 0px';
+        }
     });
 }
 
 /* =========================
-   🔁 UPDATE LAYOUT (ARCO REAL)
+   UPDATE LAYOUT (ARCO REAL)
 ========================= */
+
 export function updateLayout(delta) {
-    const nodes = Array.from(document.querySelectorAll('.song-item'));
     const len = count() || 1;
 
-    const cx = container.clientWidth / 2;
-    const cy = container.clientHeight / 2 + 40;
-
-    nodes.forEach((node, i) => {
-        const s = node._state;
+    items.forEach((item, i) => {
+        const s = item._state;
         const diff = computeDiff(i, curSelected, len);
         const visible = Math.abs(diff) <= VISIBLE_RANGE;
 
         if (visible) {
-            const ang = diff * ARC_SPACING;
-            s.xTarget = Math.cos(ang) * ARC_RADIUS;
-            s.yTarget = Math.sin(ang) * ARC_RADIUS * 0.55;
-            s.scaleTarget = diff === 0 ? 1.08 : 0.85;
-            s.opacityTarget = diff === 0 ? 1 : 0.85;
+            const angle = diff * ARC_ANGLE_STEP * (Math.PI / 180);
+
+            s.xTarget = Math.sin(angle) * ARC_RADIUS;
+            s.yTarget = Math.cos(angle) * 60;
+            s.scaleTarget = diff === 0 ? 1.06 : 0.88;
+            s.opacityTarget = diff === 0 ? 1 : 0.75;
+
+            item.style.visibility = 'visible';
+            item.style.pointerEvents = 'auto';
         } else {
             s.xTarget = 0;
             s.yTarget = -900;
-            s.scaleTarget = 0.8;
+            s.scaleTarget = 0.9;
             s.opacityTarget = 0;
+
+            item.style.visibility = 'hidden';
+            item.style.pointerEvents = 'none';
         }
 
         if (exiting) {
@@ -240,22 +259,14 @@ export function updateLayout(delta) {
             s.opacityTarget = 0;
         }
 
-        const t = 0.14;
-        s.x = lerp(s.x, s.xTarget, t);
-        s.y = lerp(s.y, s.yTarget, t);
-        s.scale = lerp(s.scale, s.scaleTarget, t);
-        s.opacity = lerp(s.opacity, s.opacityTarget, t);
+        s.x = lerp(s.x, s.xTarget, 0.12);
+        s.y = lerp(s.y, s.yTarget, 0.12);
+        s.scale = lerp(s.scale, s.scaleTarget, 0.12);
+        s.opacity = lerp(s.opacity, s.opacityTarget, 0.12);
 
-        node.style.transform = `
-            translate(-50%, -50%)
-            translate(${cx + s.x}px, ${cy + s.y}px)
-            scale(${s.scale})
-        `;
-        node.style.opacity = s.opacity;
-        node.style.zIndex = 100 - Math.abs(diff);
-
-        node.style.visibility = visible ? 'visible' : 'hidden';
-        node.style.pointerEvents = visible ? 'auto' : 'none';
+        item.style.transform =
+            `translate(-50%, -50%) translate(${s.x}px, ${s.y}px) scale(${s.scale})`;
+        item.style.opacity = s.opacity;
     });
 
     cameraZoom = lerp(cameraZoom, cameraZoomTarget, Math.min(1, ZOOM_DECAY * delta));
@@ -265,47 +276,42 @@ export function updateLayout(delta) {
         exitProgress += EXIT_SPEED * delta;
         if (exitProgress >= 1) {
             exiting = false;
+            exitProgress = 0;
             exitCallback?.();
             exitCallback = null;
-            exitProgress = 0;
         }
     }
 }
 
 /* =========================
-   🔄 CÍRCULO CENTRAL
+   CIRCLE
 ========================= */
+
 export function updateCircle(delta) {
     circleRot += circleRotVel * delta;
     circleRotVel = lerp(circleRotVel, 0, Math.min(1, CIRCLE_DAMP * delta));
-    circleEl.style.transform = `translateX(-50%) rotate(${circleRot}deg)`;
+
+    circleEl.style.transform =
+        `translateX(-50%) rotate(${circleRot}deg)`;
 }
 
 /* =========================
-   💓 BEAT PULSE
+   BEAT
 ========================= */
+
 export function triggerBeatPulse() {
     cameraZoomTarget = 1.08;
-    setTimeout(() => cameraZoomTarget = 1, 140);
+    setTimeout(() => (cameraZoomTarget = 1), 140);
 }
 
 /* =========================
-   🚪 SALIDA
+   EXIT
 ========================= */
+
 export function startExit(cb) {
     if (exiting) return;
     exiting = true;
     exitCallback = cb;
     exitProgress = 0;
     circleRotVel += 120;
-}
-
-/* =========================
-   🧪 DEBUG
-========================= */
-export function getItems() {
-    return items.slice();
-}
-export function isExiting() {
-    return exiting;
 }
