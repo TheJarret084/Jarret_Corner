@@ -81,15 +81,15 @@ async function start() {
 
     initMobileButton(
         document.getElementById('btn-left'),
-        './assets/images/botones/SpriteB-0001.png',
-        './assets/images/botones/SpriteB-0002.png',
+        './assets/images/botones/Sprite-0001.png',
+        './assets/images/botones/Sprite-0002.png',
         () => UI.setSelection(UI.getSelected() - 1)
     );
 
     initMobileButton(
         document.getElementById('btn-right'),
-        './assets/images/botones/Sprite-0001.png',
-        './assets/images/botones/Sprite-0002.png',
+        './assets/images/botones/SpriteB-0001.png',
+        './assets/images/botones/SpriteB-0002.png',
         () => UI.setSelection(UI.getSelected() + 1)
     );
 
