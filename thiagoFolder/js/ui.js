@@ -4,6 +4,36 @@
 
 import { songs, getSong, count } from './data.js';
 
+let loaderEl = null;
+let loaderActive = false;
+
+export function showLoader() {
+    if (loaderActive) return;
+    loaderActive = true;
+
+    loaderEl = document.createElement('div');
+    loaderEl.id = 'loadingScreen';
+    loaderEl.innerHTML = `
+    <div class="loader-circle"></div>
+    <div class="loader-text">Loading songs...</div>
+  `;
+    document.body.appendChild(loaderEl);
+}
+
+export function hideLoader(force = false) {
+    if (!loaderActive && !force) return;
+    loaderActive = false;
+
+    if (!loaderEl) return;
+
+    loaderEl.classList.add('hide');
+    setTimeout(() => {
+        loaderEl?.remove();
+        loaderEl = null;
+    }, 300);
+}
+
+
 let container = null;
 let curSelected = 0;
 let circleEl = null;

@@ -1,4 +1,5 @@
 // main.js
+
 import { initMobileButton } from './enterButton.js';
 import { loadSongs, getSong } from './data.js';
 import * as UI from './ui.js';
@@ -10,82 +11,94 @@ import {
 } from './infoGeneral.js';
 
 async function start() {
-    // --------------------
-    // 🧱 UI
-    // --------------------
+    /* =========================
+       🧱 UI BASE
+    ========================= */
     UI.initUI('freeplay');
 
-    // --------------------
-    // 🔊 AUDIO FONDO
-    // --------------------
+    /* =========================
+       🌀 LOADER
+    ========================= */
+    UI.showLoader();
+
+    // failsafe por si algo muere
+    const LOADER_TIMEOUT = setTimeout(() => {
+        console.warn('⏱️ Loader forzado');
+        UI.hideLoader(true);
+    }, 4000);
+
+    /* =========================
+       🔊 AUDIO FONDO
+    ========================= */
     Audio.initAudio('./assets/music/freakyMenu.ogg');
-    window.addEventListener('click', Audio.tryStartMusic);
-    window.addEventListener('keydown', Audio.tryStartMusic);
 
-    // --------------------
-    // 📦 CARGAR CANCIONES (1 sola vez)
-    // --------------------
-    await loadSongs(['./JarretSongs.json', './ThiagoSongs.json']);
-    UI.spawnSongs();
+    const startMusicOnce = () => Audio.tryStartMusic();
+    window.addEventListener('click', startMusicOnce, { once: true });
+    window.addEventListener('keydown', startMusicOnce, { once: true });
 
-    // --------------------
-    // ⌨️ ENTER x2 (overlay)
-    // --------------------
+    /* =========================
+       📦 CARGAR CANCIONES
+    ========================= */
+    try {
+        await loadSongs([
+            './JarretSongs.json',
+            './ThiagoSongs.json'
+        ]);
+
+        UI.spawnSongs();
+    }
+    catch (err) {
+        console.error('❌ Error cargando canciones', err);
+    }
+    finally {
+        clearTimeout(LOADER_TIMEOUT);
+        UI.hideLoader();
+    }
+
+    /* =========================
+       ⌨️ ENTER x2 (overlay)
+    ========================= */
     enableEnterToPlay();
 
-    // --------------------
-    // Mobile ENTER BUTTON
-    // --------------------
-    const btnEnter = document.getElementById('btn-enter');
+    /* =========================
+       🎮 GAMEPAD
+    ========================= */
+    enableGamepadSupport?.();
+
+    /* =========================
+       📱 BOTONES MOBILE
+    ========================= */
 
     initMobileButton(
-        btnEnter,
+        document.getElementById('btn-enter'),
         './assets/images/botones/boton-0001.png',
         './assets/images/botones/boton-0002.png',
         () => {
-            console.log('ENTER');
-            // aquí llamas a confirmar canción
+            const song = getSong(UI.getSelected());
+            if (song) showOverlay(song);
         }
     );
 
-    // --------------------
-    // Mobile left BUTTON
-    // --------------------
-
-    const btnLeft = document.getElementById('btn-left');
-
     initMobileButton(
-        btnLeft,
+        document.getElementById('btn-left'),
         './assets/images/botones/SpriteB-0001.png',
         './assets/images/botones/SpriteB-0002.png',
-        () => {
-            setSelection(curSelected - 1);
-        }
+        () => UI.setSelection(UI.getSelected() - 1)
     );
-
-    // --------------------
-    // Mobile left BUTTON
-    // --------------------
-
-    const btnRight = document.getElementById('btn-right');
 
     initMobileButton(
-        btnRight,
+        document.getElementById('btn-right'),
         './assets/images/botones/Sprite-0001.png',
         './assets/images/botones/Sprite-0002.png',
-        () => {
-            setSelection(curSelected + 1);
-        }
+        () => UI.setSelection(UI.getSelected() + 1)
     );
 
-
-
-    // --------------------
-    // ⌨️ TECLADO - NAVEGACIÓN
-    // --------------------
+    /* =========================
+       ⌨️ TECLADO
+    ========================= */
     window.addEventListener('keydown', (e) => {
+        if (e.repeat) return;
 
-        // mover selección
         if (e.key === 'ArrowRight' || e.key === 'd') {
             UI.setSelection(UI.getSelected() + 1);
         }
@@ -94,18 +107,15 @@ async function start() {
             UI.setSelection(UI.getSelected() - 1);
         }
 
-        // ENTER = abrir overlay (1er Enter)
         if (e.key === 'Enter') {
             const song = getSong(UI.getSelected());
-            if (song) {
-                showOverlay(song);
-            }
+            if (song) showOverlay(song);
         }
     });
 
-    // --------------------
-    // 🔁 LOOP PRINCIPAL
-    // --------------------
+    /* =========================
+       🔁 LOOP PRINCIPAL
+    ========================= */
     let last = performance.now();
 
     function loop(now) {
@@ -114,7 +124,6 @@ async function start() {
 
         UI.updateLayout(delta);
         UI.updateCircle(delta);
-
 
         const bpm = getSong(UI.getSelected())?.bpm ?? 100;
         Audio.updateBeat(bpm, delta);
@@ -125,4 +134,12 @@ async function start() {
     requestAnimationFrame(loop);
 }
 
-start().catch(console.error);
+/* =========================
+   🧯 BLINDAJE GLOBAL
+========================= */
+window.addEventListener('error', () => UI.hideLoader(true));
+window.addEventListener('unhandledrejection', () => UI.hideLoader(true));
+
+start().catch(err => {
+    console.error('💥 Fatal start error', err);
+});
