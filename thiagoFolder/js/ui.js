@@ -26,11 +26,11 @@ export function hideLoader(force = false) {
 
     if (!loaderEl) return;
 
-    loaderEl.classList.add('hide');
+    loaderEl.classList.add('loading-hidden');
     setTimeout(() => {
         loaderEl?.remove();
         loaderEl = null;
-    }, 300);
+    }, 700); // coincide con el transition del CSS
 }
 
 
