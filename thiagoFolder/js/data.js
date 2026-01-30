@@ -9,7 +9,7 @@ export let songs = [];
   ]);
 */
 
-export async function loadSongs(paths = []) {
+export async function loadSongs(paths = ["./JarretSongs.json", "./ThiagoSongs.json"]) {
     songs = [];
 
     if (!paths.length) {
