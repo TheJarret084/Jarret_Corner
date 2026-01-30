@@ -1,3 +1,5 @@
 ThiagoCollection - Shaggyverse collection
 
-musica no precarga arreglar despues
+musica no precarga arreglar despues[X]
+
+Fichas raras, pendiente arreglar[ ]
