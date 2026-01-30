@@ -1,9 +1,12 @@
 // ui.js
-// UI de Freeplay — layout, circle, beat-zoom, salida (exiting)
+// UI de Freeplay — arco horizontal real, loader, beat-zoom, salida
 // Importa: { songs, getSong, count } desde data.js
 
 import { songs, getSong, count } from './data.js';
 
+/* =========================
+   🔄 LOADER
+========================= */
 let loaderEl = null;
 let loaderActive = false;
 
@@ -14,9 +17,9 @@ export function showLoader() {
     loaderEl = document.createElement('div');
     loaderEl.id = 'loadingScreen';
     loaderEl.innerHTML = `
-    <div class="loader-circle"></div>
-    <div class="loader-text">Loading songs...</div>
-  `;
+        <div class="loader-circle"></div>
+        <div class="loader-text">Loading songs...</div>
+    `;
     document.body.appendChild(loaderEl);
 }
 
@@ -25,7 +28,6 @@ export function hideLoader(force = false) {
     loaderActive = false;
 
     if (!loaderEl) return;
-
     loaderEl.classList.add('loading-hidden');
     setTimeout(() => {
         loaderEl?.remove();
@@ -33,41 +35,59 @@ export function hideLoader(force = false) {
     }, 700);
 }
 
+/* =========================
+   📦 ESTADO GLOBAL
+========================= */
 let container = null;
-let curSelected = 0;
 let circleEl = null;
-let items = []; // referencia a los .song-item creados
+let items = [];
+let curSelected = 0;
 
-// CONFIG: mostramos centro ± VISIBLE_RANGE (=> total VISIBLE_COUNT = 2*VISIBLE_RANGE+1)
-const VISIBLE_RANGE = 0; // muestra 5 fichas (2 a cada lado + la central)
-const VISIBLE_COUNT = VISIBLE_RANGE * 2 + 1;
+/* =========================
+   👁️ VISIBILIDAD
+========================= */
+const VISIBLE_RANGE = 2; // 5 fichas visibles
 
-// CÍRCULO
+/* =========================
+   🌙 ARCO HORIZONTAL
+========================= */
+const ARC_RADIUS = 320;
+const ARC_SPACING = 0.45;
+
+/* =========================
+   🔄 CÍRCULO CENTRAL
+========================= */
 let circleRot = 0;
 let circleRotVel = 0;
 const CIRCLE_DAMP = 6;
 
-// CAMARA / ZOOM (pulso en beat)
+/* =========================
+   🎥 CÁMARA / ZOOM
+========================= */
 let cameraZoom = 1;
 let cameraZoomTarget = 1;
 const ZOOM_DECAY = 4;
 
-// EXIT (salida animada)
+/* =========================
+   🚪 SALIDA
+========================= */
 let exiting = false;
 let exitCallback = null;
 let exitProgress = 0;
 const EXIT_SPEED = 0.9;
 
-// UTIL
-function lerp(a, b, t) { return a + (b - a) * t; }
+/* =========================
+   🧰 UTILS
+========================= */
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
 
-/**
- * computeDiff: devuelve diff circular (mismo algoritmo que Haxe)
- */
 function computeDiff(i, cur, len) {
     if (!len) return 0;
     let diff = i - cur;
     const half = Math.floor(len / 2);
+
     if (diff < 0) {
         diff -= half;
         diff %= len;
@@ -80,7 +100,9 @@ function computeDiff(i, cur, len) {
     return diff;
 }
 
-// Inicializa UI y asegura el menuCircle
+/* =========================
+   🧱 INIT UI
+========================= */
 export function initUI(containerId = 'freeplay') {
     container = document.getElementById(containerId);
     if (!container) throw new Error(`#${containerId} not found`);
@@ -97,13 +119,13 @@ export function initUI(containerId = 'freeplay') {
     container.style.willChange = 'transform';
 }
 
-// Crea DOM de canciones desde songs[] (data.js)
+/* =========================
+   🎵 CREAR CANCIONES
+========================= */
 export function spawnSongs() {
-    if (!container) throw new Error('UI not initialized (call initUI)');
     container.querySelectorAll('.song-item')?.forEach(n => n.remove());
     items = [];
 
-    // crear todos los elementos (pero solo 5 se verán)
     songs.forEach((song, i) => {
         const item = createSongItem(song, i);
         container.appendChild(item);
@@ -114,7 +136,6 @@ export function spawnSongs() {
     applySelectionImmediate();
 }
 
-// crea un elemento song-item
 function createSongItem(song, i) {
     const item = document.createElement('div');
     item.className = 'song-item';
@@ -124,223 +145,153 @@ function createSongItem(song, i) {
     const box = document.createElement('img');
     box.className = 'song-box';
     box.src = 'assets/images/freeplaybox.png';
-    box.alt = '';
     item.appendChild(box);
 
-    const iconWrap = document.createElement('div');
-    iconWrap.className = 'song-icon';
-    const iconPath = song.icon ? `assets/icons/${song.icon}` : 'assets/icons/default.png';
-    iconWrap.style.backgroundImage = `url("${iconPath}")`;
-    iconWrap.style.backgroundPosition = '0px 0px';
-    iconWrap.style.backgroundSize = '300px 150px';
-    item.appendChild(iconWrap);
+    const icon = document.createElement('div');
+    icon.className = 'song-icon';
+    icon.style.backgroundImage = `url("assets/icons/${song.icon || 'default.png'}")`;
+    icon.style.backgroundSize = '300px 150px';
+    icon.style.backgroundPosition = '0px 0px';
+    item.appendChild(icon);
 
     const title = document.createElement('div');
     title.className = 'song-name';
-    title.textContent = song.name || song.displayName || 'Unknown';
+    title.textContent = song.name || 'Unknown';
     item.appendChild(title);
 
-    const info = document.createElement('div');
-    info.className = 'song-info';
-    info.textContent = song.info || '';
-    item.appendChild(info);
-
-    const mech = document.createElement('div');
-    mech.className = 'song-mechanics';
-    mech.textContent = song.mechanics || (song.bpm ? `${song.bpm} BPM` : '');
-    item.appendChild(mech);
-
-    const category = document.createElement('div');
-    category.className = 'song-category';
-    category.textContent = song.category ? `Category: ${song.category}` : '';
-    item.appendChild(category);
-
     item.addEventListener('click', () => setSelection(i));
-
     return item;
 }
 
-// estado animación por item
 function initItemState(item) {
     item._state = {
-        angle: 0, angleTarget: 0,
+        x: 0, xTarget: 0,
         y: -700, yTarget: -700,
         scale: 1, scaleTarget: 1,
-        opacity: 0, opacityTarget: 0,
-        lastDiff: 0,
-        visible: false
+        opacity: 0, opacityTarget: 0
     };
-    item.style.willChange = 'transform, opacity';
-    // situar inicialmente por encima del círculo (no visible)
-    item.style.transform = `translate(-50%, -50%) translateY(${-700}px)`;
-    item.style.opacity = 0;
-    item.style.pointerEvents = 'none';
+
     item.style.visibility = 'hidden';
+    item.style.pointerEvents = 'none';
+    item.style.willChange = 'transform, opacity';
 }
 
-// SELECCIÓN
+/* =========================
+   🎯 SELECCIÓN
+========================= */
 export function setSelection(index) {
     const len = count();
-    if (len === 0) return;
-    if (index < 0) index = (index + len) % len;
-    if (index >= len) index = index % len;
+    if (!len) return;
 
-    // calcular impulso de círculo (smallest diff)
-    const diffRaw = index - curSelected;
-    if (diffRaw !== 0) {
-        let half = Math.floor(len / 2);
-        let smallDiff = diffRaw;
-        if (smallDiff < 0) {
-            smallDiff -= half;
-            smallDiff %= len;
-            smallDiff += half;
-        } else {
-            smallDiff += half;
-            smallDiff %= len;
-            smallDiff -= half;
-        }
-        circleRotVel += smallDiff * 18;
+    index = (index + len) % len;
+    const diff = index - curSelected;
+
+    if (diff !== 0) {
+        circleRotVel += diff * 18;
     }
 
     curSelected = index;
     applySelectionImmediate();
 }
 
-export function getSelected() { return curSelected; }
+export function getSelected() {
+    return curSelected;
+}
 
-// aplica selección visual inmediata
 export function applySelectionImmediate() {
-    const nodes = document.querySelectorAll('.song-item');
-    nodes.forEach(n => n.classList.remove('selected', 'dim'));
-    const sel = document.querySelector(`.song-item[data-index="${curSelected}"]`);
-    if (sel) sel.classList.add('selected');
-
-    nodes.forEach(node => {
-        const idx = Number(node.dataset.index);
-        const iconEl = node.querySelector('.song-icon');
-        if (!iconEl) return;
-        // frame ON cuando esté centrado (ajusta según tu spritesheet)
-        iconEl.style.backgroundPosition = (idx === curSelected) ? '-150px 0px' : '0px 0px';
+    document.querySelectorAll('.song-item').forEach(n => {
+        const idx = Number(n.dataset.index);
+        const icon = n.querySelector('.song-icon');
+        icon.style.backgroundPosition =
+            idx === curSelected ? '-150px 0px' : '0px 0px';
     });
 }
 
-/**
- * updateLayout: calcula targets por diff, hace lerp y aplica transform a cada item.
- * Solo VISIBLE_COUNT estarán visibles; las demás se mandan arriba del círculo.
- */
+/* =========================
+   🔁 UPDATE LAYOUT (ARCO REAL)
+========================= */
 export function updateLayout(delta) {
     const nodes = Array.from(document.querySelectorAll('.song-item'));
-    const len = count() || nodes.length || 1;
+    const len = count() || 1;
 
-    // dimensiones de referencia para esconder arriba del circle
-    const hideAboveY = - (circleEl?.clientHeight ?? 600) - 200; // encima del menu-circle
+    const cx = container.clientWidth / 2;
+    const cy = container.clientHeight / 2 + 40;
 
     nodes.forEach((node, i) => {
         const s = node._state;
-        if (!s) return;
-
-        const actualDiff = computeDiff(i, curSelected, len);
-
-        // visible si |diff| <= VISIBLE_RANGE
-        const visible = Math.abs(actualDiff) <= VISIBLE_RANGE;
-
-        // si visible, remitimos diff-clamped a [-VISIBLE_RANGE, VISIBLE_RANGE]
-        const diff = visible ? actualDiff : (actualDiff > 0 ? VISIBLE_RANGE + 1 : - (VISIBLE_RANGE + 1));
-
-        // Si estaba en otro side y saltó, invertir ángulo para efecto
-        if (Math.abs(s.lastDiff - actualDiff) > (VISIBLE_RANGE + 1)) {
-            s.angle = -s.angle;
-        }
-        s.lastDiff = actualDiff;
+        const diff = computeDiff(i, curSelected, len);
+        const visible = Math.abs(diff) <= VISIBLE_RANGE;
 
         if (visible) {
-            // targets para los que sí se ven (distribución radial/lineal alrededor del centro)
-            // Ajustes: angleStep y yStep pueden cambiar la "curvatura"
-            const angleStep = 18; // grados por paso
-            const yStep = 110;    // px por paso
-
-            s.angleTarget = actualDiff * angleStep;
-            s.yTarget = actualDiff * yStep;
-            s.scaleTarget = (actualDiff === 0) ? 1.06 : 0.88;
-            s.opacityTarget = (actualDiff === 0) ? 1 : 0.9; // un poco más opaco para adyacentes
+            const ang = diff * ARC_SPACING;
+            s.xTarget = Math.cos(ang) * ARC_RADIUS;
+            s.yTarget = Math.sin(ang) * ARC_RADIUS * 0.55;
+            s.scaleTarget = diff === 0 ? 1.08 : 0.85;
+            s.opacityTarget = diff === 0 ? 1 : 0.85;
         } else {
-            // ocultar fuera del círculo (y arriba)
-            s.angleTarget = 0;
-            s.yTarget = hideAboveY;
-            s.scaleTarget = 0.9;
+            s.xTarget = 0;
+            s.yTarget = -900;
+            s.scaleTarget = 0.8;
             s.opacityTarget = 0;
         }
 
-        // si estamos en salida, empuja hacia abajo
         if (exiting) {
-            s.yTarget += 800 * (1 + exitProgress * 2);
+            s.yTarget += 900 * (1 + exitProgress * 2);
             s.opacityTarget = 0;
         }
 
-        // LERP
-        const lerpFactor = 0.12;
-        s.angle = lerp(s.angle, s.angleTarget, lerpFactor);
-        s.y = lerp(s.y, s.yTarget, lerpFactor);
-        s.scale = lerp(s.scale, s.scaleTarget, lerpFactor);
-        s.opacity = lerp(s.opacity, s.opacityTarget, lerpFactor);
+        const t = 0.14;
+        s.x = lerp(s.x, s.xTarget, t);
+        s.y = lerp(s.y, s.yTarget, t);
+        s.scale = lerp(s.scale, s.scaleTarget, t);
+        s.opacity = lerp(s.opacity, s.opacityTarget, t);
 
-        // aplicar transform
-        node.style.transform = `translate(-50%, -50%) translateY(${s.y}px) rotate(${s.angle}deg) scale(${s.scale})`;
+        node.style.transform = `
+            translate(-50%, -50%)
+            translate(${cx + s.x}px, ${cy + s.y}px)
+            scale(${s.scale})
+        `;
         node.style.opacity = s.opacity;
+        node.style.zIndex = 100 - Math.abs(diff);
 
-        // visibilidad y pointer-events
-        if (Math.abs(actualDiff) <= VISIBLE_RANGE) {
-            node.style.visibility = 'visible';
-            node.style.pointerEvents = 'auto';
-            node.classList.remove('dim');
-        } else {
-            node.style.visibility = 'hidden'; // no se ve y no ocupa clicks
-            node.style.pointerEvents = 'none';
-            node.classList.add('dim');
-        }
+        node.style.visibility = visible ? 'visible' : 'hidden';
+        node.style.pointerEvents = visible ? 'auto' : 'none';
     });
 
-    // camera zoom decay
     cameraZoom = lerp(cameraZoom, cameraZoomTarget, Math.min(1, ZOOM_DECAY * delta));
-    if (container) container.style.transform = `scale(${cameraZoom})`;
+    container.style.transform = `scale(${cameraZoom})`;
 
-    // salida
     if (exiting) {
         exitProgress += EXIT_SPEED * delta;
         if (exitProgress >= 1) {
             exiting = false;
-            const cb = exitCallback;
+            exitCallback?.();
             exitCallback = null;
             exitProgress = 0;
-            if (typeof cb === 'function') cb();
         }
     }
 }
 
-/**
- * updateCircle: integra la rotación con amortiguación
- */
+/* =========================
+   🔄 CÍRCULO CENTRAL
+========================= */
 export function updateCircle(delta) {
-    if (!circleEl) circleEl = document.getElementById('menuCircle');
-    if (!circleEl) return;
-
     circleRot += circleRotVel * delta;
     circleRotVel = lerp(circleRotVel, 0, Math.min(1, CIRCLE_DAMP * delta));
-
     circleEl.style.transform = `translateX(-50%) rotate(${circleRot}deg)`;
 }
 
-/**
- * Trigger visual de beat -> aplica un pulso de zoom
- */
+/* =========================
+   💓 BEAT PULSE
+========================= */
 export function triggerBeatPulse() {
     cameraZoomTarget = 1.08;
-    setTimeout(() => { cameraZoomTarget = 1; }, 140);
+    setTimeout(() => cameraZoomTarget = 1, 140);
 }
 
-/**
- * startExit: iniciar la animación de salida
- */
+/* =========================
+   🚪 SALIDA
+========================= */
 export function startExit(cb) {
     if (exiting) return;
     exiting = true;
@@ -349,6 +300,12 @@ export function startExit(cb) {
     circleRotVel += 120;
 }
 
-/** Helpers debug */
-export function getItems() { return items.slice(); }
-export function isExiting() { return exiting; }
+/* =========================
+   🧪 DEBUG
+========================= */
+export function getItems() {
+    return items.slice();
+}
+export function isExiting() {
+    return exiting;
+}
