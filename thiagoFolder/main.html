@@ -5,10 +5,28 @@
     <meta charset="utf-8" />
     <title>ThiagoCollection - Shaggyverse collection</title>
     <link rel="stylesheet" href="./assets/css/freeplay.css">
-    a
+    <link rel="icon" href="./assets/images/_icon.png" type="image/png">
+
+    <script>
+        // funcion que intenta arreglar este mierdon
+        function showLoadingScreen() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            loadingScreen.style.display = 'flex';
+        }
+        function hideLoadingScreen(time) {
+            const loadingScreen = document.getElementById('loadingScreen');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, time);
+        }
+        hideLoadingScreen(500);
+    </script>
+
+</head>
 </head>
 
 <body>
+    <!-- Pantalla de carga -->
 
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-circle"></div>
