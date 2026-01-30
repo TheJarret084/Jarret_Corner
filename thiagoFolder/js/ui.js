@@ -242,9 +242,10 @@ export function updateLayout(delta) {
             s.xTarget = Math.sin(angle) * ARC_RADIUS;
             s.yTarget = (1 - Math.cos(angle)) * ARC_HEIGHT;
 
-            s.scaleTarget = diff === 0 ? 1.06 : 0.88;
-            s.opacityTarget = diff === 0 ? 1 : 0.75;
+            s.scaleTarget = diff === 0 ? 1.08 : 0.9;
+            s.opacityTarget = diff === 0 ? 1 : 0.5;
 
+            item.style.zIndex = diff === 0 ? 10 : 5 - Math.abs(diff);
             item.style.visibility = 'visible';
             item.style.pointerEvents = 'auto';
         } else {
@@ -253,6 +254,7 @@ export function updateLayout(delta) {
             s.scaleTarget = 0.9;
             s.opacityTarget = 0;
 
+            item.style.zIndex = 0;
             item.style.visibility = 'hidden';
             item.style.pointerEvents = 'none';
         }
