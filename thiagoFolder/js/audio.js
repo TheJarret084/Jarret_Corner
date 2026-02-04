@@ -117,7 +117,7 @@ export function updateBeat(bpm = 100, delta) {
 // audio.js v3
 
 
-let bgMusic = null;
+let bgMusic;
 let musicStarted = false;
 let beatAcc = 0;
 let wasPlaying = false;
@@ -133,7 +133,7 @@ const musicList = [
 ];
 
 const musicNames = [
-    'FreakyMenu - Saggy Alternate Universe',
+    'FreakyMenu - Shaggy Alternate Universe',
     'Diamond is Unbreakable (Deltarune Version)'
     // 'Song 3'
     // Agrega más nombres aquí
@@ -168,10 +168,22 @@ function setupMusic(path) {
 }
 
 
-function playNextSong() {
+function playNextSong(callback) {
     const nextPath = getRandomSong();
     setupMusic(nextPath);
-    bgMusic.play().catch(() => { });
+    bgMusic.play().then(() => {
+        // Espera un pequeño tiempo para asegurar que currentSongIndex esté actualizado
+        setTimeout(() => {
+            if (typeof callback === 'function') callback();
+        }, 50);
+    }).catch(() => { });
+}
+export function changeSongWithLoader(callback) {
+    document.body.classList.add('loading-music');
+    setTimeout(() => {
+        playNextSong(callback);
+        document.body.classList.remove('loading-music');
+    }, 1000); // tiempo mínimo de carga y efecto visual
 }
 
 export function initAudio() {
@@ -267,3 +279,7 @@ export function isMusicPaused() {
     return bgMusic.paused;
 }
 
+//  funcion que cambia la song
+export function otraSong() {
+    playNextSong();
+}

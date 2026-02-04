@@ -4,6 +4,7 @@ import { initMobileButton } from './enterButton.js';
 import { loadSongs, getSong } from './data.js';
 import * as UI from './ui.js';
 import * as Audio from './audio.js';
+import { startPantallaCarga, hidePantallaCarga } from './pantallacarga.js';
 import {
     showOverlay,
     enableEnterToPlay,
@@ -19,12 +20,13 @@ async function start() {
     /* =========================
        🌀 LOADER
     ========================= */
-    UI.showLoader();
+
+    startPantallaCarga();
 
     // failsafe por si algo muere
     const LOADER_TIMEOUT = setTimeout(() => {
         console.warn('⏱️ Loader forzado');
-        UI.hideLoader(true);
+        hidePantallaCarga();
     }, 4000);
 
     /* =========================
@@ -72,13 +74,14 @@ async function start() {
         ]);
 
         UI.spawnSongs();
+        hidePantallaCarga(); // Oculta la pantalla de carga cuando todo está listo
     }
     catch (err) {
         console.error('❌ Error cargando canciones', err);
+        hidePantallaCarga(); // Oculta también si hay error
     }
     finally {
         clearTimeout(LOADER_TIMEOUT);
-        UI.hideLoader();
     }
 
     /* =========================
@@ -112,9 +115,10 @@ async function start() {
         './assets/images/botones/Spriteh-0001.png',
         './assets/images/botones/Spriteh-0002.png',
         () => {
-            Audio.playNextSong();
-            updateMusicUI();
-            updatePlayerBtnIcon();
+            Audio.changeSongWithLoader(() => {
+                updateMusicUI();
+                updatePlayerBtnIcon();
+            });
         }
     );
 
@@ -186,8 +190,8 @@ async function start() {
 /* =========================
    🧯 BLINDAJE GLOBAL
 ========================= */
-window.addEventListener('error', () => UI.hideLoader(true));
-window.addEventListener('unhandledrejection', () => UI.hideLoader(true));
+window.addEventListener('error', () => hidePantallaCarga());
+window.addEventListener('unhandledrejection', () => hidePantallaCarga());
 
 start().catch(err => {
     console.error('💥 Fatal start error', err);

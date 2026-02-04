@@ -7,7 +7,7 @@ import { songs, count } from './data.js';
 /* =========================
    LOADER
 ========================= */
-
+/*
 let loaderEl = null;
 let loaderActive = false;
 
@@ -36,7 +36,7 @@ export function hideLoader(force = false) {
         loaderEl = null;
     }, 700);
 }
-
+*/
 /* =========================
    ESTADO GENERAL
 ========================= */
