@@ -30,9 +30,35 @@ async function start() {
     /* =========================
        🔊 AUDIO FONDO
     ========================= */
-    Audio.initAudio('./assets/music/freakyMenu.ogg');
 
-    const startMusicOnce = () => Audio.tryStartMusic();
+    Audio.initAudio();
+
+
+    // Actualiza el banner y el título de la canción
+    function updateMusicUI() {
+        const banner = document.getElementById('banner-music');
+        const title = document.getElementById('title-music');
+        const img = Audio.whatisthatmusic();
+        const name = Audio.whatisthenameofmusic();
+        if (banner) banner.src = img || '';
+        if (title) title.textContent = name || '';
+    }
+
+    // Actualiza al iniciar y cada vez que cambia la canción
+    updateMusicUI();
+    // Hook para actualizar el banner y título cuando cambie la canción
+    const origPlayNextSong = Audio.playNextSong;
+    if (origPlayNextSong) {
+        Audio.playNextSong = function () {
+            origPlayNextSong();
+            updateMusicUI();
+        };
+    }
+
+    const startMusicOnce = () => {
+        Audio.tryStartMusic();
+        updateMusicUI();
+    };
     window.addEventListener('click', startMusicOnce, { once: true });
     window.addEventListener('keydown', startMusicOnce, { once: true });
 
@@ -41,8 +67,8 @@ async function start() {
     ========================= */
     try {
         await loadSongs([
-            './JarretSongs.json',
-            './ThiagoSongs.json'
+            './ThiagoSongs.json',
+            './JarretSongs.json'
         ]);
 
         UI.spawnSongs();
@@ -68,6 +94,29 @@ async function start() {
     /* =========================
        📱 BOTONES MOBILE
     ========================= */
+
+
+    initMobileButton(
+        document.getElementById('player-music'),
+        './assets/images/botones/Spritep-0001.png',
+        './assets/images/botones/Spritep-0002.png',
+        () => {
+            Audio.toggleMusic();
+            updateMusicUI();
+        }
+    );
+
+    const otherBtn = document.getElementById('other-music');
+    initMobileButton(
+        otherBtn,
+        './assets/images/botones/Spriteh-0001.png',
+        './assets/images/botones/Spriteh-0002.png',
+        () => {
+            Audio.playNextSong();
+            updateMusicUI();
+            updatePlayerBtnIcon();
+        }
+    );
 
     initMobileButton(
         document.getElementById('btn-enter'),

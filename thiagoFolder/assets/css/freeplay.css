@@ -247,6 +247,71 @@ body.beat {
     }
 }
 
+/* =========================
+   CONTROL MUSIC (MOBILE STYLE)
+========================= */
+
+
+.control-music {
+    background: rgba(125, 80, 100, 0.5);
+    border: 2px solid rgb(160, 160, 160);
+    padding: 24px;
+    position: fixed;
+    z-index: 2000;
+
+    top: env(safe-area-inset-top, 16px);
+    right: 16px;
+
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.control-music p {
+    margin: 0;
+    font-size: 20px;
+    font-family: "VCR";
+    color: #fff;
+    text-shadow:
+        2px 2px 0 #000,
+        -2px 2px 0 #000,
+        2px -2px 0 #000,
+        -2px -2px 0 #000;
+}
+
+/* botones tipo mobile-btn pero chicos */
+.control-music button {
+    width: 96px;
+    height: 96px;
+
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    border: none;
+    background-color: transparent;
+}
+
+/* banner */
+#banner-music {
+    height: 96px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* =========================
+   SOLO EN TOUCH (como tus botones)
+========================= */
+
+@media (hover: none) and (pointer: coarse) {
+    .control-music {
+        display: flex;
+    }
+}
 
 /* =========================
    ITEM DE CANCIÓN
