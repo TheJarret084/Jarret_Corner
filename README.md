@@ -8,7 +8,9 @@
        ">
 </p>
 
-<h2 align="center">Hola soy Jarret</h2>
+<p align="center">
+<img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&duration=2500&color=00FF88&center=true&vCenter=true&lines=Hola+soy+Jarret;Hago+cosas+random;A+veces+funcionan+de+puro+milagro+xddddd" />
+</p>
 
 Aquí vas a encontrar proyectos básicos, pruebas y experimentos varios.
 
