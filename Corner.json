@@ -10,10 +10,6 @@
         "tipo": "dropdown",
         "opciones": [
           {
-            "texto": "#",
-            "url": "index.html"
-          },
-          {
             "texto": "Mis Amigos",
             "url": "My-friends/Amigos.html"
           },
@@ -58,6 +54,7 @@
           "titulo": "RenownedBySprites",
           "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
           "tipo": "boton",
+          "bannerIMG": "",
           "url": "Material-Lab/Lab/RenownedBySprites/RenownedBySprites.html",
           "botonTexto": "RenownedBySprites"
         },
@@ -65,6 +62,7 @@
           "titulo": "FNMM-Descompacter",
           "descripcion": "Si necesitas desarmar tu niveles con todos los sprites dentro, esto te hecha una mano.",
           "tipo": "boton",
+          "bannerIMG": "",
           "url": "Material-Lab/Lab/FNMM-Descompacter/FNMM-Descompacter.html",
           "botonTexto": "Descompacter"
         },
@@ -72,8 +70,17 @@
           "titulo": "Proyect",
           "descripcion": "Mucha pereza hacer 2000 frames iguales en paint.",
           "tipo": "boton",
+          "bannerIMG": "",
           "url": "Material-Lab/Lab/Proyect/proyect.html",
           "botonTexto": "Name-Not-Found"
+        },
+        {
+          "titulo": "Funky-Editor",
+          "descripcion": "",
+          "tipo": "boton",
+          "bannerIMG": "",
+          "url": "Material-Lab/Lab/Funky-Editor/index.html",
+          "botonTexto": "Name-Not-Found-2"
         }
       ]
     },
@@ -86,6 +93,7 @@
           "titulo": "Idea Estúpida",
           "descripcion": "Idea estúpida, de un estúpido",
           "tipo": "boton",
+          "bannerIMG": "",
           "url": "Material-Lab/Beta/Idea_estupida/El_Shader-inador.html",
           "botonTexto": "Tunea-tu-imagen-inador!"
         },
@@ -93,6 +101,7 @@
           "titulo": "VidToSheet",
           "descripcion": "Convierte videos en cuvierta para SpriteSheet.",
           "tipo": "boton",
+          "bannerIMG": "",
           "url": "Material-Lab/Beta/VidToSheet/VidToSheet.html",
           "botonTexto": "VidToSheet"
         },
@@ -100,6 +109,7 @@
           "titulo": "Funkier-pacher!",
           "descripcion": "Versión descontinuada debido de problemas el xml, usable todavia, pero tiene problemas con frames rotados.",
           "tipo": "boton",
+          "bannerIMG": "",
           "url": "Material-Lab/Lab/Funkier-pacher!/Funkier-Pacher!.html",
           "botonTexto": "Funkier-pacher!"
         }

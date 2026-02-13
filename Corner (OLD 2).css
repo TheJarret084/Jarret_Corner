@@ -68,7 +68,6 @@ body {
         transform: translateY(0) rotate(0deg);
         opacity: 0.8;
     }
-
     100% {
         transform: translateY(100vh) rotate(360deg);
         opacity: 0;
@@ -89,7 +88,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     z-index: 1000;
     border-bottom: 3px solid #ffd700;
 }
@@ -98,7 +97,7 @@ body {
     font-weight: 400;
     font-size: 1.6rem;
     color: #ffffff;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 /* ============================= */
@@ -131,7 +130,7 @@ body {
     display: none;
     flex-direction: column;
     gap: 10px;
-    background: rgba(74, 20, 140, 0.95);
+    background: rgba(74,20,140,0.95);
     position: absolute;
     top: 60px;
     right: 10px;
@@ -157,7 +156,7 @@ body {
 }
 
 #nav-bar a:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255,255,255,0.2);
 }
 
 /* ============================= */
@@ -175,7 +174,7 @@ body {
     justify-content: center;
     font-size: 0.95rem;
     z-index: 1000;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
     border-top: 3px solid #ffd700;
     gap: 15px;
 }
@@ -183,8 +182,7 @@ body {
 /* ============================= */
 /* 🎄 BOTONES DEL FOOTER (PEQUEÑOS) */
 /* ============================= */
-#beta-btn,
-#logs-btn {
+#beta-btn, #logs-btn {
     background: #d32f2f;
     color: #ffffff;
     border: none;
@@ -200,8 +198,7 @@ body {
     justify-content: center;
 }
 
-#beta-btn:hover,
-#logs-btn:hover {
+#beta-btn:hover, #logs-btn:hover {
     background: #ff5252;
 }
 
@@ -243,7 +240,7 @@ body {
 }
 
 #opciones-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255,255,255,0.1);
     border-radius: 4px;
 }
 
@@ -254,7 +251,7 @@ body {
 
 #opciones-container {
     scrollbar-width: thin;
-    scrollbar-color: #42a5f5 rgba(255, 255, 255, 0.1);
+    scrollbar-color: #42a5f5 rgba(255,255,255,0.1);
 }
 
 /* ============================= */
@@ -268,7 +265,7 @@ body {
     padding: 25px;
     border-radius: 20px;
     background: linear-gradient(145deg, #7b1fa2, #512da8);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -278,7 +275,7 @@ body {
 
 .contenedor-bonito:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
 }
 
 .contenedor-bonito h2 {
@@ -328,7 +325,7 @@ body {
 }
 
 .beta-card:hover {
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
 }
 
 .beta-card a.boton {
@@ -368,9 +365,7 @@ body {
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
 /* ============================= */
@@ -701,8 +696,7 @@ body.modo-beta .logs-control-btn.active {
         gap: 8px;
     }
 
-    #beta-btn,
-    #logs-btn {
+    #beta-btn, #logs-btn {
         padding: 6px 12px;
         font-size: 0.8rem;
         height: 32px;
@@ -802,8 +796,7 @@ body.modo-beta .logs-control-btn.active {
         height: 45px;
     }
 
-    #beta-btn,
-    #logs-btn {
+    #beta-btn, #logs-btn {
         padding: 5px 10px;
         height: 30px;
     }

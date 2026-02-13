@@ -7,23 +7,23 @@ let currentLogFilter = 'all';
 function crearCoposDeNieve() {
     const container = document.getElementById('snowflakes-container');
     if (!container) return;
-    
+
     // Limpiar copos existentes
     container.innerHTML = '';
-    
+
     // Crear 35 copos
     for (let i = 0; i < 35; i++) {
         const snowflake = document.createElement('div');
         snowflake.className = 'snowflake';
         snowflake.innerHTML = '❄';
-        
+
         // Posición y propiedades aleatorias
         const left = Math.random() * 100;
         const size = Math.random() * 1.2 + 0.8; // Tamaño entre 0.8-2.0em
         const duration = Math.random() * 10 + 8; // Duración 8-18 segundos
         const delay = Math.random() * 5;
         const opacity = Math.random() * 0.6 + 0.3; // Opacidad 0.3-0.9
-        
+
         // Aplicar estilos directamente
         snowflake.style.cssText = `
             position: absolute;
@@ -37,9 +37,9 @@ function crearCoposDeNieve() {
             animation: snowFall ${duration}s linear ${delay}s infinite;
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
         `;
-        
+
         container.appendChild(snowflake);
-        
+
         // Remover copo cuando termine su animación y crear uno nuevo
         setTimeout(() => {
             if (snowflake.parentNode) {
@@ -59,16 +59,16 @@ function crearCoposDeNieve() {
 function crearNuevoCopo() {
     const container = document.getElementById('snowflakes-container');
     if (!container) return;
-    
+
     const snowflake = document.createElement('div');
     snowflake.className = 'snowflake';
     snowflake.innerHTML = '❄';
-    
+
     const left = Math.random() * 100;
     const size = Math.random() * 1.2 + 0.8;
     const duration = Math.random() * 10 + 8;
     const opacity = Math.random() * 0.6 + 0.3;
-    
+
     snowflake.style.cssText = `
         position: absolute;
         left: ${left}%;
@@ -81,9 +81,9 @@ function crearNuevoCopo() {
         animation: snowFall ${duration}s linear 0s infinite;
         text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
     `;
-    
+
     container.appendChild(snowflake);
-    
+
     // Remover después de animación
     setTimeout(() => {
         if (snowflake.parentNode) {
@@ -111,7 +111,7 @@ async function cargarData() {
         renderizarSeccion(seccionActual);
         cargarLogsData();
         setTimeout(() => mostrarCarga(false), 500);
-    } catch(e) {
+    } catch (e) {
         console.error('Error cargando JSON:', e);
         mostrarCarga(false);
     }
@@ -123,7 +123,7 @@ async function cargarLogsData() {
         if (!resp.ok) throw new Error('No se pudo cargar logs');
         logsData = await resp.json();
         if (seccionActual === 'logs') renderizarLogs();
-    } catch(e) {
+    } catch (e) {
         console.warn('No se pudieron cargar los logs:', e);
         logsData = [
             {
@@ -169,10 +169,10 @@ function renderizarSeccion(seccion) {
 
     document.getElementById('logs-container').style.display = 'none';
     document.getElementById('opciones-container').style.display = 'block';
-    
+
     const cont = document.getElementById('contenido');
     const opciones = document.getElementById('opciones');
-    
+
     if (!dataGlobal || !dataGlobal.data[seccion]) {
         cont.innerHTML = '<p>Sección no encontrada.</p>';
         return;
@@ -191,7 +191,7 @@ function renderizarSeccion(seccion) {
     datos.opciones.forEach(op => {
         const card = document.createElement('div');
         card.className = 'contenedor-bonito';
-        
+
         if (seccion === 'beta') {
             card.classList.add('beta-card');
         }
@@ -219,10 +219,10 @@ function renderizarSeccion(seccion) {
 function mostrarLogs() {
     document.getElementById('opciones-container').style.display = 'none';
     document.getElementById('logs-container').style.display = 'block';
-    
+
     const cont = document.getElementById('contenido');
     cont.innerHTML = '<h2 style="text-align: center;">📜 Historial de Actualizaciones</h2>';
-    
+
     document.getElementById('titulo-seccion').textContent = 'CornerLogs';
     renderizarLogs();
 }
@@ -230,7 +230,7 @@ function mostrarLogs() {
 function renderizarLogs() {
     const container = document.getElementById('logs-list');
     if (!container) return;
-    
+
     container.innerHTML = '';
 
     let filteredLogs = [...logsData];
@@ -238,7 +238,7 @@ function renderizarLogs() {
         if (currentLogFilter === 'important') {
             filteredLogs = logsData.filter(log => log.important);
         } else {
-            filteredLogs = logsData.filter(log => 
+            filteredLogs = logsData.filter(log =>
                 log.tags && log.tags.includes(currentLogFilter)
             );
         }
@@ -252,7 +252,7 @@ function renderizarLogs() {
     filteredLogs.forEach(log => {
         const logEntry = document.createElement('div');
         logEntry.className = `log-entry ${log.important ? 'important' : ''}`;
-        
+
         const date = new Date(log.date);
         const formattedDate = date.toLocaleDateString('es-ES', {
             year: 'numeric',
@@ -262,7 +262,7 @@ function renderizarLogs() {
             minute: '2-digit'
         });
 
-        const tagsHtml = log.tags && log.tags.length > 0 ? 
+        const tagsHtml = log.tags && log.tags.length > 0 ?
             `<div class="log-tags">
                 ${log.tags.map(tag => `<span class="log-tag">${tag}</span>`).join('')}
             </div>` : '';
@@ -313,7 +313,7 @@ function añadirNuevoLog() {
     logsData.unshift(nuevoLog);
     renderizarLogs();
     cerrarModalLog();
-    
+
     document.getElementById('new-log-title').value = '';
     document.getElementById('new-log-body').value = '';
     document.getElementById('new-log-version').value = '';
@@ -333,7 +333,7 @@ function exportarLogs() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     alert('JSON exportado con éxito: CornerLogs.json');
 }
 
@@ -359,11 +359,11 @@ function cambiarFiltroLogs(filtro) {
 // ================== EVENTOS ==================
 document.addEventListener('DOMContentLoaded', () => {
     cargarData();
-    
+
     // Iniciar copos de nieve después de cargar
     setTimeout(() => {
         crearCoposDeNieve();
-        
+
         // Mantener copos activos
         setInterval(() => {
             const container = document.getElementById('snowflakes-container');
@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const betaBtn = document.getElementById('beta-btn');
     betaBtn.addEventListener('click', () => {
         const body = document.body;
-        
+
         if (seccionActual === 'beta') {
             seccionActual = 'laboratorio';
             betaBtn.textContent = '🧪 Beta';
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body.classList.add('modo-beta');
             document.getElementById('titulo-seccion').textContent = 'Laboratorio de TheJarret084 / Área Beta';
         }
-        
+
         renderizarSeccion(seccionActual);
     });
 
@@ -428,13 +428,13 @@ document.addEventListener('DOMContentLoaded', () => {
             logsBtn.textContent = '⬅️ Volver';
             document.getElementById('titulo-seccion').textContent = 'CornerLogs';
         }
-        
+
         renderizarSeccion(seccionActual);
     });
 
     // Eventos logs
     document.querySelectorAll('.logs-control-btn[data-filter]').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             cambiarFiltroLogs(this.dataset.filter);
         });
     });
@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('save-log-btn').addEventListener('click', añadirNuevoLog);
 
     // Cerrar modal
-    document.getElementById('log-modal').addEventListener('click', function(e) {
+    document.getElementById('log-modal').addEventListener('click', function (e) {
         if (e.target === this) cerrarModalLog();
     });
 
