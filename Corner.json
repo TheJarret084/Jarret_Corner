@@ -11,7 +11,7 @@
         "opciones": [
           {
             "texto": "Mis Amigos",
-            "url": "My-friends/Amigos.html"
+            "url": "/My-friends/Amigos.html"
           },
           {
             "texto": "Youtube",
@@ -39,7 +39,7 @@
           },
           {
             "texto": "Shaggys?",
-            "url": "thiagoFolder/main.html"
+            "url": "/thiagoFolder/main.html"
           }
         ]
       }
