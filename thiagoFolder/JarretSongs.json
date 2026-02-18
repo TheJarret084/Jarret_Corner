@@ -20,5 +20,137 @@
                 "Tiktok": ""
             }
         }
+    },
+    {
+        "name": "Power Revolution test",
+        "color": "#FFFD0E",
+        "info": "PNG Shaggy \nVS. ???",
+        "link": "https://funkymaker.kingamescreator.com/_app/levels/01kgfeqr0g86rzbdt37ewbdn3f",
+        "icon": "pngshaggyold.png",
+        "bpm": 175,
+        "mechanics": "",
+        "category": "Shaggy's Alternate Universes",
+        "infoExtra": {
+            "gertrudis": true,
+            "note": "La song me la encontre en los assets del mod XD",
+            "image": "137 sin título_20260215233317.png"
+        },
+        "infoCreator": {
+            "name": "TheJarret084",
+            "redes": {
+                "YouTube": "https://www.youtube.com/@TheJarret084",
+                "Tiktok": ""
+            }
+        }
+    },
+    {
+        "name": "Fakeout",
+        "color": "#007934",
+        "info": "VS. Shaggy...?",
+        "link": "https://funkymaker.kingamescreator.com/_app/levels/01keht28yhjhvhngta40ztw3yt",
+        "icon": "fakershaggy.png",
+        "bpm": 160,
+        "mechanics": "",
+        "category": "Shaggy's Alternate Universes",
+        "infoExtra": {
+            "gertrudis": true,
+            "note": "Adaptations, Landscape, 4GB RAM",
+            "image": "faker.png"
+        },
+        "infoCreator": {
+            "name": "TheJarret084",
+            "redes": {
+                "YouTube": "https://www.youtube.com/@TheJarret084",
+                "Tiktok": ""
+            }
+        }
+    },
+    {
+        "name": "JPG",
+        "color": "#D6F100",
+        "info": "VS. PNG Shaggy",
+        "link": "https://funkymaker.kingamescreator.com/_app/levels/01kcdkjkxk4smftwjebhcdy85m",
+        "icon": "pngshaggy.png",
+        "bpm": 240,
+        "mechanics": "Ninguna xd",
+        "category": "Shaggy's Alternate Universes",
+        "infoExtra": {
+            "gertrudis": true,
+            "note": "Adaptations, Meme, Landscape, 4GB RAM",
+            "image": "PowerLevel.png"
+        },
+        "infoCreator": {
+            "name": "TheJarret084",
+            "redes": {
+                "YouTube": "https://www.youtube.com/@TheJarret084",
+                "Tiktok": ""
+            }
+        }
+    },
+    {
+        "name": "Hexagonal",
+        "color": "#7946F6",
+        "info": "VS. Vector Shaggy",
+        "link": "https://funkymaker.kingamescreator.com/_app/levels/01kdbsbjmphksz4wr6t9est9v5",
+        "icon": "vectorshaggy.png",
+        "bpm": 235,
+        "mechanics": "Ninguna xd",
+        "category": "Shaggy's Alternate Universes",
+        "infoExtra": {
+            "gertrudis": true,
+            "note": "Adaptations, Landscape, 4GB RAM",
+            "image": "doorway.png"
+        },
+        "infoCreator": {
+            "name": "TheJarret084",
+            "redes": {
+                "YouTube": "https://www.youtube.com/@TheJarret084",
+                "Tiktok": ""
+            }
+        }
+    },
+    {
+        "name": "16-bits",
+        "color": "#D6F100",
+        "info": "VS. PNG Shaggy\nand Matt",
+        "link": "https://funkymaker.kingamescreator.com/_app/levels/01kem08897qdxh6b3yahbxpbrz",
+        "icon": "pngshaggy.png",
+        "bpm": 185,
+        "mechanics": "Ninguna xd",
+        "category": "Shaggy's Alternate Universes",
+        "infoExtra": {
+            "gertrudis": true,
+            "note": "Adaptations, Landscape, 4GB RAM",
+            "image": "scary.png"
+        },
+        "infoCreator": {
+            "name": "TheJarret084",
+            "redes": {
+                "YouTube": "https://www.youtube.com/@TheJarret084",
+                "Tiktok": ""
+            }
+        }
+    },
+    {
+        "name": "Double Divinity",
+        "color": "#D6F100",
+        "info": "VS. Toge Bros",
+        "link": "https://funkymaker.kingamescreator.com/_app/levels/01khec06c45x4mc2mexmgfyjjn",
+        "icon": "togeBros.png",
+        "bpm": 190,
+        "mechanics": "Ninguna xd",
+        "category": "Shaggy's Alternate Universes",
+        "infoExtra": {
+            "gertrudis": true,
+            "note": "Adaptations, Meme, Landscape, 4GB RAM",
+            "image": ""
+        },
+        "infoCreator": {
+            "name": "TheJarret084",
+            "redes": {
+                "YouTube": "https://www.youtube.com/@TheJarret084",
+                "Tiktok": ""
+            }
+        }
     }
 ]

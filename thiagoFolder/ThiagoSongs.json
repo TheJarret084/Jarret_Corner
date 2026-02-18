@@ -1013,17 +1013,17 @@
   },
   {
     "name": "Webiando",
-    "color": "#FFFFFF",
-    "info": "Nivel de FMM",
+    "color": "#32AFFF",
+    "info": "VS. saggy",
     "link": "https://funkymaker.kingamescreator.com/_app/levels/01jtvnv0ck8xbsn82qxdc3j6ad",
-    "icon": "polla.png",
-    "bpm": 100,
-    "mechanics": "",
+    "icon": "saggy.png",
+    "bpm": 180,
+    "mechanics": "Ninguna Xd",
     "category": "| VS Shaggy Alternate Universe |",
     "infoExtra": {
-      "gertrudis": false,
-      "note": "",
-      "image": ""
+      "gertrudis": true,
+      "note": "Adaptations, Landscape, Nice",
+      "image": "saggy.png"
     },
     "infoCreator": {
       "name": "ThiagoCollection",
