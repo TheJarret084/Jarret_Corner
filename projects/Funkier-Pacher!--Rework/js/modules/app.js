@@ -17,7 +17,7 @@
 
   // Navbar loader si existe JSON
   // -----------------------------
-  window.jsonFile = window.jsonFile || '../../../Corner.json';
+  window.jsonFile = window.jsonFile || '../../../../Corner.json';
   let dataGlobal = null;
   function renderizarNav() {
     const navBar = document.getElementById('nav-bar');
