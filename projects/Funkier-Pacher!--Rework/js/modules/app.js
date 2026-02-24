@@ -110,7 +110,7 @@
     const downloadControls = document.getElementById('download-controls');
 
     // attempt to load navbar JSON
-    try { cargarData(); } catch(e){ /* ignore */ }
+    try { cargarData(); } catch (e) { /* ignore */ }
 
     // -----------------------------
     // State
@@ -121,7 +121,7 @@
     // track created object URLs for revocation
     let createdObjectURLs = [];
     function registerObjectURL(url) { createdObjectURLs.push(url); return url; }
-    function revokeAllCreatedURLs() { createdObjectURLs.forEach(u => { try { URL.revokeObjectURL(u); } catch(e){} }); createdObjectURLs = []; }
+    function revokeAllCreatedURLs() { createdObjectURLs.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) { } }); createdObjectURLs = []; }
 
     // -----------------------------
     // Initial UI
@@ -263,7 +263,7 @@
       if (resultContent) {
         const imgs = resultContent.querySelectorAll('img[data-created-url]');
         imgs.forEach(img => {
-          try { const u = img.getAttribute('data-created-url'); URL.revokeObjectURL(u); } catch(e) {}
+          try { const u = img.getAttribute('data-created-url'); URL.revokeObjectURL(u); } catch (e) { }
         });
         resultContent.innerHTML = '';
       }
@@ -296,7 +296,7 @@
         let extractedFrames;
         try {
           extractedFrames = await fp.processFiles(state.imageFile, state.xmlFile, {}, (p) => {
-            statusTextPngXml && (statusTextPngXml.textContent = `Extrayendo frames... ${Math.round(p*100)}%`);
+            statusTextPngXml && (statusTextPngXml.textContent = `Extrayendo frames... ${Math.round(p * 100)}%`);
           });
         } catch (e) {
           console.error('FunkierPacker failed', e);
@@ -335,7 +335,7 @@
         }
 
         // sort frames inside anims
-        Object.keys(animations).forEach(k => animations[k].sort((a,b) => (a.frameNumber || 0) - (b.frameNumber || 0)));
+        Object.keys(animations).forEach(k => animations[k].sort((a, b) => (a.frameNumber || 0) - (b.frameNumber || 0)));
 
         // process each animation: create spritesheet, add to zip, preview
         const zip = new JSZip();
@@ -399,7 +399,7 @@
         }
 
         // finalize zip
-        const baseName = (state.imageFile && state.imageFile.name) ? state.imageFile.name.replace(/\.[^/.]+$/,'') : 'spritesheet';
+        const baseName = (state.imageFile && state.imageFile.name) ? state.imageFile.name.replace(/\.[^/.]+$/, '') : 'spritesheet';
         const finalBlob = await zip.generateAsync({ type: 'blob' });
         addDownloadButton(finalBlob, `TJ_${baseName}.zip`);
         statusTextPngXml && (statusTextPngXml.textContent = "¡Procesamiento completado!");
@@ -448,12 +448,12 @@
           processedCount++;
           statusTextZip && (statusTextZip.textContent = `Procesando: ${animName} (${processedCount}/${groupNames.length})`);
           const group = animGroups[animName];
-          group.sort((a,b) => (a.frameNumber || 0) - (b.frameNumber || 0));
+          group.sort((a, b) => (a.frameNumber || 0) - (b.frameNumber || 0));
 
           // extract blobs
           const blobs = [];
           for (const gf of group) {
-            try { blobs.push(await gf.entry.async('blob')); } catch(e) { console.warn('zip entry async failed', e); }
+            try { blobs.push(await gf.entry.async('blob')); } catch (e) { console.warn('zip entry async failed', e); }
           }
           if (blobs.length === 0) continue;
 
@@ -496,7 +496,7 @@
           }
 
           // add to zip and preview
-          try { newZip.file(`${animName}.png`, sheetBlob); } catch(e) { console.error('zip add failed', e); }
+          try { newZip.file(`${animName}.png`, sheetBlob); } catch (e) { console.error('zip add failed', e); }
           const url = registerObjectURL(URL.createObjectURL(sheetBlob));
           resultContent && resultContent.appendChild(createPreviewElement({ name: animName, url, frames: processedBlobs.length, width: sheetDims?.width || 0, height: sheetDims?.height || 0 }));
         }
@@ -564,7 +564,7 @@
           const a = document.createElement('a');
           a.href = url; a.download = fileName;
           document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} }, 2000);
+          setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) { } }, 2000);
         });
         resultContent.insertBefore(btn, resultContent.firstChild);
         return;
@@ -587,7 +587,7 @@
         const a = document.createElement('a');
         a.href = url; a.download = fileName;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} }, 2000);
+        setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) { } }, 2000);
       });
 
       wrapper.appendChild(info);
