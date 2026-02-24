@@ -22,10 +22,6 @@
             "url": "https://funkymaker.kingamescreator.com/_app/@TheJarret084"
           },
           {
-            "texto": "Mi Server de Discord",
-            "url": "https://discord.gg/wVteHjZ52t"
-          },
-          {
             "texto": "FNMM Random Proyects",
             "url": "https://discord.gg/ABX8JMzg"
           },
@@ -50,6 +46,14 @@
         "Basura y más, creados la mayoría por IA, por ideas mías"
       ],
       "opciones": [
+        {
+          "titulo": "Funkier-pacher!",
+          "descripcion": "Version mejorada, ahora con soporte de rotado nuevo, y mas extenciones.",
+          "tipo": "boton",
+          "bannerIMG": "",
+          "url": "projects/Funkier-Pacher!--Rework/Funkier-Pacher!.html",
+          "botonTexto": "Funkier-pacher!"
+        },
         {
           "titulo": "RenownedBySprites",
           "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
@@ -104,14 +108,6 @@
           "bannerIMG": "",
           "url": "projects/VidToSheet/VidToSheet.html",
           "botonTexto": "VidToSheet"
-        },
-        {
-          "titulo": "Funkier-pacher!",
-          "descripcion": "Versión descontinuada debido de problemas el xml, usable todavia, pero tiene problemas con frames rotados.",
-          "tipo": "boton",
-          "bannerIMG": "",
-          "url": "projects/Funkier-pacher!/Funkier-Pacher!.html",
-          "botonTexto": "Funkier-pacher!"
         }
       ]
     }

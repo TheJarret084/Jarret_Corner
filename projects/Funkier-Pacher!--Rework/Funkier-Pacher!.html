@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Funkier-Pacher!</title>
+  <link rel="icon" href="../../Material/Iconos/FP.ico" type="image/x-icon">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="./styles/Funkier-Pacher!.css">
+</head>
+
+<body>
+  <div class="page-glow" aria-hidden="true"></div>
+
+  <header class="header">
+    <p class="eyebrow">Jarret Labs Tools</p>
+    <h1 class="title-glow"><i class="fa-solid fa-bolt-lightning"></i> Funkier-Pacher!</h1>
+    <p class="subtitle">Convierte sprites de FNF en cintas listas para FMM.</p>
+    <nav id="nav-bar" aria-label="Navegación principal"></nav>
+  </header>
+
+  <main class="main-content">
+    <div class="mobile-wrapper">
+      <div class="funky-tool-container">
+        <section class="funky-panel" aria-labelledby="entry-method-title">
+          <div class="panel-header">
+            <h2 id="entry-method-title"><i class="fas fa-upload"></i> Método de Entrada</h2>
+          </div>
+          <div class="input-method-selection">
+            <div class="method-buttons" role="tablist" aria-label="Método de entrada">
+              <button id="method-zip-btn" class="method-button active" type="button">
+                <i class="fas fa-file-zipper"></i> ZIP
+              </button>
+              <button id="method-pngxml-btn" class="method-button" type="button">
+                <i class="fas fa-image"></i> Spritesheet + Data
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="funky-panel" id="zip-upload-panel" aria-labelledby="zip-title">
+          <div class="panel-header">
+            <h2 id="zip-title"><i class="fas fa-file-zipper"></i> Subir ZIP</h2>
+          </div>
+
+          <div class="drop-zone" id="zip-drop-zone">
+            <p>Arrastra tu ZIP aquí o selecciónalo manualmente.</p>
+            <input type="file" id="zip-input" accept=".zip" hidden>
+            <button class="select-file-button" id="zip-btn" type="button">
+              <i class="fas fa-file-upload"></i> Seleccionar ZIP
+            </button>
+          </div>
+
+          <button id="generate-btn-zip" class="generate-button" type="button" disabled>
+            <i class="fa-solid fa-gears"></i> Generar
+          </button>
+
+          <p id="status-text-zip" class="status-text">Selecciona un archivo ZIP para continuar.</p>
+        </section>
+
+        <section class="funky-panel" id="pngxml-upload-panel" style="display: none;" aria-labelledby="atlas-title">
+          <div class="panel-header">
+            <h2 id="atlas-title"><i class="fas fa-image"></i> Subir Spritesheet y Atlas</h2>
+          </div>
+
+          <div class="dual-upload-container">
+            <div class="upload-section">
+              <div class="drop-zone" id="png-drop-zone">
+                <p><i class="fas fa-image"></i></p>
+                <p>Spritesheet (PNG/WEBP)</p>
+                <input type="file" id="image-input" accept=".png,.jpg,.jpeg,.webp" hidden>
+                <button class="select-file-button" id="image-btn" type="button">
+                  <i class="fas fa-file-upload"></i> Seleccionar Imagen
+                </button>
+              </div>
+            </div>
+
+            <div class="upload-section">
+              <div class="drop-zone" id="xml-drop-zone">
+                <p><i class="fas fa-code"></i></p>
+                <p>Atlas Data (XML / JSON)</p>
+                <input type="file" id="xml-input" accept=".xml,.json,.plist,.atlas,.txt,.fnt" hidden>
+                <button class="select-file-button" id="xml-btn" type="button">
+                  <i class="fas fa-file-upload"></i> Seleccionar Data
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button id="generate-btn-pngxml" class="generate-button" type="button" disabled>
+            <i class="fa-solid fa-gears"></i> Generar
+          </button>
+
+          <p id="status-text-pngxml" class="status-text">Selecciona PNG y archivo de datos para continuar.</p>
+        </section>
+
+        <section class="funky-panel settings-panel" aria-labelledby="settings-title">
+          <div class="panel-header">
+            <h2 id="settings-title"><i class="fas fa-sliders-h"></i> Configuración</h2>
+          </div>
+
+          <label class="form-check" for="remove-duplicates">
+            <input class="form-check-input" type="checkbox" id="remove-duplicates">
+            <span class="form-check-label">Quitar frames duplicados</span>
+          </label>
+
+          <div class="config-option">
+            <label for="scale-range">Resolución de salida</label>
+            <input type="range" id="scale-range" min="0.5" max="1" step="0.1" value="1">
+            <div class="config-meta">
+              <span id="scale-value">100%</span>
+              <span id="scale-warning" class="scale-warning" style="display:none;">Puede verse borroso.</span>
+            </div>
+          </div>
+
+          <p id="status-text" class="status-text">Listo para generar.</p>
+        </section>
+
+        <section class="funky-panel result-panel" id="result-panel" aria-labelledby="result-title">
+          <div class="panel-header">
+            <h2 id="result-title"><i class="fas fa-image"></i> Resultado</h2>
+          </div>
+          <div class="result-content"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div id="download-controls" class="download-area" aria-live="polite"></div>
+
+  <footer class="footer">
+    <p>© 2026 Jarret Labs. Basado en <strong>FunkinToFunky!</strong></p>
+    <p>Esta página no está asociada con King GC ni su juego.</p>
+    <div class="contact">
+      <span>¿Problemas? Discord:</span>
+      <a href="https://discord.com/users/thejarret084" target="_blank" rel="noopener noreferrer" class="discord-link"
+        aria-label="Discord de contacto">
+        <i class="fab fa-discord"></i>
+      </a>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+  <script src="./js/modules/core.js" defer></script>
+  <script src="./js/modules/app.js" defer></script>
+  <script src="./js/Funkier-Pacher!.js" defer></script>
+</body>
+
+</html>
