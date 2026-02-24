@@ -1,0 +1,317 @@
+@import url('../../theme/pensiler-theme.css');
+
+/* optimizer.css — estilo completo y organizado para FNMM-Descompacter
+   Sólo usa las clases/elements que aparecen en tu HTML/JS.
+*/
+
+/* ---------------- Variables ---------------- */
+:root{
+  --bg-1: #0f1020;
+  --panel: rgba(36,38,54,0.92);
+  --muted: #bfc7d0;
+  --accent-a: #6a11cb; /* morado */
+  --accent-b: #2575fc; /* azul */
+  --accent-c: #50fa7b; /* verde */
+  --glow: rgba(139,233,253,0.12);
+  --card-radius: 12px;
+  --gap: 14px;
+}
+
+/* ---------------- Reset y base ---------------- */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg, #0b0c15 0%, #151628 45%, #1e1e2f 100%);
+  color: #fff;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-align:center;
+  padding: 28px 16px;
+}
+
+/* ---------------- Layout contenedor ---------------- */
+.container{
+  max-width: 820px;
+  margin: 22px auto;
+  padding: 26px;
+  background: var(--panel);
+  border-radius: var(--card-radius);
+  box-shadow: 0 8px 30px rgba(2,4,22,0.6), 0 1px 0 rgba(255,255,255,0.02) inset;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+/* ---------------- Header ---------------- */
+.header{
+  margin-bottom: 8px;
+}
+.title-glow{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-weight:700;
+  font-size:1.25rem;
+  color:var(--accent-b);
+  text-shadow: 0 0 12px rgba(37,117,252,0.18), 0 0 28px rgba(106,17,203,0.08);
+}
+.title-glow i{
+  font-size:1.2rem;
+  color: var(--accent-a);
+  filter: drop-shadow(0 6px 14px rgba(106,17,203,0.14));
+}
+.subtitle{
+  margin:8px 0 18px 0;
+  color:var(--muted);
+  font-size:0.95rem;
+}
+
+/* ---------------- Navbar ---------------- */
+#nav-bar{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin: 12px 0 18px 0;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+/* links generados por tu JS */
+#nav-bar a,
+.nav-dropbtn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:var(--accent-b);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding:8px 12px;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:600;
+  font-size:0.95rem;
+  border:1px solid rgba(255,255,255,0.03);
+  transition: all .18s ease;
+  box-shadow: 0 4px 14px rgba(37,117,252,0.06);
+}
+#nav-bar a:hover,
+.nav-dropbtn:hover{
+  transform: translateY(-2px);
+  color:#000;
+  background: linear-gradient(180deg, var(--accent-c), #d0ffd9);
+  box-shadow: 0 8px 30px rgba(80,250,123,0.08);
+}
+
+/* dropdown (tu JS crea .nav-dropdown / .nav-dropbtn / .nav-dropdown-content) */
+.nav-dropdown{
+  position:relative;
+  display:inline-block;
+}
+.nav-dropdown .nav-dropdown-content{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  min-width:200px;
+  background: rgba(10,12,20,0.95);
+  border-radius:10px;
+  padding:8px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  opacity:0;
+  pointer-events:none;
+  transform: translateY(-6px);
+  transition: all .18s ease;
+  border:1px solid rgba(255,255,255,0.02);
+  z-index:50;
+}
+.nav-dropdown .nav-dropdown-content a{
+  display:block;
+  padding:8px 10px;
+  color:var(--muted);
+  text-decoration:none;
+  border-radius:6px;
+  font-size:0.92rem;
+}
+.nav-dropdown .nav-dropdown-content a:hover{
+  background: linear-gradient(90deg, rgba(37,117,252,0.08), rgba(106,17,203,0.06));
+  color: #fff;
+}
+.nav-dropdown:hover .nav-dropdown-content{
+  opacity:1;
+  pointer-events:auto;
+  transform: translateY(0);
+}
+
+/* ---------------- Títulos secciones ---------------- */
+.step h2{
+  font-size:1rem;
+  margin:0 0 12px 0;
+  color: var(--accent-c);
+  text-shadow: 0 0 8px rgba(80,250,123,0.06);
+}
+
+/* ---------------- Step: grid para alinear input + botones ---------------- */
+/* cada .step usa grid: título ocupa fila completa, luego controla input/button */
+.step{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--gap);
+  row-gap: 10px;
+  align-items:center;
+  padding:14px;
+  margin:18px 0;
+  border-radius:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(2,4,22,0.02));
+  border:1px solid rgba(255,255,255,0.02);
+}
+
+/* h2 debe ocupar toda la fila */
+.step h2{ grid-column: 1 / -1; }
+
+/* archivos y botones: si hay solo input, lo dejamos ancho; si ambos, quedan alineados */
+.step > input[type="file"]{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  background: linear-gradient(180deg, #22232d, #2b2e3b);
+  color:var(--muted);
+  font-weight:600;
+  font-size:0.95rem;
+  cursor:pointer;
+  transition:box-shadow .18s ease, border-color .18s ease, transform .08s ease;
+  box-shadow: inset 0 -6px 12px rgba(0,0,0,0.45);
+}
+
+/* Customiza el botón del file input (modern browsers) */
+.step > input[type="file"]::file-selector-button{
+  margin-right:8px;
+  padding:8px 12px;
+  border-radius:8px;
+  border: none;
+  background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  transition:filter .12s ease, transform .08s ease;
+}
+.step > input[type="file"]::file-selector-button:hover{
+  filter:brightness(1.05) contrast(1.03);
+  transform:translateY(-1px);
+}
+
+/* Webkit fallback */
+.step > input[type="file"]::-webkit-file-upload-button{
+  padding:8px 12px;
+  border-radius:8px;
+  border:none;
+  background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* focus accesible */
+.step > input[type="file"]:focus{
+  outline: 3px solid rgba(80,250,123,0.12);
+  box-shadow: 0 8px 30px rgba(80,250,123,0.04);
+}
+
+/* Botones (alineados a la derecha del grid) */
+.step > button{
+  padding:10px 16px;
+  border-radius:10px;
+  border: none;
+  background: linear-gradient(90deg, var(--accent-b), var(--accent-a));
+  color: #fff;
+  font-weight:800;
+  cursor:pointer;
+  min-width:160px;
+  box-shadow: 0 8px 30px rgba(37,117,252,0.08);
+  transition: transform .08s ease, box-shadow .12s ease, filter .12s ease;
+}
+
+/* segundo estado (si quieres botones secundarios, usa otra clase) */
+.step > button:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(106,17,203,0.12);
+  filter:brightness(1.02);
+}
+.step > button:active{ transform: translateY(0); }
+
+/* ---------------- Progress y logs ---------------- */
+#progress{
+  grid-column:1 / -1;
+  width:100%;
+  height:18px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  overflow:hidden;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+  border:1px solid rgba(255,255,255,0.02);
+}
+#progress-inner{
+  height:100%;
+  width:0%;
+  background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+  transition: width .25s ease;
+  box-shadow: 0 6px 30px rgba(37,117,252,0.08);
+}
+
+/* logs preformateado */
+#log{
+  grid-column:1 / -1;
+  margin-top:10px;
+  background:#07070a;
+  color:#7ef0b7;
+  padding:12px;
+  border-radius:8px;
+  text-align:left;
+  font-family: "Courier New", monospace;
+  font-size:0.9rem;
+  max-height:240px;
+  overflow:auto;
+  border:1px solid rgba(255,255,255,0.02);
+}
+
+/* resultados / enlaces */
+#results{ grid-column:1 / -1; margin-top:10px; text-align:left; font-family:monospace; }
+#results a{
+  display:inline-block;
+  margin-top:8px;
+  color:var(--accent-b);
+  text-decoration:none;
+  background: rgba(255,255,255,0.02);
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.02);
+}
+#results a:hover{ text-decoration:underline; transform: translateY(-2px); }
+
+/* ---------------- Footer ---------------- */
+footer.footer{
+  margin-top:22px;
+  grid-column:1 / -1;
+  font-size:0.85rem;
+  color:#bfc7d0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.04));
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.02);
+}
+footer .contact{ margin-top:8px; display:flex; justify-content:center; gap:8px; align-items:center; color:var(--muted); }
+footer a.discord-link{ color:#7289da; text-decoration:none; font-size:1.05rem; display:inline-flex; align-items:center; }
+footer a.discord-link:hover{ color:var(--accent-c); transform:translateY(-2px); }
+
+/* ---------------- Responsive ---------------- */
+@media (max-width:720px){
+  .container{ padding:18px; margin:18px 12px; }
+  .step{ grid-template-columns: 1fr; }
+  .step > button{ width:100%; min-width:0; }
+  #nav-bar{ gap:8px; }
+}
+
+/* smaller touch targets */
+@media (max-width:400px){
+  .title-glow{ font-size:1.05rem; }
+  .step h2{ font-size:0.98rem; }
+  #log{ font-size:0.82rem; }
+}

@@ -1,0 +1,203 @@
+@import url('../../theme/pensiler-theme.css');
+
+/* ======== Estilos generales ======== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1a2e;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    margin: 0;
+}
+
+h1 {
+    margin-bottom: 20px;
+    font-size: 2rem;
+    text-align: center;
+}
+
+/* ======== Botones ======== */
+button {
+    padding: 12px 20px;
+    margin: 8px;
+    background-color: #333366;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+    min-width: 160px;
+}
+
+button:hover:not(:disabled) {
+    background-color: #4444aa;
+}
+
+button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+button.download-btn {
+    background-color: #ff6b6b;
+}
+
+button.download-btn:hover {
+    background-color: #ff4c4c;
+}
+
+/* ======== Inputs ======== */
+input[type="file"],
+input[type="number"] {
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    margin: 8px;
+}
+
+/* ======== Status ======== */
+#status-text {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+/* ======== Panel de resultados ======== */
+#result-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 30px;
+}
+
+/* ======== Cada animación ======== */
+.preview-container {
+    background-color: rgba(40, 40, 60, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Nombre de animación */
+.preview-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-align: center;
+    width: 100%;
+}
+
+/* Contenedor horizontal de frames */
+.preview-strip-wrapper {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    width: 100%;
+    padding: 6px 0;
+    scroll-behavior: smooth;
+}
+
+.preview-strip-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.preview-strip-wrapper img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+}
+
+/* Número de frames */
+.preview-label {
+    font-size: 0.9rem;
+    color: #ccc;
+    text-align: center;
+    margin-top: 6px;
+}
+
+/* ======== Footer ======== */
+footer {
+    background: #2c2f33;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+/* ======== Responsivo ======== */
+@media (max-width: 768px) {
+    button {
+        width: 90%;
+        font-size: 1.1rem;
+        padding: 12px 16px;
+        margin: 8px auto;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    #result-panel,
+    footer {
+        max-width: 100%;
+    }
+
+    .preview-strip-wrapper img {
+        max-height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    button {
+        width: 60%;
+        font-size: 1rem;
+        padding: 12px 14px;
+        margin: 6px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+    }
+
+    #result-panel,
+    footer {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+    }
+
+    .preview-strip-wrapper img {
+        max-height: 90px;
+    }
+}
+
+/* Link de Discord */
+.discord-link {
+    color: #7289da;
+    font-size: 32px;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.discord-link:hover {
+    color: #99aab5;
+}

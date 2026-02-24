@@ -1,0 +1,96 @@
+/* Global lilac theme inspired by 264536bb14c04997d279f84c5f95d60e.webp */
+:root {
+  --pensiler-950: #522566;
+  --pensiler-800: #7a3a8e;
+  --pensiler-600: #ad74c3;
+  --pensiler-200: #eadff0;
+  --pensiler-100: #f8edfb;
+
+  --pensiler-text: #f8edfb;
+  --pensiler-text-soft: #eadff0;
+  --pensiler-panel-a: rgba(248, 237, 251, 0.15);
+  --pensiler-panel-b: rgba(82, 37, 102, 0.45);
+  --pensiler-border: rgba(248, 237, 251, 0.32);
+  --pensiler-shadow: rgba(82, 37, 102, 0.36);
+}
+
+html,
+body {
+  color-scheme: dark;
+}
+
+body,
+body.main {
+  background:
+    radial-gradient(1200px 620px at -15% -10%, rgba(248, 237, 251, 0.58) 0%, transparent 48%),
+    radial-gradient(1000px 540px at 120% 120%, rgba(82, 37, 102, 0.52) 0%, transparent 55%),
+    linear-gradient(180deg, #eadff0 0%, #ad74c3 52%, #7a3a8e 76%, #522566 100%) !important;
+  color: var(--pensiler-text) !important;
+}
+
+:where(.header, header, .site-header, .panel, .container, .card, .funky-panel, .preview-container, .step, .controls, .logs-container, #app, .footer, footer, .site-footer, .mobile-wrapper, .table-wrap, #dropzone, .drop-zone, .log-entry, #log) {
+  background: linear-gradient(145deg, var(--pensiler-panel-a), var(--pensiler-panel-b)) !important;
+  border: 1px solid var(--pensiler-border) !important;
+  box-shadow: 0 14px 36px var(--pensiler-shadow) !important;
+  backdrop-filter: blur(8px);
+}
+
+:where(h1, h2, h3, h4, .title-glow, .site-title, #titulo-seccion, .panel-header, .subtitle, .section-title) {
+  color: var(--pensiler-text) !important;
+  text-shadow: 0 4px 18px rgba(82, 37, 102, 0.46) !important;
+}
+
+:where(a, .nav-link, .boton, .discord-link) {
+  color: var(--pensiler-100) !important;
+}
+
+:where(a:hover, .nav-link:hover, .discord-link:hover) {
+  color: var(--pensiler-200) !important;
+}
+
+:where(button, .btn, .boton, .logs-control-btn, .method-button, .generate-button, .select-file-button, .nav-dropbtn, .carousel-btn) {
+  background: linear-gradient(135deg, #ad74c3 0%, #7a3a8e 48%, #522566 100%) !important;
+  color: var(--pensiler-100) !important;
+  border: 1px solid rgba(248, 237, 251, 0.52) !important;
+  box-shadow: 0 10px 24px rgba(82, 37, 102, 0.3) !important;
+}
+
+:where(button:hover, .btn:hover, .boton:hover, .logs-control-btn:hover, .method-button:hover, .generate-button:hover, .select-file-button:hover, .nav-dropbtn:hover, .carousel-btn:hover) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+:where(button:disabled, .btn:disabled, .generate-button:disabled) {
+  background: rgba(82, 37, 102, 0.48) !important;
+  color: rgba(248, 237, 251, 0.62) !important;
+}
+
+:where(input, select, textarea, .status, #status, #status-text, #status-text-zip, #status-text-pngxml, #shaderCode, .code-box) {
+  background: rgba(248, 237, 251, 0.14) !important;
+  color: var(--pensiler-text) !important;
+  border: 1px solid rgba(248, 237, 251, 0.35) !important;
+}
+
+:where(input::placeholder, textarea::placeholder) {
+  color: rgba(248, 237, 251, 0.72) !important;
+}
+
+:where(input:focus, select:focus, textarea:focus) {
+  outline: none;
+  border-color: var(--pensiler-200) !important;
+  box-shadow: 0 0 0 3px rgba(173, 116, 195, 0.3) !important;
+}
+
+:where(.nav-dropdown-content, .dropdown-content, .logs-controls, .actions-row, .results-top, .code) {
+  background: rgba(82, 37, 102, 0.5) !important;
+  border-color: rgba(248, 237, 251, 0.28) !important;
+}
+
+:where(progress, #progress, #progressBar) {
+  background: rgba(248, 237, 251, 0.2) !important;
+  border-radius: 999px;
+}
+
+:where(#progress-inner, #loaderBar, .progress, .progress-bar) {
+  background: linear-gradient(90deg, #eadff0 0%, #ad74c3 52%, #7a3a8e 100%) !important;
+}

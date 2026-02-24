@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./Material-Lab/bannerV1.png"
+  <img src="./Material/bannerV1.png"
        width="100%"
        style="
          border-radius: 25px;
@@ -12,43 +12,63 @@
 <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&duration=2500&color=00FF88&center=true&vCenter=true&lines=Hola+soy+Jarret;Hago+cosas+random;A+veces+funcionan+de+puro+milagro+xddddd" />
 </p>
 
-Aquí vas a encontrar proyectos básicos, pruebas y experimentos varios.
+Repositorio principal de **Jarret Corner** con proyectos web, experimentos y utilidades.
 
-## Proyectos:
-<table>
-<tr>
-<td width="50%" align="center">
+## Estructura actual
 
-### 🧩 Funkier pacher
-Creador de cintas de sprites
+```text
+.
+├── index.html / Corner.css / Corner.js / Corner.json / CornerLogs.json
+├── Material/
+│   ├── bannerV1.png
+│   └── Iconos/
+├── projects/
+│   ├── AltForge/
+│   ├── FNMM-Descompacter/
+│   ├── Funkier-pacher!/
+│   ├── Funky-Editor/
+│   ├── Idea_estupida/
+│   ├── Proyect/
+│   ├── RenownedBySprites/
+│   ├── VidToSheet/
+│   └── bg/
+├── My-friends/
+├── thiagoFolder/
+├── theme/
+│   └── pensiler-theme.css
+└── archive/
+```
 
-</td>
-<td width="50%" align="center">
+## Proyectos destacados
 
-### ⚙️ FNMM-Descompacter
-Desarma niveles de Funky Maker: Mobile!, para optimizar sus imagenes
+- **Funkier-pacher!**: conversor de sprites de FNF a cintas para FMM.
+- **FNMM-Descompacter**: extrae sprites de `.FNMM`, permite optimizar y reconstruir.
+- **RenownedBySprites**: divide imágenes/ZIPs por partes y exporta limpio.
+- **Proyect**: generador de frames y animaciones desde PNGs.
+- **VidToSheet**: extrae frames y arma spritesheets desde video/GIF.
+- **Idea Estúpida (Shader-inador)**: pruebas de shaders sobre imágenes.
+- **Funky-Editor**: herramientas de import/export para niveles y recursos.
+- **AltForge**: utilidades de charting y flujos alternativos.
 
-</td>
-</tr>
-</table>
+## Tema visual (CSS)
 
-## lenguaje usado:
+- Se aplicó un tema global basado en la paleta:
+  - `#522566`
+  - `#7A3A8E`
+  - `#AD74C3`
+  - `#EADFF0`
+  - `#F8EDFB`
+- El tema se centraliza en `theme/pensiler-theme.css`.
+- **Excepción solicitada**: no se tocó el CSS de `thiagoFolder/assets/css/freeplay.css`.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/HTML5-%23E34F26?logo=html5&logoColor=white">
-  <img src="https://img.shields.io/badge/CSS3-%231572B6?logo=css3&logoColor=white">
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black">
-</p>
+## Notas técnicas
 
-## XD?
-![Stars](https://img.shields.io/github/stars/thejarret084/Jarret_Corner)
-![Last Commit](https://img.shields.io/github/last-commit/thejarret084/Jarret_Corner)
-![Repo Size](https://img.shields.io/github/repo-size/thejarret084/Jarret_Corner)
-![Visitors](https://komarev.com/ghpvc/?username=thejarret084)
-![Top Lang](https://img.shields.io/github/languages/top/thejarret084/Jarret_Corner)
+- Navegación principal y tarjetas: `Corner.json`.
+- Logs/versionado visual: `CornerLogs.json`.
+- Íconos compartidos: `Material/Iconos/`.
+- Contenido legacy/respaldos: `archive/`.
 
-
-## Contacto:
+## Contacto
 
 <p align="center">
 

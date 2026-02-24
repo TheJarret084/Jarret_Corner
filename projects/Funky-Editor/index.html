@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Funky Editor</title>
+
+    <!-- JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="icon" type="image/icon" href="https://raw.githubusercontent.com/TheJarret084/Jarret_Corner/refs/heads/main/Material/Iconos/DefectoV2.ico" />
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+    <main id="app">
+        <header>
+            <h1>🎵 Funky Editor</h1>
+        </header>
+
+        <!-- CONTROLES -->
+        <section>
+            <div class="row">
+                <div class="field">
+                    <label for="bpm-input">BPM</label>
+                    <input type="number" id="bpm-input" placeholder="100">
+                </div>
+                <div class="field">
+                    <label for="namelevel">Nombre exportado</label>
+                    <input type="text" id="namelevel" placeholder="edited.FNMM">
+                </div>
+                <div class="field tools">
+                    <button id="cargarNVL">Cargar Nivel</button>
+                    <button id="exportar" class="export-btn">Exportar</button>
+                    <span id="nivelStatus" class="status">Ninguno cargado</span>
+                </div>
+                <div class="field tools">
+                    <p><b>Exportado / Importado</b></p>
+                    <div class="btn-group">
+                        <button id="exportarImg">Exportar Imágenes</button>
+                        <button id="importarImg">Importar Imágenes</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="exportarAudio">Exportar Audio</button>
+                        <button id="importarAudio">Importar Audio</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="exportarData">Exportar Chart</button>
+                        <button id="importarData">Importar Chart</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="exportarEvts">Exportar Eventos</button>
+                        <button id="importarEvts">Importar Eventos</button>
+                    </div>
+                    <div class="btn-group">
+                        <label class="check">
+                            <input type="checkbox" id="includeMapping">
+                            incluir mapping.json
+                        </label>
+                        <button id="exportarAll">Exportar Todo (.zip)</button>
+                    </div>
+                </div>
+                <!-- Exporta todo en un zip, solo cambiamos la extencion para confundir al user adk´haspofbhjqvioepbjovewuvhewp-->
+            </div>
+        </section>
+
+        <!-- 👇 NUEVO WORKSPACE -->
+        <section class="workspace">
+            <!-- PANEL ESCONDIDO -->
+            <aside id="sidePanel" class="hidden">
+                <div id="panelContent"></div>
+            </aside>
+            <div id="spritePanel" class="hidden">
+                
+            </div>
+            <!-- LOG / VISTA PRINCIPAL
+            <div id="mainView">
+                <div id="logger"></div>
+            </div>
+            -->
+        </section>
+
+        <!-- LOG -->
+        <section>
+            <div id="logger"></div>
+        </section>
+    </main>
+    <script type="module" src="penepuntoexe/main.js"></script>
+</body>
+</html>

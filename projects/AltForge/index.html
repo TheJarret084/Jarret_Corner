@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+    <title>AltForce</title>
+    <link rel="icon" href="../../Material/Iconos/Defecto.ico" type="image/x-icon">
+  <link rel="stylesheet" href="index.css">
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+<body class="main">
+    <header style="text-align:center; margin-bottom:32px;">
+        <h1 style="font-size:2.2rem; color:#7aa2ff; text-shadow:0 0 12px rgba(120,120,255,0.7); font-weight:bold; margin-bottom:8px;">🎼 Chart Builder</h1>
+        <p style="color:#b5c7ff; font-size:1.1rem;">Crea, edita y exporta charts de manera sencilla y visual.</p>
+    </header>
+
+    <main style="max-width:900px; margin:0 auto;">
+        <section class="panel">
+            <div class="panel-header">Sube tu archivo JSON de chart</div>
+            <input type="file" id="fileInput" accept=".json" style="margin-bottom:16px;" />
+            <div id="charts"></div>
+            <div style="display:flex; gap:12px; margin:18px 0; flex-wrap:wrap;">
+                <button id="addChart">➕ Nuevo chart</button>
+                <button id="generate" disabled>📦 Generar ZIP</button>
+            </div>
+            <pre id="log" style="background:rgba(30,30,60,0.7); border-radius:8px; padding:12px; color:#c8d0ff; min-height:40px;"></pre>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Jarret Labs<br>
+      El material que pasa por la página no está asociado a mi persona.</p>
+        <div class="contact">
+            <span>¿Problemas? Contáctame en Discord:</span>
+            <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">
+                <i class="fab fa-discord"></i>
+            </a>
+        </div>
+    </footer>
+
+    <script src="index.js"></script>
+</body>
+</html>
