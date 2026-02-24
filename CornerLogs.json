@@ -1,6 +1,17 @@
 [
   {
-    "date": "2026-1-28T020:25:00Z",
+    "date": "2026-02-24T00:00:00Z",
+    "version": "v2.2.3",
+    "title": "Nueva Actualizacion",
+    "body": "Funkier Pacher! ya de verdad con soporte de rotado,, y soporta Json, y otros formatos mas, pero en version de prueba",
+    "tags": [
+      "backend",
+      "Funkier-Pacher!"
+    ],
+    "important": true
+  },
+  {
+    "date": "2026-01-28T20:25:00Z",
     "version": "v2.2.2-2026-B",
     "title": "Nuevo apartado",
     "body": "Un shaggy aqui... y otro alla, deberias derrotarlos a todos?, no se solo te informo que Shaggyverse collection ya esta disponible. (Solo 4keys disponible)",
@@ -10,7 +21,7 @@
     "important": false
   },
   {
-    "date": "2026-1-15T09:55:00Z",
+    "date": "2026-01-15T09:55:00Z",
     "version": "v2.2.2",
     "title": "Nueva herramienta",
     "body": "AltForce (Jarret y ese nombre de mierda?) es una herramienta para generar charts para Funky Maker, y esto lo que hace es agarrar todos los noteTypes del json que metas (Solo disponible para versiones de Codename Engine), asi genera un chart.json o varios si asi lo quieres.",
@@ -20,7 +31,7 @@
     "important": true
   },
   {
-    "date": "2026-1-15T4:30:00Z",
+    "date": "2026-01-15T04:30:00Z",
     "version": "v2.2.1-2026/A",
     "title": "Arreglo de la UI navideña, que se quedaron los colores y iconos",
     "body": "Cambio toda la ui de la pagina PRINCIPAL para que se vea menos navideña.",
@@ -30,7 +41,7 @@
     "important": false
   },
   {
-    "date": "2026-1-11T16:30:00Z",
+    "date": "2026-01-11T16:30:00Z",
     "version": "v2.2.1-2026",
     "title": "Se fue navidad ya, adios a todos",
     "body": "Cambio toda la ui de la pagina PRINCIPAL, para volver a la normalidad.",
