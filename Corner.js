@@ -339,11 +339,13 @@ function exportarLogs() {
 
 // ================== MODAL ==================
 function mostrarModalLog() {
-    document.getElementById('log-modal').style.display = 'flex';
+    // al no existir no lo ocupare - desplegada la pagina
+    // document.getElementById('log-modal').style.display = 'flex';
 }
 
 function cerrarModalLog() {
-    document.getElementById('log-modal').style.display = 'none';
+    // lo mismo de arriba XD
+    // document.getElementById('log-modal').style.display = 'none';
 }
 
 // ================== FILTRO LOGS ==================
