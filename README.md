@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./Material/bannerV1.png"
+  <img src="/Material/bannerV1.png"
        width="100%"
        style="
          border-radius: 25px;
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-<img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&duration=2500&color=00FF88&center=true&vCenter=true&lines=Hola+soy+Jarret;Hago+cosas+random;A+veces+funcionan+de+puro+milagro+xddddd" />
+buenas, bienvenido a este "basurero"
 </p>
 
 Repositorio principal de **Jarret Corner** con proyectos web, experimentos y utilidades.
@@ -59,7 +59,6 @@ Repositorio principal de **Jarret Corner** con proyectos web, experimentos y uti
   - `#EADFF0`
   - `#F8EDFB`
 - El tema se centraliza en `theme/pensiler-theme.css`.
-- **Excepción solicitada**: no se tocó el CSS de `thiagoFolder/assets/css/freeplay.css`.
 
 ## Notas técnicas
 
@@ -85,3 +84,14 @@ Repositorio principal de **Jarret Corner** con proyectos web, experimentos y uti
 </a>
 
 </p>
+
+<table>
+  <tr>
+    <td align="left" width="140">
+      <img src="/Material/Iconos/teto(by: AymenZero).png" width="120" style="border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.35); border:2px solid rgba(255,255,255,0.08);">
+    </td>
+    <td align="right">
+      tambien no te quejes del css gracias
+    </td>
+  </tr>
+</table>
