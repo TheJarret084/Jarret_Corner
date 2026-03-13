@@ -71,7 +71,7 @@ export function showSpritePanel(levelData) {
 
             const input = document.createElement("input");
             input.type = "file";
-            input.accept = ".zip";
+            input.accept = ".zip,.spritepack";
 
             input.onchange = async (ev) => {
 
