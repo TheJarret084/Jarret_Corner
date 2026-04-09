@@ -8,7 +8,7 @@ let dataGlobal = null;
 // =============================
 // CARGAR DATA
 // =============================
-async function cargarData() {
+ export async function cargarData() {
     try {
         const resp = await fetch(window.jsonFile, { cache: 'no-cache' });
 
