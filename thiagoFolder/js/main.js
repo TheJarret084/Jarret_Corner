@@ -11,6 +11,9 @@ import {
     enableGamepadSupport
 } from './infoGeneral.js';
 
+// mi poderosa navbar sisisisi
+import * as nav from "./header.js";
+
 async function start() {
     /* =========================
        🧱 UI BASE
@@ -29,12 +32,14 @@ async function start() {
         hidePantallaCarga();
     }, 4000);
 
+    /* Una vez el audio cargado tiramos la navbar*/
+    nav?.cargarData();
+
     /* =========================
        🔊 AUDIO FONDO
     ========================= */
 
-    Audio.initAudio();
-
+    Audio?.initAudio();
 
     // Actualiza el banner y el título de la canción
     function updateMusicUI() {

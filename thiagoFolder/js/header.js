@@ -1,96 +1,117 @@
+// =============================
+// CONFIG
+// =============================
+window.jsonFile = window.jsonFile || '/Jarret_Corner/Corner.json';
+
 let dataGlobal = null;
 
-// ================== PANTALLA DE CARGA ==================
-function mostrarCarga(visible) {
-    const carga = document.getElementById('pantallaCarga');
-    if (carga) {
-        carga.style.display = visible ? 'flex' : 'none';
-    }
-}
-
-// ================== CARGAR DATOS ==================
+// =============================
+// CARGAR DATA
+// =============================
 async function cargarData() {
-    mostrarCarga(true);
-
     try {
-        const resp = await fetch('/Jarret_Corner/Corner.json', { cache: 'no-cache' });
-        if (!resp.ok) throw new Error('No se pudo cargar Corner.json');
+        const resp = await fetch(window.jsonFile, { cache: 'no-cache' });
+
+        if (!resp.ok) {
+            throw new Error('Error cargando JSON');
+        }
 
         dataGlobal = await resp.json();
 
         renderizarNav();
-        renderizarSeccion?.(seccionActual);
-        cargarLogsData?.();
-
-        setupHamburger();
-
-        setTimeout(() => mostrarCarga(false), 300);
 
     } catch (e) {
-        console.error('Error cargando JSON:', e);
-        mostrarCarga(false);
+        console.warn("No se pudo cargar JSON:", e);
     }
 }
 
-// ================== RENDERIZAR NAVBAR ==================
+// =============================
+// RENDER NAV
+// =============================
 function renderizarNav() {
     const navBar = document.getElementById('nav-bar');
-    if (!navBar) return;
+    if (!navBar || !dataGlobal) return;
 
-    navBar.innerHTML = '';
+    let html = '';
 
-    const navData = dataGlobal?.data?.nav;
-    if (!navData) return;
+    // botón principal
+    html += `
+        <a href="/index.html" class="nav-link">
+            Menú
+        </a>
+    `;
 
-    navData.forEach(item => {
-        if (item.tipo === 'dropdown' && item.opciones) {
-            item.opciones.forEach(op => {
-                const a = document.createElement('a');
-                a.href = op.url || "#";
-                a.textContent = op.texto || "link";
-                a.target = '_blank';
+    // dropdown desde JSON
+    (dataGlobal.data?.nav || []).forEach(item => {
+        if (item.tipo === 'dropdown') {
+            html += `
+                <div class="nav-dropdown">
+                    <button class="nav-dropbtn">Más</button>
+                    <div class="nav-dropdown-content">
+            `;
 
-                navBar.appendChild(a);
+            item.opciones?.forEach(opt => {
+                html += `
+                    <a href="${opt.url}" target="_blank">
+                        ${opt.texto}
+                    </a>
+                `;
             });
+
+            html += `
+                    </div>
+                </div>
+            `;
         }
     });
+
+    navBar.innerHTML = html;
+
+    attachNavInteractions(navBar);
 }
 
-// ================== HAMBURGER (PRO) ==================
-function setupHamburger() {
-    const header = document.querySelector('.header');
-    const btn = document.querySelector('.hamburger');
+// =============================
+// INTERACCIONES
+// =============================
+function attachNavInteractions(navBar) {
+    if (!navBar || navBar.dataset.bound === '1') return;
+    navBar.dataset.bound = '1';
 
-    if (!header || !btn) return;
+    const closeAll = () => {
+        navBar.querySelectorAll('.nav-dropdown.open')
+            .forEach(d => d.classList.remove('open'));
+    };
 
-    // toggle menu
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation(); // evita cerrar instantáneo
-        header.classList.toggle('nav-open');
+    navBar.querySelectorAll('.nav-dropdown').forEach(dropdown => {
+        const btn = dropdown.querySelector('.nav-dropbtn');
+
+        if (!btn) return;
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const willOpen = !dropdown.classList.contains('open');
+
+            closeAll();
+
+            if (willOpen) {
+                dropdown.classList.add('open');
+            }
+        });
     });
 
-    // cerrar al hacer click afuera
+    // click afuera
     document.addEventListener('click', (e) => {
-        if (!header.contains(e.target)) {
-            header.classList.remove('nav-open');
+        if (!navBar.contains(e.target)) {
+            closeAll();
         }
     });
 
-    // cerrar con ESC (god UX)
+    // ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            header.classList.remove('nav-open');
+            closeAll();
         }
     });
 }
-
-// click
-
-/*
-const clickSound = new Audio('/sounds/click.ogg');
-
-btn.addEventListener('click', () => {
-    clickSound.currentTime = 0;
-    clickSound.play().catch(() => {});
-});
-*/
