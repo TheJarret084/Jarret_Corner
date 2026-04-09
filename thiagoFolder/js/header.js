@@ -36,10 +36,10 @@ function renderizarNav() {
 
     // botón principal
     html += `
-        <a href="/index.html" class="nav-link">
+        <a href="/Jarret_Corner/index.html" class="nav-link">
             Menú
         </a>
-    `;
+    `; // malparido index
 
     // dropdown desde JSON
     (dataGlobal.data?.nav || []).forEach(item => {
