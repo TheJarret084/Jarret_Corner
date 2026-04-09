@@ -1,0 +1,156 @@
+/* otras cosas ++*/
+
+/* =========================
+   FUENTE
+========================= */
+
+@font-face {
+    font-family: "VCR";
+    src: url("../fonts/vcr.ttf");
+}
+
+/* =========================
+   BASE
+========================= */
+/*
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+*/
+/* =========================
+   HEADER COMPACTO (TOP LEFT)
+========================= */
+
+.header {
+    position: fixed;
+    top: env(safe-area-inset-top, 16px);
+    left: 16px;
+
+    z-index: 3000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(125, 80, 100, 0.5);
+    border: 2px solid rgb(160, 160, 160);
+
+    padding: 10px 12px;
+    border-radius: 8px;
+
+    backdrop-filter: blur(4px);
+
+    touch-action: manipulation;
+    user-select: none;
+}
+
+/* =========================
+   BOTÓN HAMBURGUESA
+========================= */
+
+.hamburger {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+
+    padding: 4px;
+}
+
+/* líneas */
+.hamburger .bar {
+    width: 20px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+}
+
+/* =========================
+   NAV (dropdown compacto)
+========================= */
+
+#nav-bar {
+    position: absolute;
+
+    top: calc(100% + 8px);
+    left: 0;
+
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+
+    min-width: 140px;
+
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid rgb(160, 160, 160);
+
+    padding: 10px;
+    border-radius: 6px;
+
+    z-index: 2999;
+}
+
+/* abrir */
+.header.nav-open #nav-bar {
+    display: flex;
+}
+
+/* links */
+#nav-bar a {
+    color: #fff;
+    text-decoration: none;
+    font-family: "VCR";
+    font-size: 16px;
+
+    padding: 6px 8px;
+    border-radius: 4px;
+
+    transition: background 0.15s;
+}
+
+#nav-bar a:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+    width: 22px;
+    height: 2px;
+    background: #ffffff;
+    margin: 4px 0;
+    border-radius: 2px;
+}
+
+/* ============================= */
+/* 📋 NAVBAR */
+/* ============================= */
+/* animación dropdown */
+#nav-bar {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.18s ease;
+    pointer-events: none;
+}
+
+.header.nav-open #nav-bar {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+#nav-bar a {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 8px 12px;
+    display: block;
+    font-weight: 400;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+#nav-bar a:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
