@@ -11,10 +11,45 @@ import {
     enableGamepadSupport
 } from './infoGeneral.js';
 
-// mi poderosa navbar sisisisi
+// navbar
 import * as nav from "./header.js";
 
+/* =========================
+   💥 ERROR UI GLOBAL
+========================= */
+function showFatalError(message, err = null) {
+    console.error('💥 UI ERROR:', message, err);
+
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.top = '0';
+    div.style.left = '0';
+    div.style.width = '100%';
+    div.style.height = '100%';
+    div.style.background = 'rgba(0,0,0,0.9)';
+    div.style.color = '#ff4d4d';
+    div.style.fontFamily = 'monospace';
+    div.style.padding = '20px';
+    div.style.zIndex = '99999';
+    div.style.overflow = 'auto';
+
+    div.innerHTML = `
+        <h2>💥 Algo explotó</h2>
+        <p>${message}</p>
+        <pre>${err ? (err.stack || err) : ''}</pre>
+    `;
+
+    document.body.appendChild(div);
+}
+
+// disponible global (para header.js)
+window.showFatalError = showFatalError;
+
+/* =========================
+   🚀 START
+========================= */
 async function start() {
+
     /* =========================
        🧱 UI BASE
     ========================= */
@@ -23,37 +58,46 @@ async function start() {
     /* =========================
        🌀 LOADER
     ========================= */
-
     startPantallaCarga();
 
-    // failsafe por si algo muere
     const LOADER_TIMEOUT = setTimeout(() => {
         console.warn('⏱️ Loader forzado');
+
         hidePantallaCarga();
+
+        showFatalError(
+            'Timeout: la app tardó demasiado en cargar.',
+            new Error('Loader > 4s')
+        );
     }, 4000);
 
-    /* Una vez el audio cargado tiramos la navbar*/
-    nav?.cargarData();
+    /* =========================
+       🧭 NAVBAR
+    ========================= */
+    try {
+        await nav.cargarData?.();
+    } catch (e) {
+        showFatalError('Error cargando navbar', e);
+    }
 
     /* =========================
        🔊 AUDIO FONDO
     ========================= */
-
     Audio?.initAudio();
 
-    // Actualiza el banner y el título de la canción
     function updateMusicUI() {
         const banner = document.getElementById('banner-music');
         const title = document.getElementById('title-music');
-        const img = Audio.whatisthatmusic();
-        const name = Audio.whatisthenameofmusic();
+
+        const img = Audio.whatisthatmusic?.();
+        const name = Audio.whatisthenameofmusic?.();
+
         if (banner) banner.src = img || '';
         if (title) title.textContent = name || '';
     }
 
-    // Actualiza al iniciar y cada vez que cambia la canción
     updateMusicUI();
-    // Hook para actualizar el banner y título cuando cambie la canción
+
     const origPlayNextSong = Audio.playNextSong;
     if (origPlayNextSong) {
         Audio.playNextSong = function () {
@@ -63,9 +107,10 @@ async function start() {
     }
 
     const startMusicOnce = () => {
-        Audio.tryStartMusic();
+        Audio.tryStartMusic?.();
         updateMusicUI();
     };
+
     window.addEventListener('click', startMusicOnce, { once: true });
     window.addEventListener('keydown', startMusicOnce, { once: true });
 
@@ -79,18 +124,18 @@ async function start() {
         ]);
 
         UI.spawnSongs();
-        hidePantallaCarga(); // Oculta la pantalla de carga cuando todo está listo
+        hidePantallaCarga();
     }
     catch (err) {
-        console.error('❌ Error cargando canciones', err);
-        hidePantallaCarga(); // Oculta también si hay error
+        hidePantallaCarga();
+        showFatalError('Error cargando canciones', err);
     }
     finally {
         clearTimeout(LOADER_TIMEOUT);
     }
 
     /* =========================
-       ⌨️ ENTER x2 (overlay)
+       ⌨️ ENTER x2
     ========================= */
     enableEnterToPlay();
 
@@ -103,13 +148,12 @@ async function start() {
        📱 BOTONES MOBILE
     ========================= */
 
-
     initMobileButton(
         document.getElementById('player-music'),
         './assets/images/botones/Spritep-0001.png',
         './assets/images/botones/Spritep-0002.png',
         () => {
-            Audio.toggleMusic();
+            Audio.toggleMusic?.();
             updateMusicUI();
         }
     );
@@ -120,9 +164,8 @@ async function start() {
         './assets/images/botones/Spriteh-0001.png',
         './assets/images/botones/Spriteh-0002.png',
         () => {
-            Audio.changeSongWithLoader(() => {
+            Audio.changeSongWithLoader?.(() => {
                 updateMusicUI();
-                updatePlayerBtnIcon();
             });
         }
     );
@@ -180,11 +223,11 @@ async function start() {
         const delta = (now - last) / 1000;
         last = now;
 
-        UI.updateLayout(delta);
-        UI.updateCircle(delta);
+        UI.updateLayout?.(delta);
+        UI.updateCircle?.(delta);
 
         const bpm = getSong(UI.getSelected())?.bpm ?? 100;
-        Audio.updateBeat(bpm, delta);
+        Audio.updateBeat?.(bpm, delta);
 
         requestAnimationFrame(loop);
     }
@@ -195,9 +238,19 @@ async function start() {
 /* =========================
    🧯 BLINDAJE GLOBAL
 ========================= */
-window.addEventListener('error', () => hidePantallaCarga());
-window.addEventListener('unhandledrejection', () => hidePantallaCarga());
+window.addEventListener('error', (e) => {
+    hidePantallaCarga();
+    showFatalError('Error global', e.error || e.message);
+});
 
+window.addEventListener('unhandledrejection', (e) => {
+    hidePantallaCarga();
+    showFatalError('Promise no manejada', e.reason);
+});
+
+/* =========================
+   🚀 INIT
+========================= */
 start().catch(err => {
-    console.error('💥 Fatal start error', err);
+    showFatalError('💥 Fatal start error', err);
 });
