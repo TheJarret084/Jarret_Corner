@@ -55,6 +55,14 @@
           "botonTexto": "Funkier-pacher!"
         },
         {
+          "titulo": "Spritemap To Funky",
+          "descripcion": "Version mejorada, ofrecida por mi persona, despuea que la version en html de foxy no funcione, lo empeze a trabajar yo... Advertencia: Te redigira al siteo de descargas de la App.",
+          "tipo": "boton",
+          "bannerIMG": "",
+          "url": "https://thejarret084.github.io/Spritemap-to-Funky/",
+          "botonTexto": "Spritemap-To-Funky"
+        },
+        {
           "titulo": "RenownedBySprites",
           "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
           "tipo": "boton",
