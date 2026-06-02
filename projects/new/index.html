@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>converter</title>
+    <title>Converter</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"><!-- 🔥 Open Graph (embed) -->
 <meta property="og:title" content="Jarret Corner">
 <meta property="og:description" content="Laboratorio de TheJarret084 - proyectos, logs y cosas experimentales">
@@ -17,7 +17,6 @@
 
 <link rel="stylesheet" href="Corner.css">
 <link rel="icon" href="./Material/Iconos/iconPage.ico" type="image/x-icon">
-<!--  .gei   -->
 
 <style>
     :root {
@@ -277,7 +276,7 @@
             </div>
             <h1>Convierte un .FNMM a .FMCE</h1>
             <p class="subtitle">
-                Selecciona un único archivo <span class="mono">.FNMM</span> y esta página genera un <span class="mono">.FMCE</span> con solo la carpeta <span class="mono">data/</span> adentro.
+                Selecciona un único archivo <span class="mono">.FNMM</span> y esta página genera un <span class="mono">.FMCE</span> con <span class="mono">chart.json</span>, <span class="mono">meta.json</span>, <span class="mono">events.json</span> y <span class="mono">stages/scene.json</span>.
             </p>
         </section><div class="grid">
         <section class="card">
@@ -287,7 +286,7 @@
             <div class="card-body">
                 <div class="drop">
                     <strong>1) Selecciona un archivo <span class="mono">.FNMM</span></strong>
-                    <span>El navegador leerá ese archivo y construirá un <span class="mono">.FMCE</span> con la estructura mínima de <span class="mono">data/</span>.</span>
+                    <span>El navegador leerá el ZIP y convertirá <span class="mono">data.json</span> al formato que usa <span class="mono">chart.json</span>.</span>
                     <input id="fileInput" type="file" accept=".fnmm,.FNMM,application/zip,.zip">
                 </div>
 
@@ -310,7 +309,11 @@
                 </div>
 
                 <p class="footer-note">
-                    La descarga final será un archivo <span class="mono">.FMCE</span> que contiene solo <span class="mono">data/notes.json</span>, <span class="mono">data/events.json</span>, <span class="mono">data/meta.json</span> y <span class="mono">data/stages/scene.json</span>.
+                    El archivo final guardará:
+                    <span class="mono">chart.json</span>,
+                    <span class="mono">meta.json</span>,
+                    <span class="mono">events.json</span>,
+                    <span class="mono">stages/scene.json</span>.
                 </p>
             </div>
         </section>
@@ -377,118 +380,171 @@
     }
 
     function safeRound(v) {
-        return typeof v === 'number' && Number.isFinite(v) ? Math.round(v * 10000) / 10000 : v;
+        return typeof v === 'number' && Number.isFinite(v)
+            ? Math.round(v * 10000) / 10000
+            : v;
     }
 
-    function convertNotes(chart) {
-        const notes = [];
-        const strumLines = chart?.strumLines || [];
-
-        strumLines.forEach((strum, s_id) => {
-            (strum || []).forEach((lane, l_id) => {
-                (lane || []).forEach((note) => {
-                    const n = {
-                        time: note?.start ?? 0,
-                        lane: l_id,
-                        strumline: s_id,
-                        length: note?.duration ?? 0
-                    };
-
-                    const props = note?.props || {};
-
-                    if ((props.skin ?? 0) !== 0) n.skin = props.skin;
-                    if ((props.onMissEvent ?? -1) !== -1) n.onMissEvent = props.onMissEvent;
-                    if ((props.onPressEvent ?? -1) !== -1) n.onPressEvent = props.onPressEvent;
-
-                    notes.push(n);
-                });
-            });
-        });
-
-        notes.sort((a, b) => a.time - b.time);
-        return notes;
+    function normalizeString(v, fallback = '') {
+        return typeof v === 'string' && v.trim() ? v.trim() : fallback;
     }
 
-    function convertEvents(eventsJson) {
+    function normalizeNotes(data) {
         const out = [];
-        if (!eventsJson) return out;
+        const raw = data?.notes;
+        const source = Array.isArray(raw) ? raw : [];
 
-        (eventsJson.events || []).forEach((ev) => {
-            const time = ev?.time ?? 0;
-            (ev.actions || []).forEach((act) => {
+        source.forEach((note) => {
+            if (Array.isArray(note)) {
+                // [time, lane, length, ...]
                 out.push({
-                    name: act?.type || 'Unknown',
-                    time: safeRound(time),
-                    params: act?.props || {}
+                    time: safeRound(note[0] ?? 0),
+                    lane: note[1] ?? 0,
+                    length: safeRound(note[2] ?? 0),
+                    ...(note[3] !== undefined ? { type: note[3] } : {}),
+                    ...(note[4] !== undefined ? { data: note[4] } : {})
                 });
-            });
+                return;
+            }
+
+            if (note && typeof note === 'object') {
+                const obj = {
+                    time: safeRound(note.time ?? note.start ?? 0),
+                    lane: note.lane ?? note.noteData ?? note.column ?? 0,
+                    length: safeRound(note.length ?? note.duration ?? 0)
+                };
+
+                if (note.type !== undefined) obj.type = note.type;
+                if (note.skin !== undefined) obj.skin = note.skin;
+                if (note.onMissEvent !== undefined) obj.onMissEvent = note.onMissEvent;
+                if (note.onPressEvent !== undefined) obj.onPressEvent = note.onPressEvent;
+                if (note.strumline !== undefined) obj.strumline = note.strumline;
+                if (note.strumLine !== undefined) obj.strumline = note.strumLine;
+                if (note.extra !== undefined) obj.extra = note.extra;
+                if (note.props !== undefined) obj.props = note.props;
+
+                out.push(obj);
+            }
         });
 
-        out.sort((a, b) => a.time - b.time);
+        out.sort((a, b) => (a.time ?? 0) - (b.time ?? 0));
         return out;
     }
 
-    function convertMeta(metaJson, sceneJson) {
-        const meta = metaJson || {};
-        let icons = {};
+    function normalizeEvents(eventsJson) {
+        const out = [];
+        const source = Array.isArray(eventsJson?.events) ? eventsJson.events : [];
 
-        if (sceneJson && Array.isArray(sceneJson.icons) && sceneJson.icons.length >= 2) {
-            icons = {
-                P1: sceneJson.icons[1],
-                P2: sceneJson.icons[0]
-            };
-        }
+        source.forEach((ev, index) => {
+            const time = safeRound(ev?.time ?? ev?.start ?? 0);
+            const name = normalizeString(ev?.name ?? ev?.type ?? ev?.event ?? `event_${index}`, 'Unknown');
+            const actions = Array.isArray(ev?.actions) ? ev.actions : null;
+
+            if (actions && actions.length) {
+                actions.forEach((act, actIndex) => {
+                    out.push({
+                        time,
+                        name: normalizeString(act?.type ?? act?.name ?? `${name}_${actIndex}`, name),
+                        params: act?.props ?? act?.params ?? {}
+                    });
+                });
+                return;
+            }
+
+            out.push({
+                time,
+                name,
+                params: ev?.params ?? ev?.props ?? ev?.data ?? {}
+            });
+        });
+
+        out.sort((a, b) => (a.time ?? 0) - (b.time ?? 0));
+        return out;
+    }
+
+    function normalizeMeta(metaJson, dataJson) {
+        const meta = metaJson || {};
+        const data = dataJson || {};
+
+        const displayName = normalizeString(
+            meta.displayName ?? data.displayName ?? data.song ?? data.name ?? data.levelName,
+            'levelName'
+        );
+
+        const bpm = Number.isFinite(meta.bpm)
+            ? meta.bpm
+            : Number.isFinite(data.bpm)
+                ? data.bpm
+                : 120;
+
+        const stage = normalizeString(meta.stage ?? data.stage, 'scene');
+
+        const p1 = normalizeString(
+            meta?.icons?.P1 ?? data?.icons?.P1 ?? data?.playerIcon ?? data?.iconPlayer,
+            'icon-player'
+        );
+        const p2 = normalizeString(
+            meta?.icons?.P2 ?? data?.icons?.P2 ?? data?.enemyIcon ?? data?.iconEnemy,
+            'icon-enemy'
+        );
 
         return {
-            displayName: meta.displayName || 'unknown',
-            bpm: meta.bpm || 120,
-            stage: meta.stage || 'scene',
-            icons: icons
+            displayName,
+            bpm,
+            stage,
+            icons: {
+                P1: p1,
+                P2: p2
+            }
         };
     }
 
-    function convertScene(scene) {
-        if (!scene) return {};
+    function normalizeScene(scene) {
+        if (!scene || typeof scene !== 'object') return {};
 
         const cleaned = {
             cameras: [],
             objects: [],
-            landscape: true
+            landscape: scene.landscape !== undefined ? !!scene.landscape : true
         };
 
-        (scene.cameras || []).forEach((c) => {
-            cleaned.cameras.push({
-                x: safeRound(c?.x ?? 0),
-                y: safeRound(c?.y ?? 0),
-                scale: safeRound(c?.scale ?? 1)
+        if (Array.isArray(scene.cameras)) {
+            scene.cameras.forEach((c) => {
+                cleaned.cameras.push({
+                    x: safeRound(c?.x ?? 0),
+                    y: safeRound(c?.y ?? 0),
+                    scale: safeRound(c?.scale ?? 1)
+                });
             });
-        });
+        }
 
-        (scene.objects || []).forEach((o) => {
-            const obj = {
-                x: safeRound(o?.x ?? 0),
-                y: safeRound(o?.y ?? 0),
-                sprite: o?.spr,
-                visible: o?.visible ?? true
-            };
+        if (Array.isArray(scene.objects)) {
+            scene.objects.forEach((o) => {
+                const obj = {
+                    x: safeRound(o?.x ?? 0),
+                    y: safeRound(o?.y ?? 0),
+                    sprite: o?.spr ?? o?.sprite ?? '',
+                    visible: o?.visible !== undefined ? !!o.visible : true
+                };
 
-            if (o && 'scale' in o) {
-                if (typeof o.scale === 'object' && o.scale !== null) {
-                    obj.scale = {
-                        x: safeRound(o.scale.x ?? 1),
-                        y: safeRound(o.scale.y ?? 1)
-                    };
-                } else {
-                    obj.scale = safeRound(o.scale);
+                if (o && 'scale' in o) {
+                    if (typeof o.scale === 'object' && o.scale !== null) {
+                        obj.scale = {
+                            x: safeRound(o.scale.x ?? 1),
+                            y: safeRound(o.scale.y ?? 1)
+                        };
+                    } else {
+                        obj.scale = safeRound(o.scale);
+                    }
                 }
-            }
 
-            if ((o?.strumLine ?? -1) !== -1) {
-                obj.strumline = o.strumLine;
-            }
+                if (o?.strumLine !== undefined) obj.strumline = o.strumLine;
+                if (o?.strumline !== undefined) obj.strumline = o.strumline;
+                if (o?.name !== undefined) obj.name = o.name;
 
-            cleaned.objects.push(obj);
-        });
+                cleaned.objects.push(obj);
+            });
+        }
 
         return cleaned;
     }
@@ -504,6 +560,7 @@
         downloadLink.classList.add('disabled');
         downloadLink.href = '#';
         downloadLink.removeAttribute('download');
+
         if (currentBlobUrl) {
             URL.revokeObjectURL(currentBlobUrl);
             currentBlobUrl = null;
@@ -552,7 +609,7 @@
 
         appendLog('▶ Inicio de conversión', 'info');
         appendLog(`▶ Archivo: ${selectedFile.name}`, 'info');
-        appendLog('▶ Salida: .FMCE con solo data/', 'info');
+        appendLog('▶ Salida: .FMCE', 'info');
         appendLog('', 'muted');
 
         try {
@@ -561,20 +618,26 @@
             const buffer = await selectedFile.arrayBuffer();
             const zip = await JSZip.loadAsync(buffer);
 
-            const chart = await readZipJson(zip, 'chart.json') || await readZipJson(zip, 'chart.fnmm') || {};
+            const data = await readZipJson(zip, 'data.json') || {};
             const events = await readZipJson(zip, 'events.json') || {};
             const meta = await readZipJson(zip, 'meta.json') || {};
-            const scene = await readZipJson(zip, 'scene.json');
+            const scene = await readZipJson(zip, 'scene.json') || {};
 
-            const notes = convertNotes(chart);
-            const ev = convertEvents(events);
-            const metaOut = convertMeta(meta, scene);
-            const sceneOut = convertScene(scene);
+            const chartOut = {
+                notes: normalizeNotes(data)
+            };
 
-            outZip.file('data/notes.json', JSON.stringify({ notes }, null, 4));
-            outZip.file('data/events.json', JSON.stringify({ events: ev }, null, 4));
-            outZip.file('data/meta.json', JSON.stringify(metaOut, null, 4));
-            outZip.file('data/stages/scene.json', JSON.stringify(sceneOut, null, 4));
+            const eventsOut = {
+                events: normalizeEvents(events)
+            };
+
+            const metaOut = normalizeMeta(meta, data);
+            const sceneOut = normalizeScene(scene);
+
+            outZip.file('chart.json', JSON.stringify(chartOut, null, 4));
+            outZip.file('meta.json', JSON.stringify(metaOut, null, 4));
+            outZip.file('events.json', JSON.stringify(eventsOut, null, 4));
+            outZip.file('stages/scene.json', JSON.stringify(sceneOut, null, 4));
 
             statOk.textContent = '1';
             setProgress(1, 1);
@@ -611,4 +674,4 @@
 </script>
 
 </body>
-  </html>
+</html>
