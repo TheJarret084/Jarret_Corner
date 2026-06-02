@@ -2,291 +2,180 @@
 <head>
     <meta charset="UTF-8">
     <title>Converter</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"><!-- 🔥 Open Graph (embed) -->
-<meta property="og:title" content="Jarret Corner">
-<meta property="og:description" content="Laboratorio de TheJarret084 - proyectos, logs y cosas experimentales">
-<meta property="og:image" content="https://thejarret084.github.io/Jarret_Corner/Material/bannerV1.png">
-<meta property="og:url" content="https://thejarret084.github.io/Jarret_Corner/index.html">
-<meta property="og:type" content="website">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 🔥 Open Graph (embed) -->
+    <meta property="og:title" content="Jarret Corner">
+    <meta property="og:description" content="Laboratorio de TheJarret084 - proyectos, logs y cosas experimentales">
+    <meta property="og:image" content="https://thejarret084.github.io/Jarret_Corner/Material/bannerV1.png">
+    <meta property="og:url" content="https://thejarret084.github.io/Jarret_Corner/index.html">
+    <meta property="og:type" content="website">
+    <!-- X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Name">
+    <meta name="twitter:description" content="Laboratorio de TheJarret084 - proyectos, logs y cosas experimentales">
+    <meta name="twitter:image" content="https://thejarret084.github.io/Jarret_Corner/Material/bannerV1.png">
 
-<!-- X -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Name">
-<meta name="twitter:description" content="Laboratorio de TheJarret084 - proyectos, logs y cosas experimentales">
-<meta name="twitter:image" content="https://thejarret084.github.io/Jarret_Corner/Material/bannerV1.png">
+    <style>
+        :root {
+            --bg: #0f1115;
+            --panel: #171a21;
+            --panel-2: #1d2230;
+            --text: #eef2ff;
+            --muted: #aab2c5;
+            --accent: #b38cff;
+            --accent-2: #7c5cff;
+            --good: #6ee7b7;
+            --bad: #fb7185;
+            --line: rgba(255,255,255,.08);
+            --shadow: 0 18px 60px rgba(0,0,0,.35);
+            --radius: 22px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(1200px 600px at 20% 0%, rgba(179,140,255,.18), transparent 60%),
+                radial-gradient(900px 520px at 100% 15%, rgba(124,92,255,.15), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
+        .wrap {
+            width: min(1100px, calc(100% - 32px));
+            margin: 24px auto 40px;
+        }
+        .hero {
+            display: grid;
+            gap: 12px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 12px; border-radius: 999px;
+            background: rgba(179,140,255,.14); border: 1px solid rgba(179,140,255,.25);
+            color: #d8c7ff; font-size: 13px; letter-spacing: .2px;
+        }
+        h1 { margin: 0; font-size: clamp(28px, 4vw, 46px); line-height: 1.02; }
+        .subtitle { margin: 0; color: var(--muted); max-width: 70ch; line-height: 1.55; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+        .card {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,.03);
+            backdrop-filter: blur(12px);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .card h2 { margin: 0; font-size: 18px; }
+        .card-head { padding: 18px 18px 0; }
+        .card-body { padding: 18px; display: grid; gap: 14px; }
+        .drop {
+            border: 1.5px dashed rgba(179,140,255,.4);
+            border-radius: 20px;
+            background: rgba(179,140,255,.06);
+            padding: 22px;
+            display: grid;
+            gap: 10px;
+        }
+        .drop strong { font-size: 16px; }
+        .drop span, .small { color: var(--muted); line-height: 1.5; }
+        .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        input[type="file"] {
+            width: 100%; padding: 12px; border-radius: 14px;
+            border: 1px solid var(--line); background: var(--panel); color: var(--text);
+        }
+        button, .btn {
+            appearance: none; border: 0; border-radius: 14px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-2));
+            color: white; padding: 12px 16px; font-weight: 700; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center;
+            justify-content: center; gap: 10px;
+            transition: transform .15s ease, opacity .15s ease, filter .15s ease;
+        }
+        button:disabled, .btn.disabled {
+            opacity: .5; cursor: not-allowed; filter: grayscale(.35);
+        }
+        button:not(:disabled):hover, .btn:not(.disabled):hover { transform: translateY(-1px); }
+        .secondary {
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
+            color: var(--text);
+        }
+        .progress-box {
+            display: grid; gap: 8px; padding: 14px 16px;
+            background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 16px;
+        }
+        .progress-line { height: 14px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+        .progress-fill {
+            height: 100%; width: 0%; border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent), var(--good));
+            transition: width .2s ease;
+        }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        @media (max-width: 540px) { .stats { grid-template-columns: 1fr; } }
+        .stat {
+            padding: 14px; border-radius: 16px;
+            background: rgba(255,255,255,.03); border: 1px solid var(--line);
+        }
+        .stat b { display: block; font-size: 20px; margin-bottom: 4px; }
+        .stat span { color: var(--muted); font-size: 13px; }
+        .log {
+            height: 460px; overflow: auto; background: #0c0f14;
+            border-top: 1px solid var(--line); padding: 14px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 13px; line-height: 1.6; white-space: pre-wrap;
+        }
+        .log .ok    { color: var(--good); }
+        .log .err   { color: var(--bad); }
+        .log .info  { color: #cdd6f4; }
+        .log .muted { color: var(--muted); }
+        .log .warn  { color: #fbbf24; }
+        .footer-note { color: var(--muted); font-size: 13px; line-height: 1.5; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    </style>
 
-<link rel="stylesheet" href="Corner.css">
-<link rel="icon" href="./Material/Iconos/iconPage.ico" type="image/x-icon">
-
-<style>
-    :root {
-        --bg: #0f1115;
-        --panel: #171a21;
-        --panel-2: #1d2230;
-        --text: #eef2ff;
-        --muted: #aab2c5;
-        --accent: #b38cff;
-        --accent-2: #7c5cff;
-        --good: #6ee7b7;
-        --bad: #fb7185;
-        --line: rgba(255,255,255,.08);
-        --shadow: 0 18px 60px rgba(0,0,0,.35);
-        --radius: 22px;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-        margin: 0;
-        min-height: 100vh;
-        background:
-            radial-gradient(1200px 600px at 20% 0%, rgba(179,140,255,.18), transparent 60%),
-            radial-gradient(900px 520px at 100% 15%, rgba(124,92,255,.15), transparent 55%),
-            var(--bg);
-        color: var(--text);
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    .wrap {
-        width: min(1100px, calc(100% - 32px));
-        margin: 24px auto 40px;
-    }
-
-    .hero {
-        display: grid;
-        gap: 12px;
-        padding: 24px;
-        border: 1px solid var(--line);
-        background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-        box-shadow: var(--shadow);
-        border-radius: var(--radius);
-        overflow: hidden;
-    }
-
-    .title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(179,140,255,.14);
-        border: 1px solid rgba(179,140,255,.25);
-        color: #d8c7ff;
-        font-size: 13px;
-        letter-spacing: .2px;
-    }
-
-    h1 {
-        margin: 0;
-        font-size: clamp(28px, 4vw, 46px);
-        line-height: 1.02;
-    }
-
-    .subtitle {
-        margin: 0;
-        color: var(--muted);
-        max-width: 70ch;
-        line-height: 1.55;
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: 1.1fr .9fr;
-        gap: 18px;
-        margin-top: 18px;
-    }
-
-    @media (max-width: 900px) {
-        .grid { grid-template-columns: 1fr; }
-    }
-
-    .card {
-        border: 1px solid var(--line);
-        background: rgba(255,255,255,.03);
-        backdrop-filter: blur(12px);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-    }
-
-    .card h2 {
-        margin: 0;
-        font-size: 18px;
-    }
-
-    .card-head {
-        padding: 18px 18px 0;
-    }
-
-    .card-body {
-        padding: 18px;
-        display: grid;
-        gap: 14px;
-    }
-
-    .drop {
-        border: 1.5px dashed rgba(179,140,255,.4);
-        border-radius: 20px;
-        background: rgba(179,140,255,.06);
-        padding: 22px;
-        display: grid;
-        gap: 10px;
-    }
-
-    .drop strong { font-size: 16px; }
-    .drop span, .small { color: var(--muted); line-height: 1.5; }
-
-    .row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-    }
-
-    input[type="file"] {
-        width: 100%;
-        padding: 12px;
-        border-radius: 14px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--text);
-    }
-
-    button, .btn {
-        appearance: none;
-        border: 0;
-        border-radius: 14px;
-        background: linear-gradient(180deg, var(--accent), var(--accent-2));
-        color: white;
-        padding: 12px 16px;
-        font-weight: 700;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        transition: transform .15s ease, opacity .15s ease, filter .15s ease;
-    }
-
-    button:disabled, .btn.disabled {
-        opacity: .5;
-        cursor: not-allowed;
-        filter: grayscale(.35);
-    }
-
-    button:not(:disabled):hover, .btn:hover {
-        transform: translateY(-1px);
-    }
-
-    .secondary {
-        background: rgba(255,255,255,.06);
-        border: 1px solid var(--line);
-        color: var(--text);
-    }
-
-    .progress-box {
-        display: grid;
-        gap: 8px;
-        padding: 14px 16px;
-        background: rgba(255,255,255,.04);
-        border: 1px solid var(--line);
-        border-radius: 16px;
-    }
-
-    .progress-line {
-        height: 14px;
-        border-radius: 999px;
-        background: rgba(255,255,255,.08);
-        overflow: hidden;
-    }
-
-    .progress-fill {
-        height: 100%;
-        width: 0%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, var(--accent), var(--good));
-        transition: width .2s ease;
-    }
-
-    .stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-    }
-
-    @media (max-width: 540px) {
-        .stats { grid-template-columns: 1fr; }
-    }
-
-    .stat {
-        padding: 14px;
-        border-radius: 16px;
-        background: rgba(255,255,255,.03);
-        border: 1px solid var(--line);
-    }
-
-    .stat b { display: block; font-size: 20px; margin-bottom: 4px; }
-    .stat span { color: var(--muted); font-size: 13px; }
-
-    .log {
-        height: 460px;
-        overflow: auto;
-        background: #0c0f14;
-        border-top: 1px solid var(--line);
-        padding: 14px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 13px;
-        line-height: 1.6;
-        white-space: pre-wrap;
-    }
-
-    .log .ok { color: var(--good); }
-    .log .err { color: var(--bad); }
-    .log .info { color: #cdd6f4; }
-    .log .muted { color: var(--muted); }
-
-    .footer-note {
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.5;
-    }
-
-    .mono {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    }
-</style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-    <div class="wrap">
-        <section class="hero">
-            <div class="title">
-                <span class="badge">Jarret Corner · FNMM → FMCE</span>
-                <span class="badge">Un solo archivo</span>
-            </div>
-            <h1>Convierte un .FNMM a .FMCE</h1>
-            <p class="subtitle">
-                Selecciona un único archivo <span class="mono">.FNMM</span> y esta página genera un <span class="mono">.FMCE</span> con <span class="mono">chart.json</span>, <span class="mono">meta.json</span>, <span class="mono">events.json</span> y <span class="mono">stages/scene.json</span>.
-            </p>
-        </section><div class="grid">
+<div class="wrap">
+    <section class="hero">
+        <div class="title">
+            <span class="badge">Jarret Corner · FNMM → FMCE</span>
+            <span class="badge">Un solo archivo</span>
+        </div>
+        <h1>Convierte un .FNMM a .FMCE</h1>
+        <p class="subtitle">
+            Selecciona un único archivo <span class="mono">.FNMM</span> y esta página genera un
+            <span class="mono">.FMCE</span> con <span class="mono">chart.json</span>,
+            <span class="mono">meta.json</span>, <span class="mono">events.json</span>
+            y <span class="mono">stages/scene.json</span>.
+        </p>
+    </section>
+
+    <div class="grid">
         <section class="card">
-            <div class="card-head">
-                <h2>Entrada y control</h2>
-            </div>
+            <div class="card-head"><h2>Entrada y control</h2></div>
             <div class="card-body">
                 <div class="drop">
                     <strong>1) Selecciona un archivo <span class="mono">.FNMM</span></strong>
-                    <span>El navegador leerá el ZIP y convertirá <span class="mono">data.json</span> al formato que usa <span class="mono">chart.json</span>.</span>
+                    <span>
+                        El navegador leerá el ZIP y convertirá <span class="mono">data.json</span>
+                        (strumLines) al formato de <span class="mono">chart.json</span>.
+                        Strum 0 → lanes 0–3 (jugador), Strum 1 → lanes 4–7 (enemigo).
+                    </span>
                     <input id="fileInput" type="file" accept=".fnmm,.FNMM,application/zip,.zip">
                 </div>
 
@@ -319,36 +208,35 @@
         </section>
 
         <section class="card">
-            <div class="card-head">
-                <h2>Log en vivo</h2>
-            </div>
+            <div class="card-head"><h2>Log en vivo</h2></div>
             <div id="log" class="log"></div>
         </section>
     </div>
 </div>
 
 <script>
-    const fileInput = document.getElementById('fileInput');
-    const startBtn = document.getElementById('startBtn');
-    const clearBtn = document.getElementById('clearBtn');
+    const fileInput    = document.getElementById('fileInput');
+    const startBtn     = document.getElementById('startBtn');
+    const clearBtn     = document.getElementById('clearBtn');
     const downloadLink = document.getElementById('downloadLink');
-    const logEl = document.getElementById('log');
+    const logEl        = document.getElementById('log');
     const progressFill = document.getElementById('progressFill');
     const progressMeta = document.getElementById('progressMeta');
-    const statusText = document.getElementById('statusText');
-    const statTotal = document.getElementById('statTotal');
-    const statOk = document.getElementById('statOk');
-    const statFail = document.getElementById('statFail');
+    const statusText   = document.getElementById('statusText');
+    const statTotal    = document.getElementById('statTotal');
+    const statOk       = document.getElementById('statOk');
+    const statFail     = document.getElementById('statFail');
 
-    let selectedFile = null;
+    let selectedFile   = null;
     let currentBlobUrl = null;
 
+    /* ── helpers ── */
     function escapeHtml(str) {
         return String(str)
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
+            .replaceAll('&',  '&amp;')
+            .replaceAll('<',  '&lt;')
+            .replaceAll('>',  '&gt;')
+            .replaceAll('"',  '&quot;')
             .replaceAll("'", '&#039;');
     }
 
@@ -372,79 +260,122 @@
     async function readZipJson(zip, name) {
         const entry = zip.file(name);
         if (!entry) return null;
-        try {
-            return JSON.parse(await entry.async('string'));
-        } catch (e) {
-            return null;
-        }
+        try { return JSON.parse(await entry.async('string')); }
+        catch { return null; }
     }
 
     function safeRound(v) {
         return typeof v === 'number' && Number.isFinite(v)
-            ? Math.round(v * 10000) / 10000
-            : v;
+            ? Math.round(v * 10000) / 10000 : v;
     }
 
     function normalizeString(v, fallback = '') {
         return typeof v === 'string' && v.trim() ? v.trim() : fallback;
     }
 
+    /* ─────────────────────────────────────────────────────────────────
+       normalizeNotes
+       Formato FNMM:  data.strumLines[strumIdx][laneIdx] = [{start, duration, props}, ...]
+         strumIdx 0 = jugador  → lane FMCE = laneIdx      (0-3)
+         strumIdx 1 = enemigo  → lane FMCE = laneIdx + 4  (4-7)
+       Si data.notes existe como array plano (formato legado), también lo acepta.
+    ───────────────────────────────────────────────────────────────── */
     function normalizeNotes(data) {
         const out = [];
-        const raw = data?.notes;
-        const source = Array.isArray(raw) ? raw : [];
 
-        source.forEach((note) => {
-            if (Array.isArray(note)) {
-                // [time, lane, length, ...]
-                out.push({
-                    time: safeRound(note[0] ?? 0),
-                    lane: note[1] ?? 0,
-                    length: safeRound(note[2] ?? 0),
-                    ...(note[3] !== undefined ? { type: note[3] } : {}),
-                    ...(note[4] !== undefined ? { data: note[4] } : {})
+        /* — formato FNMM nativo: strumLines[strumIdx][laneIdx][noteIdx] — */
+        if (Array.isArray(data?.strumLines) && data.strumLines.length > 0) {
+            data.strumLines.forEach((strum, strumIdx) => {
+                if (!Array.isArray(strum)) return;
+
+                /* Cada strum es un array de lanes */
+                strum.forEach((lane, laneIdx) => {
+                    if (!Array.isArray(lane)) return;
+
+                    const laneOffset = strumIdx * 4;   // strum 0 → 0-3, strum 1 → 4-7
+
+                    lane.forEach((note) => {
+                        if (!note || typeof note !== 'object') return;
+
+                        const time     = safeRound(note.start   ?? note.time ?? 0);
+                        const duration = safeRound(note.duration ?? note.length ?? 0);
+                        const props    = note.props ?? {};
+
+                        const entry = {
+                            time,
+                            lane: laneIdx + laneOffset,
+                            length: duration
+                        };
+
+                        /* props opcionales — solo si son útiles */
+                        if (Number.isFinite(props.skin)         && props.skin         !== 0)  entry.skin         = props.skin;
+                        if (Number.isFinite(props.onMissEvent)  && props.onMissEvent  !== -1) entry.onMissEvent  = props.onMissEvent;
+                        if (Number.isFinite(props.onPressEvent) && props.onPressEvent !== -1) entry.onPressEvent = props.onPressEvent;
+
+                        out.push(entry);
+                    });
                 });
-                return;
+            });
+
+            out.sort((a, b) => a.time - b.time);
+
+            if (out.length === 0) {
+                appendLog('⚠ strumLines encontrado pero sin notas dentro.', 'warn');
             }
+            return out;
+        }
 
-            if (note && typeof note === 'object') {
-                const obj = {
-                    time: safeRound(note.time ?? note.start ?? 0),
-                    lane: note.lane ?? note.noteData ?? note.column ?? 0,
-                    length: safeRound(note.length ?? note.duration ?? 0)
-                };
+        /* — fallback: formato legado data.notes — */
+        if (Array.isArray(data?.notes)) {
+            appendLog('ℹ Usando data.notes (formato legado).', 'info');
 
-                if (note.type !== undefined) obj.type = note.type;
-                if (note.skin !== undefined) obj.skin = note.skin;
-                if (note.onMissEvent !== undefined) obj.onMissEvent = note.onMissEvent;
-                if (note.onPressEvent !== undefined) obj.onPressEvent = note.onPressEvent;
-                if (note.strumline !== undefined) obj.strumline = note.strumline;
-                if (note.strumLine !== undefined) obj.strumline = note.strumLine;
-                if (note.extra !== undefined) obj.extra = note.extra;
-                if (note.props !== undefined) obj.props = note.props;
+            data.notes.forEach((note) => {
+                if (Array.isArray(note)) {
+                    out.push({
+                        time:   safeRound(note[0] ?? 0),
+                        lane:   note[1] ?? 0,
+                        length: safeRound(note[2] ?? 0),
+                        ...(note[3] !== undefined ? { type: note[3] } : {})
+                    });
+                } else if (note && typeof note === 'object') {
+                    const entry = {
+                        time:   safeRound(note.time ?? note.start ?? 0),
+                        lane:   note.lane ?? note.noteData ?? note.column ?? 0,
+                        length: safeRound(note.length ?? note.duration ?? 0)
+                    };
+                    if (note.type        !== undefined) entry.type        = note.type;
+                    if (note.skin        !== undefined) entry.skin        = note.skin;
+                    if (note.onMissEvent !== undefined) entry.onMissEvent = note.onMissEvent;
+                    if (note.props       !== undefined) entry.props       = note.props;
+                    out.push(entry);
+                }
+            });
 
-                out.push(obj);
-            }
-        });
+            out.sort((a, b) => a.time - b.time);
+            return out;
+        }
 
-        out.sort((a, b) => (a.time ?? 0) - (b.time ?? 0));
+        appendLog('⚠ No se encontró strumLines ni notes en data.json.', 'warn');
         return out;
     }
 
+    /* ─────────────────────────────────────────────────────────────────
+       normalizeEvents
+       Formato FNMM: events.json → { events: [{time, actions:[{type, props}]}] }
+    ───────────────────────────────────────────────────────────────── */
     function normalizeEvents(eventsJson) {
         const out = [];
         const source = Array.isArray(eventsJson?.events) ? eventsJson.events : [];
 
         source.forEach((ev, index) => {
-            const time = safeRound(ev?.time ?? ev?.start ?? 0);
-            const name = normalizeString(ev?.name ?? ev?.type ?? ev?.event ?? `event_${index}`, 'Unknown');
+            const time    = safeRound(ev?.time ?? ev?.start ?? 0);
             const actions = Array.isArray(ev?.actions) ? ev.actions : null;
 
             if (actions && actions.length) {
                 actions.forEach((act, actIndex) => {
                     out.push({
                         time,
-                        name: normalizeString(act?.type ?? act?.name ?? `${name}_${actIndex}`, name),
+                        name:   normalizeString(act?.type ?? act?.name ?? `event_${index}_${actIndex}`, 'Unknown'),
                         params: act?.props ?? act?.params ?? {}
                     });
                 });
@@ -453,66 +384,71 @@
 
             out.push({
                 time,
-                name,
+                name:   normalizeString(ev?.name ?? ev?.type ?? ev?.event ?? `event_${index}`, 'Unknown'),
                 params: ev?.params ?? ev?.props ?? ev?.data ?? {}
             });
         });
 
-        out.sort((a, b) => (a.time ?? 0) - (b.time ?? 0));
+        out.sort((a, b) => a.time - b.time);
         return out;
     }
 
-    function normalizeMeta(metaJson, dataJson) {
-        const meta = metaJson || {};
-        const data = dataJson || {};
+    /* ─────────────────────────────────────────────────────────────────
+       normalizeMeta
+       Extrae displayName, bpm, stage e iconos de scene.json / data.json
+    ───────────────────────────────────────────────────────────────── */
+    function normalizeMeta(metaJson, dataJson, sceneJson) {
+        const meta  = metaJson  || {};
+        const data  = dataJson  || {};
+        const scene = sceneJson || {};
 
         const displayName = normalizeString(
             meta.displayName ?? data.displayName ?? data.song ?? data.name ?? data.levelName,
             'levelName'
         );
 
-        const bpm = Number.isFinite(meta.bpm)
-            ? meta.bpm
-            : Number.isFinite(data.bpm)
-                ? data.bpm
-                : 120;
+        const bpm = Number.isFinite(meta.bpm) ? meta.bpm
+                  : Number.isFinite(data.bpm) ? data.bpm
+                  : 120;
 
         const stage = normalizeString(meta.stage ?? data.stage, 'scene');
 
+        /* Iconos: scene.json tiene un array ["icon-enemy","icon-player"]
+           En el FNMM el orden es [enemy, player] */
+        const iconsArr = Array.isArray(scene.icons) ? scene.icons : [];
+        const p2Raw = iconsArr[0] ?? null;  // enemigo
+        const p1Raw = iconsArr[1] ?? null;  // jugador
+
         const p1 = normalizeString(
-            meta?.icons?.P1 ?? data?.icons?.P1 ?? data?.playerIcon ?? data?.iconPlayer,
+            p1Raw ?? meta?.icons?.P1 ?? data?.icons?.P1 ?? data?.playerIcon,
             'icon-player'
         );
         const p2 = normalizeString(
-            meta?.icons?.P2 ?? data?.icons?.P2 ?? data?.enemyIcon ?? data?.iconEnemy,
+            p2Raw ?? meta?.icons?.P2 ?? data?.icons?.P2 ?? data?.enemyIcon,
             'icon-enemy'
         );
 
-        return {
-            displayName,
-            bpm,
-            stage,
-            icons: {
-                P1: p1,
-                P2: p2
-            }
-        };
+        return { displayName, bpm, stage, icons: { P1: p1, P2: p2 } };
     }
 
+    /* ─────────────────────────────────────────────────────────────────
+       normalizeScene
+       Limpia cameras y objects de scene.json
+    ───────────────────────────────────────────────────────────────── */
     function normalizeScene(scene) {
         if (!scene || typeof scene !== 'object') return {};
 
         const cleaned = {
-            cameras: [],
-            objects: [],
+            cameras:   [],
+            objects:   [],
             landscape: scene.landscape !== undefined ? !!scene.landscape : true
         };
 
         if (Array.isArray(scene.cameras)) {
             scene.cameras.forEach((c) => {
                 cleaned.cameras.push({
-                    x: safeRound(c?.x ?? 0),
-                    y: safeRound(c?.y ?? 0),
+                    x:     safeRound(c?.x     ?? 0),
+                    y:     safeRound(c?.y     ?? 0),
                     scale: safeRound(c?.scale ?? 1)
                 });
             });
@@ -521,26 +457,24 @@
         if (Array.isArray(scene.objects)) {
             scene.objects.forEach((o) => {
                 const obj = {
-                    x: safeRound(o?.x ?? 0),
-                    y: safeRound(o?.y ?? 0),
-                    sprite: o?.spr ?? o?.sprite ?? '',
+                    x:       safeRound(o?.x ?? 0),
+                    y:       safeRound(o?.y ?? 0),
+                    sprite:  o?.spr ?? o?.sprite ?? '',
                     visible: o?.visible !== undefined ? !!o.visible : true
                 };
 
                 if (o && 'scale' in o) {
                     if (typeof o.scale === 'object' && o.scale !== null) {
-                        obj.scale = {
-                            x: safeRound(o.scale.x ?? 1),
-                            y: safeRound(o.scale.y ?? 1)
-                        };
+                        obj.scale = { x: safeRound(o.scale.x ?? 1), y: safeRound(o.scale.y ?? 1) };
                     } else {
                         obj.scale = safeRound(o.scale);
                     }
                 }
 
-                if (o?.strumLine !== undefined) obj.strumline = o.strumLine;
-                if (o?.strumline !== undefined) obj.strumline = o.strumline;
-                if (o?.name !== undefined) obj.name = o.name;
+                if (o?.strumLine  !== undefined) obj.strumline = o.strumLine;
+                if (o?.strumline  !== undefined) obj.strumline = o.strumline;
+                if (o?.name       !== undefined) obj.name      = o.name;
+                if (o?.fixed      !== undefined) obj.fixed     = o.fixed;
 
                 cleaned.objects.push(obj);
             });
@@ -549,6 +483,7 @@
         return cleaned;
     }
 
+    /* ── UI reset ── */
     function resetUI() {
         logEl.innerHTML = '';
         progressFill.style.width = '0%';
@@ -560,30 +495,25 @@
         downloadLink.classList.add('disabled');
         downloadLink.href = '#';
         downloadLink.removeAttribute('download');
-
-        if (currentBlobUrl) {
-            URL.revokeObjectURL(currentBlobUrl);
-            currentBlobUrl = null;
-        }
+        if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; }
     }
 
+    /* ── events ── */
     fileInput.addEventListener('change', () => {
-        selectedFile = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+        selectedFile = fileInput.files?.[0] ?? null;
         resetUI();
 
         if (selectedFile && /\.fnmm$/i.test(selectedFile.name)) {
             startBtn.disabled = false;
             appendLog(`Listo: ${selectedFile.name}`, 'ok');
-            appendLog('Pulsa Convertir a FMCE.', 'muted');
+            appendLog('Pulsa "Convertir a FMCE".', 'muted');
         } else {
             startBtn.disabled = true;
-            appendLog('No se detectó un archivo .FNMM válido.', 'err');
+            if (selectedFile) appendLog('No se detectó un archivo .FNMM válido.', 'err');
         }
     });
 
-    clearBtn.addEventListener('click', () => {
-        logEl.innerHTML = '';
-    });
+    clearBtn.addEventListener('click', () => { logEl.innerHTML = ''; });
 
     startBtn.addEventListener('click', async () => {
         if (!selectedFile) return;
@@ -594,75 +524,94 @@
         downloadLink.classList.add('disabled');
         downloadLink.href = '#';
         downloadLink.removeAttribute('download');
-
-        if (currentBlobUrl) {
-            URL.revokeObjectURL(currentBlobUrl);
-            currentBlobUrl = null;
-        }
+        if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; }
 
         const outZip = new JSZip();
-        const start = performance.now();
+        const start  = performance.now();
 
         statTotal.textContent = '1';
-        statOk.textContent = '0';
-        statFail.textContent = '0';
+        statOk.textContent    = '0';
+        statFail.textContent  = '0';
 
         appendLog('▶ Inicio de conversión', 'info');
         appendLog(`▶ Archivo: ${selectedFile.name}`, 'info');
-        appendLog('▶ Salida: .FMCE', 'info');
         appendLog('', 'muted');
 
         try {
             setProgress(0, 1);
 
             const buffer = await selectedFile.arrayBuffer();
-            const zip = await JSZip.loadAsync(buffer);
+            const zip    = await JSZip.loadAsync(buffer);
 
-            const data = await readZipJson(zip, 'data.json') || {};
+            appendLog('✔ ZIP leído correctamente.', 'ok');
+
+            const data   = await readZipJson(zip, 'data.json')   || {};
             const events = await readZipJson(zip, 'events.json') || {};
-            const meta = await readZipJson(zip, 'meta.json') || {};
-            const scene = await readZipJson(zip, 'scene.json') || {};
+            const meta   = await readZipJson(zip, 'meta.json')   || {};
+            const scene  = await readZipJson(zip, 'scene.json')  || {};
 
-            const chartOut = {
-                notes: normalizeNotes(data)
-            };
+            appendLog(`ℹ data.json   → BPM: ${data.bpm ?? '?'}, version: ${data.version ?? '?'}`, 'info');
+            appendLog(`ℹ scene.json  → ${JSON.stringify(scene.icons ?? [])}`, 'info');
+            appendLog(`ℹ events.json → ${(events.events ?? []).length} evento(s)`, 'info');
+            appendLog('', 'muted');
 
-            const eventsOut = {
-                events: normalizeEvents(events)
-            };
+            /* — Notas — */
+            const notes = normalizeNotes(data);
+            appendLog(`✔ Notas procesadas: ${notes.length} total`, 'ok');
 
-            const metaOut = normalizeMeta(meta, data);
+            if (Array.isArray(data.strumLines)) {
+                data.strumLines.forEach((strum, si) => {
+                    if (!Array.isArray(strum)) return;
+                    strum.forEach((lane, li) => {
+                        const count = Array.isArray(lane) ? lane.length : 0;
+                        const laneLabel = li + si * 4;
+                        appendLog(`  strum ${si} lane ${li} → lane FMCE ${laneLabel}: ${count} notas`, 'muted');
+                    });
+                });
+            }
+            appendLog('', 'muted');
+
+            /* — Eventos — */
+            const eventsOut = { events: normalizeEvents(events) };
+            appendLog(`✔ Eventos procesados: ${eventsOut.events.length}`, 'ok');
+
+            /* — Meta — */
+            const metaOut = normalizeMeta(meta, data, scene);
+            appendLog(`✔ Meta → "${metaOut.displayName}" BPM:${metaOut.bpm} P1:${metaOut.icons.P1} P2:${metaOut.icons.P2}`, 'ok');
+
+            /* — Scene — */
             const sceneOut = normalizeScene(scene);
+            appendLog(`✔ Scene → ${sceneOut.cameras?.length ?? 0} cámaras, ${sceneOut.objects?.length ?? 0} objetos`, 'ok');
+            appendLog('', 'muted');
 
-            outZip.file('chart.json', JSON.stringify(chartOut, null, 4));
-            outZip.file('meta.json', JSON.stringify(metaOut, null, 4));
-            outZip.file('events.json', JSON.stringify(eventsOut, null, 4));
-            outZip.file('stages/scene.json', JSON.stringify(sceneOut, null, 4));
+            /* — Empaquetar — */
+            outZip.file('chart.json',        JSON.stringify({ notes }, null, 4));
+            outZip.file('meta.json',         JSON.stringify(metaOut,  null, 4));
+            outZip.file('events.json',       JSON.stringify(eventsOut, null, 4));
+            outZip.file('stages/scene.json', JSON.stringify(sceneOut,  null, 4));
 
             statOk.textContent = '1';
             setProgress(1, 1);
-            appendLog(`✔ Convertido: ${selectedFile.name}`, 'ok');
 
-            const elapsed = ((performance.now() - start) / 1000).toFixed(2);
-            appendLog('', 'muted');
-            appendLog('✔ Finalizado', 'ok');
-            appendLog(`✔ Tiempo: ${elapsed}s`, 'ok');
-
+            const elapsed  = ((performance.now() - start) / 1000).toFixed(2);
             const fmceName = selectedFile.name.replace(/\.(fnmm|FNMM)$/i, '') + '.FMCE';
-            const blob = await outZip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+            const blob     = await outZip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
             currentBlobUrl = URL.createObjectURL(blob);
 
             downloadLink.href = currentBlobUrl;
             downloadLink.download = fmceName;
             downloadLink.classList.remove('disabled');
 
-            appendLog(`📄 Archivo listo: ${fmceName}`, 'ok');
-            appendLog('Pulsa “Descargar FMCE”.', 'muted');
+            appendLog(`✔ Finalizado en ${elapsed}s`, 'ok');
+            appendLog(`📄 Listo: ${fmceName}`, 'ok');
+            appendLog('Pulsa "Descargar FMCE".', 'muted');
+
         } catch (err) {
             statFail.textContent = '1';
-            const message = err && err.message ? err.message : String(err);
+            const message = err?.message ?? String(err);
             appendLog(`✘ ERROR: ${message}`, 'err');
             appendLog('No se pudo convertir el archivo.', 'err');
+            console.error(err);
         }
 
         startBtn.disabled = false;
@@ -672,6 +621,5 @@
 
     resetUI();
 </script>
-
 </body>
 </html>
