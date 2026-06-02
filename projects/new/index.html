@@ -1,0 +1,614 @@
+<!DOCTYPE html><html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>converter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"><!-- 🔥 Open Graph (embed) -->
+<meta property="og:title" content="Jarret Corner">
+<meta property="og:description" content="Laboratorio de TheJarret084 - proyectos, logs y cosas experimentales">
+<meta property="og:image" content="https://thejarret084.github.io/Jarret_Corner/Material/bannerV1.png">
+<meta property="og:url" content="https://thejarret084.github.io/Jarret_Corner/index.html">
+<meta property="og:type" content="website">
+
+<!-- X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Name">
+<meta name="twitter:description" content="Laboratorio de TheJarret084 - proyectos, logs y cosas experimentales">
+<meta name="twitter:image" content="https://thejarret084.github.io/Jarret_Corner/Material/bannerV1.png">
+
+<link rel="stylesheet" href="Corner.css">
+<link rel="icon" href="./Material/Iconos/iconPage.ico" type="image/x-icon">
+<!--  .gei   -->
+
+<style>
+    :root {
+        --bg: #0f1115;
+        --panel: #171a21;
+        --panel-2: #1d2230;
+        --text: #eef2ff;
+        --muted: #aab2c5;
+        --accent: #b38cff;
+        --accent-2: #7c5cff;
+        --good: #6ee7b7;
+        --bad: #fb7185;
+        --line: rgba(255,255,255,.08);
+        --shadow: 0 18px 60px rgba(0,0,0,.35);
+        --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+            radial-gradient(1200px 600px at 20% 0%, rgba(179,140,255,.18), transparent 60%),
+            radial-gradient(900px 520px at 100% 15%, rgba(124,92,255,.15), transparent 55%),
+            var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .wrap {
+        width: min(1100px, calc(100% - 32px));
+        margin: 24px auto 40px;
+    }
+
+    .hero {
+        display: grid;
+        gap: 12px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+        box-shadow: var(--shadow);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    .title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(179,140,255,.14);
+        border: 1px solid rgba(179,140,255,.25);
+        color: #d8c7ff;
+        font-size: 13px;
+        letter-spacing: .2px;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: clamp(28px, 4vw, 46px);
+        line-height: 1.02;
+    }
+
+    .subtitle {
+        margin: 0;
+        color: var(--muted);
+        max-width: 70ch;
+        line-height: 1.55;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: 18px;
+        margin-top: 18px;
+    }
+
+    @media (max-width: 900px) {
+        .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.03);
+        backdrop-filter: blur(12px);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .card h2 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .card-head {
+        padding: 18px 18px 0;
+    }
+
+    .card-body {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+    }
+
+    .drop {
+        border: 1.5px dashed rgba(179,140,255,.4);
+        border-radius: 20px;
+        background: rgba(179,140,255,.06);
+        padding: 22px;
+        display: grid;
+        gap: 10px;
+    }
+
+    .drop strong { font-size: 16px; }
+    .drop span, .small { color: var(--muted); line-height: 1.5; }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--text);
+    }
+
+    button, .btn {
+        appearance: none;
+        border: 0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        color: white;
+        padding: 12px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: transform .15s ease, opacity .15s ease, filter .15s ease;
+    }
+
+    button:disabled, .btn.disabled {
+        opacity: .5;
+        cursor: not-allowed;
+        filter: grayscale(.35);
+    }
+
+    button:not(:disabled):hover, .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .secondary {
+        background: rgba(255,255,255,.06);
+        border: 1px solid var(--line);
+        color: var(--text);
+    }
+
+    .progress-box {
+        display: grid;
+        gap: 8px;
+        padding: 14px 16px;
+        background: rgba(255,255,255,.04);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+    }
+
+    .progress-line {
+        height: 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.08);
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent), var(--good));
+        transition: width .2s ease;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    @media (max-width: 540px) {
+        .stats { grid-template-columns: 1fr; }
+    }
+
+    .stat {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.03);
+        border: 1px solid var(--line);
+    }
+
+    .stat b { display: block; font-size: 20px; margin-bottom: 4px; }
+    .stat span { color: var(--muted); font-size: 13px; }
+
+    .log {
+        height: 460px;
+        overflow: auto;
+        background: #0c0f14;
+        border-top: 1px solid var(--line);
+        padding: 14px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    .log .ok { color: var(--good); }
+    .log .err { color: var(--bad); }
+    .log .info { color: #cdd6f4; }
+    .log .muted { color: var(--muted); }
+
+    .footer-note {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+</head>
+<body>
+    <div class="wrap">
+        <section class="hero">
+            <div class="title">
+                <span class="badge">Jarret Corner · FNMM → FMCE</span>
+                <span class="badge">Un solo archivo</span>
+            </div>
+            <h1>Convierte un .FNMM a .FMCE</h1>
+            <p class="subtitle">
+                Selecciona un único archivo <span class="mono">.FNMM</span> y esta página genera un <span class="mono">.FMCE</span> con solo la carpeta <span class="mono">data/</span> adentro.
+            </p>
+        </section><div class="grid">
+        <section class="card">
+            <div class="card-head">
+                <h2>Entrada y control</h2>
+            </div>
+            <div class="card-body">
+                <div class="drop">
+                    <strong>1) Selecciona un archivo <span class="mono">.FNMM</span></strong>
+                    <span>El navegador leerá ese archivo y construirá un <span class="mono">.FMCE</span> con la estructura mínima de <span class="mono">data/</span>.</span>
+                    <input id="fileInput" type="file" accept=".fnmm,.FNMM,application/zip,.zip">
+                </div>
+
+                <div class="row">
+                    <button id="startBtn" disabled>Convertir a FMCE</button>
+                    <button id="clearBtn" class="secondary" type="button">Limpiar log</button>
+                    <a id="downloadLink" class="btn disabled" href="#" download="output.fmce">Descargar FMCE</a>
+                </div>
+
+                <div class="progress-box">
+                    <div id="statusText" class="small">Esperando un archivo…</div>
+                    <div class="progress-line"><div id="progressFill" class="progress-fill"></div></div>
+                    <div id="progressMeta" class="small mono">0 / 1</div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat"><b id="statTotal">1</b><span>Archivo esperado</span></div>
+                    <div class="stat"><b id="statOk">0</b><span>Convertido bien</span></div>
+                    <div class="stat"><b id="statFail">0</b><span>Fallos</span></div>
+                </div>
+
+                <p class="footer-note">
+                    La descarga final será un archivo <span class="mono">.FMCE</span> que contiene solo <span class="mono">data/notes.json</span>, <span class="mono">data/events.json</span>, <span class="mono">data/meta.json</span> y <span class="mono">data/stages/scene.json</span>.
+                </p>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2>Log en vivo</h2>
+            </div>
+            <div id="log" class="log"></div>
+        </section>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const startBtn = document.getElementById('startBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const downloadLink = document.getElementById('downloadLink');
+    const logEl = document.getElementById('log');
+    const progressFill = document.getElementById('progressFill');
+    const progressMeta = document.getElementById('progressMeta');
+    const statusText = document.getElementById('statusText');
+    const statTotal = document.getElementById('statTotal');
+    const statOk = document.getElementById('statOk');
+    const statFail = document.getElementById('statFail');
+
+    let selectedFile = null;
+    let currentBlobUrl = null;
+
+    function escapeHtml(str) {
+        return String(str)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function appendLog(msg, cls = 'info') {
+        const line = document.createElement('div');
+        line.className = cls;
+        line.innerHTML = escapeHtml(msg);
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setProgress(current, total) {
+        const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+        progressFill.style.width = `${pct}%`;
+        progressMeta.textContent = `${current} / ${total} (${pct}%)`;
+        statusText.textContent = total > 0
+            ? `Procesando archivo ${current} de ${total}`
+            : 'Esperando un archivo…';
+    }
+
+    async function readZipJson(zip, name) {
+        const entry = zip.file(name);
+        if (!entry) return null;
+        try {
+            return JSON.parse(await entry.async('string'));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function safeRound(v) {
+        return typeof v === 'number' && Number.isFinite(v) ? Math.round(v * 10000) / 10000 : v;
+    }
+
+    function convertNotes(chart) {
+        const notes = [];
+        const strumLines = chart?.strumLines || [];
+
+        strumLines.forEach((strum, s_id) => {
+            (strum || []).forEach((lane, l_id) => {
+                (lane || []).forEach((note) => {
+                    const n = {
+                        time: note?.start ?? 0,
+                        lane: l_id,
+                        strumline: s_id,
+                        length: note?.duration ?? 0
+                    };
+
+                    const props = note?.props || {};
+
+                    if ((props.skin ?? 0) !== 0) n.skin = props.skin;
+                    if ((props.onMissEvent ?? -1) !== -1) n.onMissEvent = props.onMissEvent;
+                    if ((props.onPressEvent ?? -1) !== -1) n.onPressEvent = props.onPressEvent;
+
+                    notes.push(n);
+                });
+            });
+        });
+
+        notes.sort((a, b) => a.time - b.time);
+        return notes;
+    }
+
+    function convertEvents(eventsJson) {
+        const out = [];
+        if (!eventsJson) return out;
+
+        (eventsJson.events || []).forEach((ev) => {
+            const time = ev?.time ?? 0;
+            (ev.actions || []).forEach((act) => {
+                out.push({
+                    name: act?.type || 'Unknown',
+                    time: safeRound(time),
+                    params: act?.props || {}
+                });
+            });
+        });
+
+        out.sort((a, b) => a.time - b.time);
+        return out;
+    }
+
+    function convertMeta(metaJson, sceneJson) {
+        const meta = metaJson || {};
+        let icons = {};
+
+        if (sceneJson && Array.isArray(sceneJson.icons) && sceneJson.icons.length >= 2) {
+            icons = {
+                P1: sceneJson.icons[1],
+                P2: sceneJson.icons[0]
+            };
+        }
+
+        return {
+            displayName: meta.displayName || 'unknown',
+            bpm: meta.bpm || 120,
+            stage: meta.stage || 'scene',
+            icons: icons
+        };
+    }
+
+    function convertScene(scene) {
+        if (!scene) return {};
+
+        const cleaned = {
+            cameras: [],
+            objects: [],
+            landscape: true
+        };
+
+        (scene.cameras || []).forEach((c) => {
+            cleaned.cameras.push({
+                x: safeRound(c?.x ?? 0),
+                y: safeRound(c?.y ?? 0),
+                scale: safeRound(c?.scale ?? 1)
+            });
+        });
+
+        (scene.objects || []).forEach((o) => {
+            const obj = {
+                x: safeRound(o?.x ?? 0),
+                y: safeRound(o?.y ?? 0),
+                sprite: o?.spr,
+                visible: o?.visible ?? true
+            };
+
+            if (o && 'scale' in o) {
+                if (typeof o.scale === 'object' && o.scale !== null) {
+                    obj.scale = {
+                        x: safeRound(o.scale.x ?? 1),
+                        y: safeRound(o.scale.y ?? 1)
+                    };
+                } else {
+                    obj.scale = safeRound(o.scale);
+                }
+            }
+
+            if ((o?.strumLine ?? -1) !== -1) {
+                obj.strumline = o.strumLine;
+            }
+
+            cleaned.objects.push(obj);
+        });
+
+        return cleaned;
+    }
+
+    function resetUI() {
+        logEl.innerHTML = '';
+        progressFill.style.width = '0%';
+        progressMeta.textContent = '0 / 1';
+        statusText.textContent = 'Esperando un archivo…';
+        statTotal.textContent = '1';
+        statOk.textContent = '0';
+        statFail.textContent = '0';
+        downloadLink.classList.add('disabled');
+        downloadLink.href = '#';
+        downloadLink.removeAttribute('download');
+        if (currentBlobUrl) {
+            URL.revokeObjectURL(currentBlobUrl);
+            currentBlobUrl = null;
+        }
+    }
+
+    fileInput.addEventListener('change', () => {
+        selectedFile = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+        resetUI();
+
+        if (selectedFile && /\.fnmm$/i.test(selectedFile.name)) {
+            startBtn.disabled = false;
+            appendLog(`Listo: ${selectedFile.name}`, 'ok');
+            appendLog('Pulsa Convertir a FMCE.', 'muted');
+        } else {
+            startBtn.disabled = true;
+            appendLog('No se detectó un archivo .FNMM válido.', 'err');
+        }
+    });
+
+    clearBtn.addEventListener('click', () => {
+        logEl.innerHTML = '';
+    });
+
+    startBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+
+        startBtn.disabled = true;
+        fileInput.disabled = true;
+        clearBtn.disabled = true;
+        downloadLink.classList.add('disabled');
+        downloadLink.href = '#';
+        downloadLink.removeAttribute('download');
+
+        if (currentBlobUrl) {
+            URL.revokeObjectURL(currentBlobUrl);
+            currentBlobUrl = null;
+        }
+
+        const outZip = new JSZip();
+        const start = performance.now();
+
+        statTotal.textContent = '1';
+        statOk.textContent = '0';
+        statFail.textContent = '0';
+
+        appendLog('▶ Inicio de conversión', 'info');
+        appendLog(`▶ Archivo: ${selectedFile.name}`, 'info');
+        appendLog('▶ Salida: .FMCE con solo data/', 'info');
+        appendLog('', 'muted');
+
+        try {
+            setProgress(0, 1);
+
+            const buffer = await selectedFile.arrayBuffer();
+            const zip = await JSZip.loadAsync(buffer);
+
+            const chart = await readZipJson(zip, 'chart.json') || await readZipJson(zip, 'chart.fnmm') || {};
+            const events = await readZipJson(zip, 'events.json') || {};
+            const meta = await readZipJson(zip, 'meta.json') || {};
+            const scene = await readZipJson(zip, 'scene.json');
+
+            const notes = convertNotes(chart);
+            const ev = convertEvents(events);
+            const metaOut = convertMeta(meta, scene);
+            const sceneOut = convertScene(scene);
+
+            outZip.file('data/notes.json', JSON.stringify({ notes }, null, 4));
+            outZip.file('data/events.json', JSON.stringify({ events: ev }, null, 4));
+            outZip.file('data/meta.json', JSON.stringify(metaOut, null, 4));
+            outZip.file('data/stages/scene.json', JSON.stringify(sceneOut, null, 4));
+
+            statOk.textContent = '1';
+            setProgress(1, 1);
+            appendLog(`✔ Convertido: ${selectedFile.name}`, 'ok');
+
+            const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+            appendLog('', 'muted');
+            appendLog('✔ Finalizado', 'ok');
+            appendLog(`✔ Tiempo: ${elapsed}s`, 'ok');
+
+            const fmceName = selectedFile.name.replace(/\.(fnmm|FNMM)$/i, '') + '.FMCE';
+            const blob = await outZip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+            currentBlobUrl = URL.createObjectURL(blob);
+
+            downloadLink.href = currentBlobUrl;
+            downloadLink.download = fmceName;
+            downloadLink.classList.remove('disabled');
+
+            appendLog(`📄 Archivo listo: ${fmceName}`, 'ok');
+            appendLog('Pulsa “Descargar FMCE”.', 'muted');
+        } catch (err) {
+            statFail.textContent = '1';
+            const message = err && err.message ? err.message : String(err);
+            appendLog(`✘ ERROR: ${message}`, 'err');
+            appendLog('No se pudo convertir el archivo.', 'err');
+        }
+
+        startBtn.disabled = false;
+        fileInput.disabled = false;
+        clearBtn.disabled = false;
+    });
+
+    resetUI();
+</script>
+
+</body>
+  </html>
