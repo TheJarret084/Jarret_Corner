@@ -202,6 +202,7 @@
                     <span class="mono">chart.json</span>,
                     <span class="mono">meta.json</span>,
                     <span class="mono">events.json</span>,
+                    <span class="mono">action_packs.json</span>,
                     <span class="mono">stages/scene.json</span>.
                 </p>
             </div>
@@ -276,87 +277,83 @@
     /* ─────────────────────────────────────────────────────────────────
        normalizeNotes
        Formato FNMM:  data.strumLines[strumIdx][laneIdx] = [{start, duration, props}, ...]
-         strumIdx 0 = jugador  → lane FMCE = laneIdx      (0-3)
-         strumIdx 1 = enemigo  → lane FMCE = laneIdx + 4  (4-7)
-       Si data.notes existe como array plano (formato legado), también lo acepta.
+       Salida FMCE:   { strumLines: [ [notas strum0...], [notas strum1...] ] }
+         Cada nota tiene: { time, lane (0-3), length, props (completo) }
+       Si data.notes existe como array plano (formato legado), lo devuelve como antes.
     ───────────────────────────────────────────────────────────────── */
     function normalizeNotes(data) {
-        const out = [];
 
         /* — formato FNMM nativo: strumLines[strumIdx][laneIdx][noteIdx] — */
         if (Array.isArray(data?.strumLines) && data.strumLines.length > 0) {
+            const strumLinesOut = [];
+
             data.strumLines.forEach((strum, strumIdx) => {
                 if (!Array.isArray(strum)) return;
 
-                /* Cada strum es un array de lanes */
+                const strumNotes = [];
+
                 strum.forEach((lane, laneIdx) => {
                     if (!Array.isArray(lane)) return;
-
-                    const laneOffset = strumIdx * 4;   // strum 0 → 0-3, strum 1 → 4-7
 
                     lane.forEach((note) => {
                         if (!note || typeof note !== 'object') return;
 
-                        const time     = safeRound(note.start   ?? note.time ?? 0);
-                        const duration = safeRound(note.duration ?? note.length ?? 0);
-                        const props    = note.props ?? {};
-
+                        const rawProps = note.props ?? {};
                         const entry = {
-                            time,
-                            lane: laneIdx + laneOffset,
-                            length: duration
+                            time:   safeRound(note.start    ?? note.time   ?? 0),
+                            lane:   laneIdx,                          // 0-3 dentro de cada strum
+                            length: safeRound(note.duration ?? note.length ?? 0),
+                            ...Object.fromEntries(                    // props directo en la nota
+                                Object.entries(rawProps).map(([k, v]) => [k, safeRound(v)])
+                            )
                         };
 
-                        /* props opcionales — solo si son útiles */
-                        if (Number.isFinite(props.skin)         && props.skin         !== 0)  entry.skin         = props.skin;
-                        if (Number.isFinite(props.onMissEvent)  && props.onMissEvent  !== -1) entry.onMissEvent  = props.onMissEvent;
-                        if (Number.isFinite(props.onPressEvent) && props.onPressEvent !== -1) entry.onPressEvent = props.onPressEvent;
-
-                        out.push(entry);
+                        strumNotes.push(entry);
                     });
                 });
+
+                strumNotes.sort((a, b) => a.time - b.time);
+                strumLinesOut.push(strumNotes);
             });
 
-            out.sort((a, b) => a.time - b.time);
+            const total = strumLinesOut.reduce((s, sl) => s + sl.length, 0);
+            if (total === 0) appendLog('⚠ strumLines encontrado pero sin notas dentro.', 'warn');
 
-            if (out.length === 0) {
-                appendLog('⚠ strumLines encontrado pero sin notas dentro.', 'warn');
-            }
-            return out;
+            return { type: 'strumLines', strumLines: strumLinesOut };
         }
 
         /* — fallback: formato legado data.notes — */
         if (Array.isArray(data?.notes)) {
             appendLog('ℹ Usando data.notes (formato legado).', 'info');
+            const notes = [];
 
             data.notes.forEach((note) => {
                 if (Array.isArray(note)) {
-                    out.push({
+                    notes.push({
                         time:   safeRound(note[0] ?? 0),
                         lane:   note[1] ?? 0,
                         length: safeRound(note[2] ?? 0),
                         ...(note[3] !== undefined ? { type: note[3] } : {})
                     });
                 } else if (note && typeof note === 'object') {
-                    const entry = {
+                    const lp = note.props ?? {};
+                    notes.push({
                         time:   safeRound(note.time ?? note.start ?? 0),
                         lane:   note.lane ?? note.noteData ?? note.column ?? 0,
-                        length: safeRound(note.length ?? note.duration ?? 0)
-                    };
-                    if (note.type        !== undefined) entry.type        = note.type;
-                    if (note.skin        !== undefined) entry.skin        = note.skin;
-                    if (note.onMissEvent !== undefined) entry.onMissEvent = note.onMissEvent;
-                    if (note.props       !== undefined) entry.props       = note.props;
-                    out.push(entry);
+                        length: safeRound(note.length ?? note.duration ?? 0),
+                        ...Object.fromEntries(
+                            Object.entries(lp).map(([k, v]) => [k, safeRound(v)])
+                        )
+                    });
                 }
             });
 
-            out.sort((a, b) => a.time - b.time);
-            return out;
+            notes.sort((a, b) => a.time - b.time);
+            return { type: 'notes', notes };
         }
 
         appendLog('⚠ No se encontró strumLines ni notes en data.json.', 'warn');
-        return out;
+        return { type: 'notes', notes: [] };
     }
 
     /* ─────────────────────────────────────────────────────────────────
@@ -391,6 +388,19 @@
 
         out.sort((a, b) => a.time - b.time);
         return out;
+    }
+
+    /* ─────────────────────────────────────────────────────────────────
+       normalizeActionPacks
+       Extrae action_packs de events.json → action_packs.json
+    ───────────────────────────────────────────────────────────────── */
+    function normalizeActionPacks(eventsJson) {
+        const raw = eventsJson?.action_packs;
+        if (!Array.isArray(raw)) return [];
+
+        return raw.map((pack) => ({
+            actions: Array.isArray(pack?.actions) ? pack.actions : []
+        }));
     }
 
     /* ─────────────────────────────────────────────────────────────────
@@ -556,24 +566,26 @@
             appendLog('', 'muted');
 
             /* — Notas — */
-            const notes = normalizeNotes(data);
-            appendLog(`✔ Notas procesadas: ${notes.length} total`, 'ok');
-
-            if (Array.isArray(data.strumLines)) {
-                data.strumLines.forEach((strum, si) => {
-                    if (!Array.isArray(strum)) return;
-                    strum.forEach((lane, li) => {
-                        const count = Array.isArray(lane) ? lane.length : 0;
-                        const laneLabel = li + si * 4;
-                        appendLog(`  strum ${si} lane ${li} → lane FMCE ${laneLabel}: ${count} notas`, 'muted');
-                    });
+            const notesResult = normalizeNotes(data);
+            let chartOut;
+            if (notesResult.type === 'strumLines') {
+                const total = notesResult.strumLines.reduce((s, sl) => s + sl.length, 0);
+                appendLog(`✔ Notas procesadas: ${total} total en ${notesResult.strumLines.length} strumLine(s)`, 'ok');
+                notesResult.strumLines.forEach((sl, si) => {
+                    appendLog(`  strum ${si}: ${sl.length} notas`, 'muted');
                 });
+                chartOut = { strumLines: notesResult.strumLines };
+            } else {
+                appendLog(`✔ Notas procesadas: ${notesResult.notes.length} (formato legado)`, 'ok');
+                chartOut = { notes: notesResult.notes };
             }
             appendLog('', 'muted');
 
             /* — Eventos — */
-            const eventsOut = { events: normalizeEvents(events) };
+            const eventsOut    = { events: normalizeEvents(events) };
+            const actionPacks = normalizeActionPacks(events);
             appendLog(`✔ Eventos procesados: ${eventsOut.events.length}`, 'ok');
+            appendLog(`✔ Action packs: ${actionPacks.length}`, 'ok');
 
             /* — Meta — */
             const metaOut = normalizeMeta(meta, data, scene);
@@ -585,7 +597,8 @@
             appendLog('', 'muted');
 
             /* — Empaquetar — */
-            outZip.file('chart.json',        JSON.stringify({ notes }, null, 4));
+            outZip.file('chart.json',        JSON.stringify(chartOut,    null, 4));
+            outZip.file('action_packs.json', JSON.stringify(actionPacks, null, 4));
             outZip.file('meta.json',         JSON.stringify(metaOut,  null, 4));
             outZip.file('events.json',       JSON.stringify(eventsOut, null, 4));
             outZip.file('stages/scene.json', JSON.stringify(sceneOut,  null, 4));
