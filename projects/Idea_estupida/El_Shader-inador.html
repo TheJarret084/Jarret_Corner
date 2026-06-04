@@ -1,77 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="../../Material/Iconos/Defecto.ico" type="image/x-icon">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>El Shader-inador</title>
-  <link rel="stylesheet" href="El_Shader-inador.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Frame Shader Baker</title>
+  <link rel="stylesheet" href="El_Shader-inador.css" />
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
-
-<header>
-  <h1>El MEGA Shader-inador</h1>
-</header>
-
-<main id="app">
-  <section id="controls" class="preview-container">
-    <div class="control-row mobile-stack">
-      <button id="btnSelectImage" class="primary large">Seleccionar imagen</button>
-      <button id="btnSelectShader" class="secondary large">Agregar shader (.frag)</button>
-      <button id="btnDropHint" class="ghost large">Arrastrar / Tocar aquí</button>
-    </div>
-
-    <div class="control-row mobile-stack">
-      <label class="slider-label">Intensidad
-        <input id="intensitySlider" type="range" min="0" max="1" step="0.01" value="1">
-      </label>
-
-      <div class="btn-group">
-        <button id="applyShaderBtn" class="primary large" disabled>Aplicar shader</button>
-        <button id="removeShaderBtn" class="danger large" disabled>Eliminar shader</button>
-        <button id="downloadBtn" class="primary large" disabled>Descargar imagen</button>
+  <main class="app">
+    <section class="top">
+      <div class="hero">
+        <div>
+          <h1>Frame Shader Baker</h1>
+          <p>Sube un ZIP con PNGs sueltos, carga un <code>frag.txt</code> con varias configs y exporta otro ZIP ya “horneado”.</p>
+        </div>
+        <div class="status" id="status">Listo.</div>
       </div>
-    </div>
 
-    <div class="control-row small">
-      <!-- NO capture attribute to avoid opening the camera -->
-      <input id="imageInput" type="file" accept="image/*" hidden>
-      <input id="shaderInput" type="file" accept=".frag,.glsl,.txt" hidden>
-      <div id="status-text">Sube una imagen y uno o varios shaders .frag</div>
-    </div>
+      <div class="controls">
+        <label class="field">
+          <span>ZIP con frames</span>
+          <input id="zipInput" type="file" accept=".zip,application/zip" />
+        </label>
 
-    <div id="loaderContainer" aria-hidden="true">
-      <div id="loaderBar"></div>
-    </div>
-  </section>
+        <label class="field">
+          <span>frag.txt</span>
+          <input id="cfgInput" type="file" accept=".txt,.frag,text/plain" />
+        </label>
 
-  <section id="result-panel">
-    <div class="preview-container">
-      <div class="preview-title">Preview</div>
-      <canvas id="shaderCanvas" role="img" aria-label="Preview del shader aplicado"></canvas>
-    </div>
+        <label class="field">
+          <span>Salida</span>
+          <input id="outName" type="text" value="processed_frames.zip" />
+        </label>
 
-    <div class="preview-container">
-      <div class="preview-title">Shaders cargados</div>
-      <ul id="shaderList" class="shader-list"></ul>
-    </div>
+        <div class="buttons">
+          <button id="loadSample">Cargar ejemplo</button>
+          <button id="exportCfg">Exportar frag.txt</button>
+          <button id="processZip" class="primary">Procesar ZIP</button>
+        </div>
+      </div>
+    </section>
 
-    <div class="preview-container">
-      <div class="preview-title">Código / Mensajes</div>
-      <pre id="shaderCode" class="code-box">Aquí aparecerá el código del shader seleccionado y errores de compilación.</pre>
-    </div>
-  </section>
-</main>
+    <section class="workspace">
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-title">Configs y reglas</div>
+          <textarea id="cfgText" spellcheck="false"></textarea>
+        </div>
 
-<footer id="footer-placeholder" class="preview-container">
-  © 2026 Jarret Labs. El material que pasa por la página no está asociado a mi persona.
-  <p>No funciona? Contáctame en Discord:</p>
-  <a href="https://discord.com/users/thejarret084" target="_blank" class="discord-link">Discord</a>
-</footer>
+        <div class="panel">
+          <div class="panel-title">Frames detectados</div>
+          <select id="frameList" size="12"></select>
+        </div>
 
-<!-- Punto de entrada: ui.js importa los otros módulos -->
-<script type="module" src="ui.js"></script>
-<script type="module" src="shaders.js"></script>
-<script type="module" src="files.js"></script>
+        <div class="panel small">
+          <div class="panel-title">Preview</div>
+          <canvas id="preview" width="512" height="512"></canvas>
+        </div>
+      </aside>
+
+      <section class="editor">
+        <div class="panel">
+          <div class="panel-title">Notas rápidas</div>
+          <ul class="notes">
+            <li>Los valores son máximos. El baker genera variación sin pasarse.</li>
+            <li>Usa nombres tipo <code>Idle0000.png</code>, <code>Left0001.png</code>, etc.</li>
+            <li>Las reglas soportan comodines como <code>Idle*</code> o <code>*</code>.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Salida en consola</div>
+          <pre id="log"></pre>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="files.js"></script>
 </body>
 </html>
