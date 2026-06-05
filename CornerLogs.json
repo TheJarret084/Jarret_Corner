@@ -1,4 +1,15 @@
 [
+{
+  "date": "2026-06-04T00:00:00Z",
+  "version": "v2.2.4",
+  "title": "Corrección de Interfaz",
+  "body": "Se corrigieron varios problemas en la interfaz de Funkier Pacher. La UI ya no debería romperse aleatoriamente ni hacerse verga en distintas pantallas. También se realizaron pequeños ajustes visuales para mejorar la estabilidad general. [Gracias thiago 👀]",
+  "tags": [
+    "ui",
+    "Funkier-Pacher!"
+  ],
+  "important": false
+},
   {
     "date": "2026-02-24T00:00:00Z",
     "version": "v2.2.3",
