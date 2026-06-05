@@ -12,6 +12,8 @@
 buenas, bienvenido a este "basurero"
 </p>
 
+</br>
+
 Repositorio principal de **Jarret Corner** con proyectos web, experimentos y utilidades.
 
 ## Estructura actual
@@ -25,18 +27,19 @@ Repositorio principal de **Jarret Corner** con proyectos web, experimentos y uti
 ├── projects/
 │   ├── AltForge/
 │   ├── FNMM-Descompacter/
-│   ├── Funkier-pacher!/
+│   ├── Funkier-pacher!/<- atraccion principal
 │   ├── Funky-Editor/
 │   ├── Idea_estupida/
 │   ├── Proyect/
 │   ├── RenownedBySprites/
 │   ├── VidToSheet/
+│   ├── new/
 │   └── bg/
 ├── My-friends/
 ├── thiagoFolder/
 ├── theme/
 │   └── pensiler-theme.css
-└── archive/
+└── archive/ <- basurero reciclable
 ```
 
 ## Proyectos destacados
@@ -95,3 +98,5 @@ Repositorio principal de **Jarret Corner** con proyectos web, experimentos y uti
     </td>
   </tr>
 </table>
+
+
