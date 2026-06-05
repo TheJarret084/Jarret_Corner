@@ -123,17 +123,25 @@
           <p id="status-text" class="status-text">Listo para generar.</p>
         </section>
 
-        <section class="funky-panel result-panel" id="result-panel" aria-labelledby="result-title">
+        <section class="funky-panel result-panel" id="result-panel" style="display:none;" aria-labelledby="result-title">
           <div class="panel-header">
             <h2 id="result-title"><i class="fas fa-image"></i> Resultado</h2>
           </div>
+
+          <div id="download-controls" class="result-download-controls" aria-live="polite"></div>
+
+          <div id="progress-wrapper" class="progress-wrapper" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="display:none;">
+            <div class="progress-track">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <span id="progress-pct" class="progress-pct">0%</span>
+          </div>
+
           <div class="result-content"></div>
         </section>
       </div>
     </div>
   </main>
-
-  <div id="download-controls" class="download-area" aria-live="polite"></div>
 
   <footer class="footer">
     <p>© 2026 Jarret Labs. Basado en <strong>FunkinToFunky!</strong></p>
