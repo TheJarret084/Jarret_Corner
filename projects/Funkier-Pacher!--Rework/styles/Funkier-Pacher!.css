@@ -246,21 +246,10 @@ body::before {
   animation: reveal-up 0.52s ease both;
 }
 
-.funky-panel:nth-child(2) {
-  animation-delay: 0.06s;
-}
-
-.funky-panel:nth-child(3) {
-  animation-delay: 0.12s;
-}
-
-.funky-panel:nth-child(4) {
-  animation-delay: 0.18s;
-}
-
-.funky-panel:nth-child(5) {
-  animation-delay: 0.24s;
-}
+.funky-panel:nth-child(2) { animation-delay: 0.06s; }
+.funky-panel:nth-child(3) { animation-delay: 0.12s; }
+.funky-panel:nth-child(4) { animation-delay: 0.18s; }
+.funky-panel:nth-child(5) { animation-delay: 0.24s; }
 
 .panel-header {
   margin-bottom: 14px;
@@ -470,27 +459,51 @@ body::before {
   font-weight: 600;
 }
 
+/* ── Result panel: contener sin que rompa ── */
+.result-panel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Carrusel horizontal en todos los tamaños ── */
 .result-panel .result-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 12px;
   min-width: 0;
   max-width: 100%;
-  align-items: start;
-  max-height: min(72vh, 760px);
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 2px;
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 2px 10px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  max-height: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(248, 237, 251, 0.3) transparent;
 }
 
+.result-panel .result-content::-webkit-scrollbar {
+  height: 5px;
+}
+
+.result-panel .result-content::-webkit-scrollbar-thumb {
+  background: rgba(248, 237, 251, 0.3);
+  border-radius: 999px;
+}
+
+/* ── Preview card: ancho fijo en desktop ── */
 .preview-container {
+  flex: 0 0 280px;
+  width: 280px;
+  scroll-snap-align: start;
   background: linear-gradient(145deg, rgba(248, 237, 251, 0.12), rgba(248, 237, 251, 0.06));
   border: 1px solid var(--line-soft);
   border-radius: var(--radius-md);
   padding: 12px;
   box-shadow: var(--shadow-soft);
-  min-width: 0;
-  width: 100%;
   overflow: hidden;
 }
 
@@ -562,37 +575,73 @@ body::before {
   font-size: 0.92rem;
 }
 
-.download-area {
-  min-height: 68px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--line-soft);
-  background: linear-gradient(145deg, rgba(82, 37, 102, 0.64), rgba(122, 58, 142, 0.48));
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(8px);
+/* ── Descarga inline dentro del result-panel ── */
+.result-download-controls {
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  min-height: 44px;
 }
 
-.download-area .download-wrapper {
-  width: 100%;
-  justify-content: center;
+.result-download-controls:empty {
+  display: none;
 }
 
 .download-info {
+  flex: 1;
   color: var(--text-soft);
-  max-width: 65%;
+  font-size: 0.88rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .download-btn {
-  padding: 10px 14px;
+  padding: 10px 18px;
   background: linear-gradient(145deg, rgba(248, 237, 251, 0.95), rgba(234, 223, 240, 0.9));
   color: var(--text-dark);
   border-color: rgba(248, 237, 251, 0.75);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+/* ── Barra de progreso ── */
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(248, 237, 251, 0.14);
+  border: 1px solid rgba(248, 237, 251, 0.2);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--plum-700), var(--mist-200));
+  border-radius: 999px;
+  transition: width 0.28s ease;
+}
+
+.progress-pct {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .footer {
@@ -655,6 +704,7 @@ input:focus-visible {
   }
 }
 
+/* ── Tablet / mobile ── */
 @media (max-width: 900px) {
   body {
     padding: 16px;
@@ -673,28 +723,11 @@ input:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .result-panel .result-content {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 12px;
-    min-width: 0;
-    max-width: 100%;
-    align-items: stretch;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 2px 8px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    max-height: none;
-  }
-
+  /* Cards casi full-width en tablet */
   .preview-container {
-    flex: 0 0 calc(100vw - 64px);
-    width: calc(100vw - 64px);
-    max-width: calc(100vw - 64px);
-    scroll-snap-align: start;
+    flex: 0 0 calc(100vw - 108px);
+    width: calc(100vw - 108px);
+    max-width: 360px;
   }
 
   .preview-strip-wrapper {
@@ -731,16 +764,11 @@ input:focus-visible {
     padding: 8px 10px;
   }
 
-  .download-info {
-    max-width: 100%;
-    white-space: normal;
-    text-align: center;
-  }
-
+  /* Cards full-width en móvil */
   .preview-container {
-    flex-basis: calc(100vw - 40px);
-    width: calc(100vw - 40px);
-    max-width: calc(100vw - 40px);
+    flex: 0 0 calc(100vw - 96px);
+    width: calc(100vw - 96px);
+    max-width: none;
   }
 
   .preview-strip-wrapper {
