@@ -123,6 +123,10 @@
     function registerObjectURL(url) { createdObjectURLs.push(url); return url; }
     function revokeAllCreatedURLs() { createdObjectURLs.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) { } }); createdObjectURLs = []; }
 
+    // download button state
+    let currentDownloadBlob = null;
+    let currentDownloadBtn = null;
+
     // -----------------------------
     // Initial UI
     // -----------------------------
@@ -240,7 +244,7 @@
           statusTextPngXml && (statusTextPngXml.textContent = `Listo para generar: ${state.imageFile.name} + ${state.xmlFile.name}`);
         } else {
           generateBtnPngXml.disabled = true;
-          if (state.imageFile && !state.xmlFile) statusTextPngXml && (statusTextPngXml.textContent = "Falta el archivo de datos (XML/JSON/PLIST/ATLAS/FNT)");
+          if (state.imageFile && !state.xmlFile) statusTextPngXml && (statusTextPngXml.textContent = "Falta el archivo de datos (XML o JSON)");
           else if (state.xmlFile && !state.imageFile) statusTextPngXml && (statusTextPngXml.textContent = "Falta la imagen");
           else statusTextPngXml && (statusTextPngXml.textContent = "Selecciona PNG y archivo de datos para continuar.");
         }
@@ -269,6 +273,55 @@
       }
       revokeAllCreatedURLs();
       if (downloadControls) downloadControls.innerHTML = '';
+      currentDownloadBlob = null;
+      currentDownloadBtn = null;
+      const pw = document.getElementById('progress-wrapper');
+      if (pw) pw.style.display = 'none';
+    }
+
+    // -----------------------------
+    // Progress bar helpers
+    // -----------------------------
+    function showProgress() {
+      const pw = document.getElementById('progress-wrapper');
+      if (!pw) return;
+      pw.style.display = 'flex';
+      updateProgress(0, 1);
+    }
+
+    function updateProgress(current, total) {
+      const fill = document.getElementById('progress-fill');
+      const pct = document.getElementById('progress-pct');
+      const pw = document.getElementById('progress-wrapper');
+      const ratio = total > 0 ? Math.min(current / total, 1) : 0;
+      const pctVal = Math.round(ratio * 100);
+      if (fill) fill.style.width = pctVal + '%';
+      if (pct) pct.textContent = pctVal + '%';
+      if (pw) pw.setAttribute('aria-valuenow', pctVal);
+    }
+
+    function finishProgress() {
+      updateProgress(1, 1);
+      setTimeout(() => {
+        const pw = document.getElementById('progress-wrapper');
+        if (pw) pw.style.display = 'none';
+      }, 700);
+    }
+
+    // -----------------------------
+    // Download area: disabled placeholder at start, enable when done
+    // -----------------------------
+    function initDownloadArea() {
+      if (!downloadControls) return;
+      currentDownloadBlob = null;
+      downloadControls.innerHTML = '';
+
+      const btn = document.createElement('button');
+      btn.className = 'download-btn';
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-download"></i> Descargar ZIP';
+      currentDownloadBtn = btn;
+      downloadControls.appendChild(btn);
     }
 
     // -----------------------------
@@ -276,11 +329,19 @@
     // -----------------------------
     generateBtnZip?.addEventListener('click', async () => {
       clearResults();
+      if (resultPanel) resultPanel.style.display = '';
+      initDownloadArea();
+      showProgress();
       await runZip(!!removeDuplicatesCheckbox?.checked);
+      finishProgress();
     });
     generateBtnPngXml?.addEventListener('click', async () => {
       clearResults();
+      if (resultPanel) resultPanel.style.display = '';
+      initDownloadArea();
+      showProgress();
       await runPacker(!!removeDuplicatesCheckbox?.checked);
+      finishProgress();
     });
 
     // -----------------------------
@@ -343,8 +404,10 @@
         const animEntries = Object.entries(animations);
         let processed = 0;
         const total = animEntries.length;
+        updateProgress(0, total || 1);
         for (const [animName, frames] of animEntries) {
           processed++;
+          updateProgress(processed, total);
           statusTextPngXml && (statusTextPngXml.textContent = `Procesando animación: ${animName} (${processed}/${total})`);
 
           // collect blobs and optionally remove duplicates
@@ -444,8 +507,10 @@
         const newZip = new JSZip();
         const groupNames = Object.keys(animGroups).sort();
         let processedCount = 0;
+        updateProgress(0, groupNames.length || 1);
         for (const animName of groupNames) {
           processedCount++;
+          updateProgress(processedCount, groupNames.length);
           statusTextZip && (statusTextZip.textContent = `Procesando: ${animName} (${processedCount}/${groupNames.length})`);
           const group = animGroups[animName];
           group.sort((a, b) => (a.frameNumber || 0) - (b.frameNumber || 0));
@@ -553,12 +618,14 @@
     }
 
     function addDownloadButton(blob, fileName) {
+      currentDownloadBlob = blob;
+
       if (!downloadControls) {
-        // fallback: append to resultContent top
+        // fallback: prepend to resultContent
         if (!resultContent) return;
         const btn = document.createElement('button');
         btn.className = 'download-btn';
-        btn.textContent = `Descargar ${fileName}`;
+        btn.innerHTML = `<i class="fas fa-download"></i> Descargar ${fileName}`;
         btn.addEventListener('click', () => {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -570,29 +637,31 @@
         return;
       }
 
-      downloadControls.innerHTML = '';
-      const wrapper = document.createElement('div');
-      wrapper.className = 'download-wrapper';
+      // Enable the placeholder button created by initDownloadArea
+      if (currentDownloadBtn) {
+        currentDownloadBtn.disabled = false;
+        currentDownloadBtn.addEventListener('click', () => {
+          const url = URL.createObjectURL(blob);
+          registerObjectURL(url);
+          const a = document.createElement('a');
+          a.href = url; a.download = fileName;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) { } }, 2000);
+        });
+      }
 
-      const info = document.createElement('div');
-      info.className = 'download-info';
+      // Add filename info label before the button
+      let info = downloadControls.querySelector('.download-info');
+      if (!info) {
+        info = document.createElement('div');
+        info.className = 'download-info';
+        if (currentDownloadBtn) {
+          downloadControls.insertBefore(info, currentDownloadBtn);
+        } else {
+          downloadControls.appendChild(info);
+        }
+      }
       info.textContent = fileName;
-
-      const btn = document.createElement('button');
-      btn.className = 'download-btn';
-      btn.textContent = 'Descargar ZIP';
-      btn.addEventListener('click', () => {
-        const url = URL.createObjectURL(blob);
-        registerObjectURL(url);
-        const a = document.createElement('a');
-        a.href = url; a.download = fileName;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) { } }, 2000);
-      });
-
-      wrapper.appendChild(info);
-      wrapper.appendChild(btn);
-      downloadControls.appendChild(wrapper);
     }
 
     // expose helper shortcuts to window for debugging
@@ -601,3 +670,5 @@
     window.__FP.createStripFromBlobs = FTF.createStripFromBlobs;
   }); // end DOMContentLoaded
 })(); // end IIFE
+
+// adios abelito
