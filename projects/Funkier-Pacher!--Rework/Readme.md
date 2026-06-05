@@ -6,3 +6,7 @@ nota: si funciona
 Funkier-pacher! V2.1
 
 Ui mas decente, nav-bar arriba, cambio en todo lo que es insertar material (Imagen,XML y zip)
+
+Funkier-pacher! V2.2 
+
+arreglo de UI boton arriba y barra de carga
