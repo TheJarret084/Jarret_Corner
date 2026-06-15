@@ -91,7 +91,7 @@ Repositorio principal de **Jarret Corner** con proyectos web, experimentos y uti
 <table>
   <tr>
     <td align="left" width="140">
-      <img src="/Material/Iconos/teto(by_AymenZero).png" width="120" style="border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.35); border:2px solid rgba(255,255,255,0.08);">
+      <img src="/Material/Iconos/teto(by_ AymenZero).png" width="120" style="border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.35); border:2px solid rgba(255,255,255,0.08);">
     </td>
     <td align="right">
       tambien no te quejes del css gracias
