@@ -63,6 +63,30 @@
     color: var(--text-dim);
     font-size: 20px;
   }
+  .spin-badge{
+    width: 46px; height: 46px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    border: 3px dashed var(--cyan);
+    position: relative;
+    animation: spin-badge-turn 3.5s linear infinite;
+  }
+  .spin-badge-arm{
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 3px; height: 20px;
+    background: var(--pink);
+    transform-origin: top center;
+    transform: translate(-50%, 0);
+    border-radius: 2px;
+  }
+  @keyframes spin-badge-turn{
+    from{ transform: rotate(0deg); }
+    to{ transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spin-badge{ animation: none; }
+  }
   main{
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -161,7 +185,7 @@
   }
   .field-row:last-child{ margin-bottom:0; }
   .field-row label{ margin:0; flex: 1; }
-  .field-row input[type="number"], .field-row input[type="text"]{
+  .field-row input[type="number"], .field-row input[type="text"], .field-row select{
     width: 90px;
     background: var(--bg);
     border: 2px solid var(--edge-dark);
@@ -172,6 +196,16 @@
     border-radius: 4px;
   }
   fieldset > .field-row input[type="text"]{ width: 140px; }
+  .field-row select{ width: 130px; cursor: pointer; }
+  .thumb{
+    width: 26px; height: 26px;
+    object-fit: contain;
+    background:
+      repeating-conic-gradient(#20163d 0% 25%, #251a45 0% 50%) 50% / 10px 10px;
+    border: 1px solid var(--edge-dark);
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
   .field-row input[type="checkbox"]{
     width: 20px; height: 20px;
     accent-color: var(--pink);
@@ -264,8 +298,11 @@
 <body>
   <div class="crt-frame">
     <header>
+      <div class="spin-badge" aria-hidden="true">
+        <div class="spin-badge-arm"></div>
+      </div>
       <h1>ROTADOR MEGA<br>SUPER DE FRAMES<br>4000</h1>
-      <p>Metés los frames de la vuelta, apretás el botón, sale la spritesheet.<br>Hecho con cariño para el amigo que se quedó sin ideas ✨</p>
+      <p>Metés los frames, apretás el botón, y la app misma los gira una vuelta entera antes de volver al original.</p>
     </header>
 
     <main>
@@ -276,7 +313,26 @@
         <ul id="fileList"></ul>
 
         <fieldset>
-          <legend>Opciones</legend>
+          <legend>Rotación</legend>
+          <div class="field-row">
+            <label for="rotate">Girar el dibujo de verdad (canvas)</label>
+            <input type="checkbox" id="rotate" checked>
+          </div>
+          <div class="field-row">
+            <label for="degrees">Grados de la vuelta</label>
+            <input type="number" id="degrees" min="1" max="3600" value="360">
+          </div>
+          <div class="field-row">
+            <label for="direction">Sentido</label>
+            <select id="direction">
+              <option value="1">Horario</option>
+              <option value="-1">Antihorario</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Secuencia</legend>
           <div class="field-row">
             <label for="pingpong">Volver al frame original (ida y vuelta)</label>
             <input type="checkbox" id="pingpong" checked>
@@ -321,7 +377,7 @@
       <p id="stats"></p>
     </section>
 
-    <footer>frames en, vuelta completa, frames afuera. así de simple.</footer>
+    <footer>JarretLabs.</footer>
   </div>
 
 <script>
@@ -385,6 +441,13 @@
     fileListEl.innerHTML = '';
     frames.forEach((f, i) => {
       const li = document.createElement('li');
+
+      const thumb = document.createElement('img');
+      thumb.className = 'thumb';
+      thumb.src = f.url;
+      thumb.alt = '';
+      li.appendChild(thumb);
+
       const span = document.createElement('span');
       span.className = 'fname';
       span.textContent = (i+1) + '. ' + f.name;
@@ -420,17 +483,38 @@
     updatePreview();
   }
 
-  function buildSequence(){
+  // Devuelve la lista de índices originales en el orden que van a aparecer
+  // en la secuencia final (ida, y si corresponde, vuelta).
+  function buildIndexSequence(){
     const pingpong = document.getElementById('pingpong').checked;
     const loopFirst = document.getElementById('loopFirst').checked;
-    let seq = frames.slice();
-    if(pingpong && frames.length > 1){
-      seq = frames.concat(frames.slice(0, -1).reverse());
+    const n = frames.length;
+    let idxs = [];
+    for(let i=0;i<n;i++) idxs.push(i);
+    if(pingpong && n > 1){
+      for(let i=n-2;i>=0;i--) idxs.push(i);
     }
     if(loopFirst){
-      seq = seq.concat([seq[0]]);
+      idxs.push(idxs[0]);
     }
-    return seq;
+    return idxs;
+  }
+
+  // Calcula el ángulo de rotación real para cada posición de la secuencia:
+  // sube de 0° a "degrees" a lo largo de los frames originales, y si hay
+  // ida y vuelta, baja simétricamente de nuevo a 0° (por eso "da la vuelta
+  // y vuelve al original").
+  function buildSequence(){
+    const rotateOn = document.getElementById('rotate').checked;
+    const degrees = rotateOn ? (parseFloat(document.getElementById('degrees').value) || 0) : 0;
+    const dir = parseInt(document.getElementById('direction').value, 10) || 1;
+    const n = frames.length;
+    const idxs = buildIndexSequence();
+
+    return idxs.map(origIndex => {
+      const angle = (n > 1) ? (degrees * origIndex / (n - 1)) * dir : 0;
+      return { frame: frames[origIndex], angle };
+    });
   }
 
   function updatePreview(){
@@ -443,12 +527,18 @@
   function drawPreviewFrame(){
     previewCtx.clearRect(0,0,previewCanvas.width, previewCanvas.height);
     if(sequence.length === 0) return;
-    const f = sequence[playIndex];
-    const img = f.img;
-    const scale = Math.min(previewCanvas.width / img.width, previewCanvas.height / img.height);
+    const entry = sequence[playIndex];
+    const img = entry.frame.img;
+    // dejamos margen porque al rotar la imagen ocupa más espacio en diagonal
+    const scale = Math.min(previewCanvas.width, previewCanvas.height) /
+                  (Math.sqrt(img.width*img.width + img.height*img.height) || 1);
     const w = img.width * scale, h = img.height * scale;
-    const x = (previewCanvas.width - w) / 2, y = (previewCanvas.height - h) / 2;
-    previewCtx.drawImage(img, x, y, w, h);
+    const cx = previewCanvas.width / 2, cy = previewCanvas.height / 2;
+    previewCtx.save();
+    previewCtx.translate(cx, cy);
+    previewCtx.rotate(entry.angle * Math.PI / 180);
+    previewCtx.drawImage(img, -w/2, -h/2, w, h);
+    previewCtx.restore();
   }
 
   playBtn.addEventListener('click', () => {
@@ -472,15 +562,28 @@
     if(playTimer){ clearInterval(playTimer); playTimer = null; }
   }
 
-  document.getElementById('pingpong').addEventListener('change', updatePreview);
-  document.getElementById('loopFirst').addEventListener('change', updatePreview);
+  ['pingpong','loopFirst','rotate','degrees','direction'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
+    document.getElementById(id).addEventListener('change', updatePreview);
+  });
 
   buildBtn.addEventListener('click', () => {
     if(frames.length === 0) return;
     const seq = buildSequence();
+    const rotateOn = document.getElementById('rotate').checked;
 
     let maxW = 0, maxH = 0;
-    seq.forEach(f => { maxW = Math.max(maxW, f.img.width); maxH = Math.max(maxH, f.img.height); });
+    seq.forEach(f => { maxW = Math.max(maxW, f.frame.img.width); maxH = Math.max(maxH, f.frame.img.height); });
+
+    // si vamos a rotar, la celda tiene que ser lo bastante grande como para
+    // que el frame no se recorte en las esquinas en ningún ángulo: usamos
+    // la diagonal como lado de la celda (cuadrada) cuando hay rotación.
+    let cellContentW = maxW, cellContentH = maxH;
+    if(rotateOn){
+      const diag = Math.ceil(Math.sqrt(maxW*maxW + maxH*maxH));
+      cellContentW = diag;
+      cellContentH = diag;
+    }
 
     let cols = parseInt(document.getElementById('cols').value, 10);
     if(!cols || cols < 1){
@@ -489,35 +592,43 @@
     const rows = Math.ceil(seq.length / cols);
     const padding = Math.max(0, parseInt(document.getElementById('padding').value, 10) || 0);
 
-    const cellW = maxW + padding;
-    const cellH = maxH + padding;
+    const cellW = cellContentW + padding;
+    const cellH = cellContentH + padding;
     sheetCanvas.width = cellW * cols - padding;
     sheetCanvas.height = cellH * rows - padding;
     const ctx = sheetCanvas.getContext('2d');
     ctx.clearRect(0,0,sheetCanvas.width, sheetCanvas.height);
+    ctx.imageSmoothingEnabled = false;
 
     const prefix = (document.getElementById('prefix').value || 'rotacion').trim();
     const subTextures = [];
 
-    seq.forEach((f, i) => {
+    seq.forEach((entry, i) => {
+      const img = entry.frame.img;
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const x = col * cellW;
-      const y = row * cellH;
-      // centrar el frame en su celda si mide menos que el máximo
-      const dx = x + (maxW - f.img.width) / 2;
-      const dy = y + (maxH - f.img.height) / 2;
-      ctx.drawImage(f.img, Math.round(dx), Math.round(dy));
+      const cellX = col * cellW;
+      const cellY = row * cellH;
+      const cx = cellX + cellContentW / 2;
+      const cy = cellY + cellContentH / 2;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(entry.angle * Math.PI / 180);
+      ctx.drawImage(img, -img.width/2, -img.height/2);
+      ctx.restore();
+
       subTextures.push({
         name: prefix + String(i).padStart(4, '0'),
-        x: Math.round(dx), y: Math.round(dy),
-        width: f.img.width, height: f.img.height
+        x: Math.round(cellX), y: Math.round(cellY),
+        width: cellContentW, height: cellContentH
       });
     });
 
     outputSection.hidden = false;
     statsEl.textContent = seq.length + ' frames · grilla ' + cols + 'x' + rows +
-      ' · celda ' + maxW + 'x' + maxH + 'px · hoja ' + sheetCanvas.width + 'x' + sheetCanvas.height + 'px';
+      ' · celda ' + cellContentW + 'x' + cellContentH + 'px · hoja ' + sheetCanvas.width + 'x' + sheetCanvas.height + 'px' +
+      (rotateOn ? ' · rotación real activada' : ' · sin rotación (solo empaquetado)');
 
     window._lastXml = buildXml(prefix, subTextures);
     outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
