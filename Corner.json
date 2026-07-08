@@ -71,14 +71,7 @@
           "url": "https://github.com/TheJarret084/FMCE",
           "botonTexto": "¡Download!"
         },
-        {
-          "titulo": "RenownedBySprites",
-          "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
-          "tipo": "boton",
-          "bannerIMG": "",
-          "url": "projects/RenownedBySprites/RenownedBySprites.html",
-          "botonTexto": "RenownedBySprites"
-        },
+        
         {
           "titulo": "FNMM-Descompacter",
           "descripcion": "Si necesitas desarmar tu niveles con todos los sprites dentro, esto te hecha una mano.",
@@ -88,20 +81,12 @@
           "botonTexto": "Descompacter"
         },
         {
-          "titulo": "Proyect",
-          "descripcion": "Mucha pereza hacer 2000 frames iguales en paint.",
-          "tipo": "boton",
-          "bannerIMG": "",
-          "url": "projects/Proyect/proyect.html",
-          "botonTexto": "Name-Not-Found"
-        },
-        {
-          "titulo": "Funky-Editor",
+          "titulo": "rotador-mega-super-4000",
           "descripcion": "",
           "tipo": "boton",
           "bannerIMG": "",
-          "url": "projects/Funky-Editor/index.html",
-          "botonTexto": "Name-Not-Found-2"
+          "url": "projects/rotador-mega-super-4000/rotador-mega-super-4000.html",
+          "botonTexto": "rotador-mega-super-4000"
         }
       ]
     },
@@ -125,7 +110,32 @@
           "bannerIMG": "",
           "url": "projects/VidToSheet/VidToSheet.html",
           "botonTexto": "VidToSheet"
+        },
+{
+          "titulo": "Funky-Editor",
+          "descripcion": "",
+          "tipo": "boton",
+          "bannerIMG": "",
+          "url": "projects/Funky-Editor/index.html",
+          "botonTexto": "Name-Not-Found-2"
+        },
+{
+          "titulo": "Proyect",
+          "descripcion": "Mucha pereza hacer 2000 frames iguales en paint.",
+          "tipo": "boton",
+          "bannerIMG": "",
+          "url": "projects/Proyect/proyect.html",
+          "botonTexto": "Name-Not-Found"
+        },
+{
+          "titulo": "RenownedBySprites",
+          "descripcion": "Me daba pereza renombrar todos los sprites a mano.",
+          "tipo": "boton",
+          "bannerIMG": "",
+          "url": "projects/RenownedBySprites/RenownedBySprites.html",
+          "botonTexto": "RenownedBySprites"
         }
+
       ]
     }
   }
