@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rotador Mega Super de Frames 4000</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1a1330;
+    --bg2: #241a44;
+    --panel: #2e2159;
+    --panel-light: #3d2c73;
+    --edge-light: #6a4fc7;
+    --edge-dark: #100b1f;
+    --pink: #ff2f92;
+    --cyan: #35f0d0;
+    --text: #ede6ff;
+    --text-dim: #b8a9e6;
+    font-size: 16px;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,47,146,0.12), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(53,240,208,0.10), transparent 45%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    padding: 24px;
+  }
+  .crt-frame{
+    max-width: 980px;
+    margin: 0 auto;
+    border: 3px solid var(--edge-light);
+    border-radius: 10px;
+    background: var(--bg2);
+    box-shadow: 0 0 0 6px var(--edge-dark), 0 20px 60px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  header{
+    padding: 28px 28px 20px;
+    text-align: center;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 4px);
+    border-bottom: 3px solid var(--edge-dark);
+  }
+  h1{
+    font-family: 'Press Start 2P', monospace;
+    font-size: 26px;
+    line-height: 1.6;
+    margin: 0 0 12px;
+    color: var(--cyan);
+    text-shadow: 3px 3px 0 var(--pink);
+    letter-spacing: 1px;
+  }
+  header p{
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 20px;
+  }
+  main{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    padding: 24px;
+  }
+  @media (max-width: 720px){
+    main{ grid-template-columns: 1fr; }
+    h1{ font-size: 20px; }
+  }
+  .panel{
+    background: var(--panel);
+    border: 2px solid var(--edge-light);
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 2px var(--edge-dark), 3px 3px 0 var(--edge-dark);
+    padding: 16px;
+  }
+  .panel h2{
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    color: var(--pink);
+    margin: 0 0 14px;
+  }
+  label{
+    display:block;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+    font-size: 18px;
+  }
+  input[type="file"]{
+    width: 100%;
+    color: var(--text);
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    margin-bottom: 12px;
+  }
+  #fileList{
+    list-style: none;
+    margin: 0 0 14px;
+    padding: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    border: 2px solid var(--edge-dark);
+    border-radius: 4px;
+    background: var(--bg);
+  }
+  #fileList li{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--panel-light);
+    font-size: 16px;
+  }
+  #fileList li:last-child{ border-bottom:none; }
+  #fileList .fname{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    flex:1;
+  }
+  .mini-btn{
+    background: var(--panel-light);
+    border: 2px solid var(--edge-light);
+    color: var(--text);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    padding: 1px 8px;
+    line-height: 1.4;
+  }
+  .mini-btn:hover{ background: var(--edge-light); }
+  .mini-btn:focus-visible, button:focus-visible, input:focus-visible{
+    outline: 3px solid var(--cyan);
+    outline-offset: 2px;
+  }
+  fieldset{
+    border: 2px solid var(--edge-dark);
+    border-radius: 6px;
+    margin: 0 0 14px;
+    padding: 10px 12px 12px;
+  }
+  legend{
+    font-size: 16px;
+    color: var(--cyan);
+    padding: 0 6px;
+  }
+  .field-row{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .field-row:last-child{ margin-bottom:0; }
+  .field-row label{ margin:0; flex: 1; }
+  .field-row input[type="number"], .field-row input[type="text"]{
+    width: 90px;
+    background: var(--bg);
+    border: 2px solid var(--edge-dark);
+    color: var(--text);
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+  fieldset > .field-row input[type="text"]{ width: 140px; }
+  .field-row input[type="checkbox"]{
+    width: 20px; height: 20px;
+    accent-color: var(--pink);
+  }
+  button.big{
+    width: 100%;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    color: var(--bg);
+    background: var(--cyan);
+    border: none;
+    border-radius: 6px;
+    padding: 14px 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #1a9a86;
+    transition: transform 0.05s;
+  }
+  button.big:hover{ background: #55f7db; }
+  button.big:active{ transform: translateY(4px); box-shadow: 0 0 0 #1a9a86; }
+  button.big:disabled{
+    background: #555; box-shadow: 0 4px 0 #333; cursor: not-allowed; color: #999;
+  }
+  #previewWrap{
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+    gap: 10px;
+  }
+  #previewCanvas{
+    image-rendering: pixelated;
+    background:
+      repeating-conic-gradient(#20163d 0% 25%, #251a45 0% 50%) 50% / 20px 20px;
+    border: 2px solid var(--edge-dark);
+    border-radius: 6px;
+    max-width: 100%;
+  }
+  #playBtn{
+    background: var(--panel-light);
+    border: 2px solid var(--edge-light);
+    color: var(--text);
+    padding: 6px 16px;
+    border-radius: 5px;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  #playBtn:hover{ background: var(--edge-light); }
+  #outputSection{ margin: 0 24px 24px; }
+  #sheetCanvas{
+    max-width: 100%;
+    image-rendering: pixelated;
+    border: 2px solid var(--edge-dark);
+    border-radius: 6px;
+    background:
+      repeating-conic-gradient(#20163d 0% 25%, #251a45 0% 50%) 50% / 20px 20px;
+    display:block;
+    margin: 0 auto 14px;
+  }
+  .output-actions{
+    display:flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content:center;
+  }
+  .output-actions button{
+    flex: 1;
+    min-width: 180px;
+  }
+  #stats{
+    text-align:center;
+    color: var(--text-dim);
+    font-size: 17px;
+    margin-top: 12px;
+  }
+  .empty-hint{
+    color: var(--text-dim);
+    font-size: 17px;
+    text-align:center;
+    padding: 30px 10px;
+  }
+  footer{
+    text-align:center;
+    padding: 14px;
+    color: var(--text-dim);
+    font-size: 15px;
+    border-top: 2px solid var(--edge-dark);
+  }
+</style>
+</head>
+<body>
+  <div class="crt-frame">
+    <header>
+      <h1>ROTADOR MEGA<br>SUPER DE FRAMES<br>4000</h1>
+      <p>Metés los frames de la vuelta, apretás el botón, sale la spritesheet.<br>Hecho con cariño para el amigo que se quedó sin ideas ✨</p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>1. FRAMES</h2>
+        <label for="fileInput">Subí los frames de la rotación (en orden)</label>
+        <input id="fileInput" type="file" accept="image/*" multiple>
+        <ul id="fileList"></ul>
+
+        <fieldset>
+          <legend>Opciones</legend>
+          <div class="field-row">
+            <label for="pingpong">Volver al frame original (ida y vuelta)</label>
+            <input type="checkbox" id="pingpong" checked>
+          </div>
+          <div class="field-row">
+            <label for="loopFirst">Repetir primer frame al final (loop perfecto)</label>
+            <input type="checkbox" id="loopFirst">
+          </div>
+          <div class="field-row">
+            <label for="cols">Columnas de la grilla (vacío = auto)</label>
+            <input type="number" id="cols" min="1" placeholder="auto">
+          </div>
+          <div class="field-row">
+            <label for="padding">Espacio entre frames (px)</label>
+            <input type="number" id="padding" min="0" value="0">
+          </div>
+          <div class="field-row">
+            <label for="prefix">Nombre para el XML</label>
+            <input type="text" id="prefix" value="rotacion">
+          </div>
+        </fieldset>
+
+        <button class="big" id="buildBtn" disabled>ARMAR SPRITESHEET</button>
+      </section>
+
+      <section class="panel">
+        <h2>2. VISTA PREVIA</h2>
+        <div id="previewWrap">
+          <canvas id="previewCanvas" width="220" height="220"></canvas>
+          <button id="playBtn" disabled>▶ Reproducir</button>
+        </div>
+      </section>
+    </main>
+
+    <section class="panel" id="outputSection" hidden>
+      <h2>3. RESULTADO</h2>
+      <canvas id="sheetCanvas"></canvas>
+      <div class="output-actions">
+        <button class="big" id="downloadPng">DESCARGAR PNG</button>
+        <button class="big" id="downloadXml">DESCARGAR XML</button>
+      </div>
+      <p id="stats"></p>
+    </section>
+
+    <footer>frames en, vuelta completa, frames afuera. así de simple.</footer>
+  </div>
+
+<script>
+(function(){
+  let frames = []; // { name, img }
+  let sequence = [];
+  let playing = false;
+  let playIndex = 0;
+  let playTimer = null;
+
+  const fileInput = document.getElementById('fileInput');
+  const fileListEl = document.getElementById('fileList');
+  const buildBtn = document.getElementById('buildBtn');
+  const playBtn = document.getElementById('playBtn');
+  const previewCanvas = document.getElementById('previewCanvas');
+  const previewCtx = previewCanvas.getContext('2d');
+  const outputSection = document.getElementById('outputSection');
+  const sheetCanvas = document.getElementById('sheetCanvas');
+  const statsEl = document.getElementById('stats');
+
+  function naturalCompare(a, b){
+    const ax = a.match(/(\d+|\D+)/g) || [];
+    const bx = b.match(/(\d+|\D+)/g) || [];
+    const len = Math.max(ax.length, bx.length);
+    for(let i=0;i<len;i++){
+      const av = ax[i] || '';
+      const bv = bx[i] || '';
+      const an = parseInt(av, 10);
+      const bn = parseInt(bv, 10);
+      if(!isNaN(an) && !isNaN(bn)){
+        if(an !== bn) return an - bn;
+      } else if(av !== bv){
+        return av < bv ? -1 : 1;
+      }
+    }
+    return 0;
+  }
+
+  function loadImage(file){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => resolve({ name: file.name, img, url });
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  fileInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if(files.length === 0) return;
+    files.sort((a,b) => naturalCompare(a.name, b.name));
+    frames = await Promise.all(files.map(loadImage));
+    renderFileList();
+    updatePreview();
+    buildBtn.disabled = frames.length === 0;
+    playBtn.disabled = frames.length === 0;
+  });
+
+  function renderFileList(){
+    fileListEl.innerHTML = '';
+    frames.forEach((f, i) => {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.className = 'fname';
+      span.textContent = (i+1) + '. ' + f.name;
+      li.appendChild(span);
+
+      const btnWrap = document.createElement('div');
+      const upBtn = document.createElement('button');
+      upBtn.className = 'mini-btn';
+      upBtn.textContent = '↑';
+      upBtn.type = 'button';
+      upBtn.addEventListener('click', () => moveFrame(i, -1));
+      const downBtn = document.createElement('button');
+      downBtn.className = 'mini-btn';
+      downBtn.textContent = '↓';
+      downBtn.type = 'button';
+      downBtn.style.marginLeft = '4px';
+      downBtn.addEventListener('click', () => moveFrame(i, 1));
+      btnWrap.appendChild(upBtn);
+      btnWrap.appendChild(downBtn);
+      li.appendChild(btnWrap);
+
+      fileListEl.appendChild(li);
+    });
+  }
+
+  function moveFrame(index, dir){
+    const newIndex = index + dir;
+    if(newIndex < 0 || newIndex >= frames.length) return;
+    const tmp = frames[index];
+    frames[index] = frames[newIndex];
+    frames[newIndex] = tmp;
+    renderFileList();
+    updatePreview();
+  }
+
+  function buildSequence(){
+    const pingpong = document.getElementById('pingpong').checked;
+    const loopFirst = document.getElementById('loopFirst').checked;
+    let seq = frames.slice();
+    if(pingpong && frames.length > 1){
+      seq = frames.concat(frames.slice(0, -1).reverse());
+    }
+    if(loopFirst){
+      seq = seq.concat([seq[0]]);
+    }
+    return seq;
+  }
+
+  function updatePreview(){
+    sequence = buildSequence();
+    stopPlaying();
+    playIndex = 0;
+    drawPreviewFrame();
+  }
+
+  function drawPreviewFrame(){
+    previewCtx.clearRect(0,0,previewCanvas.width, previewCanvas.height);
+    if(sequence.length === 0) return;
+    const f = sequence[playIndex];
+    const img = f.img;
+    const scale = Math.min(previewCanvas.width / img.width, previewCanvas.height / img.height);
+    const w = img.width * scale, h = img.height * scale;
+    const x = (previewCanvas.width - w) / 2, y = (previewCanvas.height - h) / 2;
+    previewCtx.drawImage(img, x, y, w, h);
+  }
+
+  playBtn.addEventListener('click', () => {
+    if(playing){ stopPlaying(); }
+    else { startPlaying(); }
+  });
+
+  function startPlaying(){
+    if(sequence.length === 0) return;
+    playing = true;
+    playBtn.textContent = '⏸ Pausar';
+    playTimer = setInterval(() => {
+      playIndex = (playIndex + 1) % sequence.length;
+      drawPreviewFrame();
+    }, 90);
+  }
+
+  function stopPlaying(){
+    playing = false;
+    playBtn.textContent = '▶ Reproducir';
+    if(playTimer){ clearInterval(playTimer); playTimer = null; }
+  }
+
+  document.getElementById('pingpong').addEventListener('change', updatePreview);
+  document.getElementById('loopFirst').addEventListener('change', updatePreview);
+
+  buildBtn.addEventListener('click', () => {
+    if(frames.length === 0) return;
+    const seq = buildSequence();
+
+    let maxW = 0, maxH = 0;
+    seq.forEach(f => { maxW = Math.max(maxW, f.img.width); maxH = Math.max(maxH, f.img.height); });
+
+    let cols = parseInt(document.getElementById('cols').value, 10);
+    if(!cols || cols < 1){
+      cols = Math.max(1, Math.ceil(Math.sqrt(seq.length)));
+    }
+    const rows = Math.ceil(seq.length / cols);
+    const padding = Math.max(0, parseInt(document.getElementById('padding').value, 10) || 0);
+
+    const cellW = maxW + padding;
+    const cellH = maxH + padding;
+    sheetCanvas.width = cellW * cols - padding;
+    sheetCanvas.height = cellH * rows - padding;
+    const ctx = sheetCanvas.getContext('2d');
+    ctx.clearRect(0,0,sheetCanvas.width, sheetCanvas.height);
+
+    const prefix = (document.getElementById('prefix').value || 'rotacion').trim();
+    const subTextures = [];
+
+    seq.forEach((f, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = col * cellW;
+      const y = row * cellH;
+      // centrar el frame en su celda si mide menos que el máximo
+      const dx = x + (maxW - f.img.width) / 2;
+      const dy = y + (maxH - f.img.height) / 2;
+      ctx.drawImage(f.img, Math.round(dx), Math.round(dy));
+      subTextures.push({
+        name: prefix + String(i).padStart(4, '0'),
+        x: Math.round(dx), y: Math.round(dy),
+        width: f.img.width, height: f.img.height
+      });
+    });
+
+    outputSection.hidden = false;
+    statsEl.textContent = seq.length + ' frames · grilla ' + cols + 'x' + rows +
+      ' · celda ' + maxW + 'x' + maxH + 'px · hoja ' + sheetCanvas.width + 'x' + sheetCanvas.height + 'px';
+
+    window._lastXml = buildXml(prefix, subTextures);
+    outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  function buildXml(prefix, subTextures){
+    let xml = '<TextureAtlas imagePath="' + prefix + '.png">\n';
+    subTextures.forEach(st => {
+      xml += '\t<SubTexture name="' + st.name + '" x="' + st.x + '" y="' + st.y +
+             '" width="' + st.width + '" height="' + st.height + '"/>\n';
+    });
+    xml += '</TextureAtlas>\n';
+    return xml;
+  }
+
+  document.getElementById('downloadPng').addEventListener('click', () => {
+    sheetCanvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (document.getElementById('prefix').value || 'rotacion') + '.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  });
+
+  document.getElementById('downloadXml').addEventListener('click', () => {
+    if(!window._lastXml) return;
+    const blob = new Blob([window._lastXml], { type: 'text/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (document.getElementById('prefix').value || 'rotacion') + '.xml';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+})();
+</script>
+</body>
+</html>
