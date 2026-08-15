@@ -177,8 +177,15 @@
         return await new Promise(r => c.toBlob(r, 'image/png'));
       }
 
-      const scale      = (typeof window !== 'undefined' && window.currentScale) ? window.currentScale : 1;
-      const clampScale = Math.max(DEFAULTS.MIN_SCALE, Math.min(1, scale));
+      // Límite de memoria en bytes RGBA para el buffer de salida (evita que el
+      // tab se muera con sheets gigantes). ~256MB por defecto.
+      const MEM_LIMIT   = opts.memLimitBytes || 268435456;
+      const minScale    = opts.minScale  ?? DEFAULTS.MIN_SCALE;
+      const scaleStep   = opts.scaleStep ?? DEFAULTS.SCALE_STEP;
+      const autoScale   = !!opts.autoScale;
+
+      const baseScale   = (typeof window !== 'undefined' && window.currentScale) ? window.currentScale : 1;
+      let clampScale    = Math.max(minScale, Math.min(1, baseScale));
 
       // ---- 1. Leer todos los blobs como ImageData ----
       const frames = [];
@@ -190,6 +197,25 @@
       // ---- 2. Calcular celda máxima ----
       const cellW = Math.max(...frames.map(f => f.width));
       const cellH = Math.max(...frames.map(f => f.height));
+
+      // ---- 2.5 Auto-reducir escala si el buffer de salida sería demasiado
+      //          pesado para la memoria del navegador. Antes esto se ignoraba
+      //          por completo aunque app.js ya mandaba autoScale:true.
+      if (autoScale) {
+        while (true) {
+          const outW = Math.round(cellW * frames.length * clampScale);
+          const outH = Math.round(cellH * clampScale);
+          if (outW * outH * 4 <= MEM_LIMIT || clampScale <= minScale) break;
+          clampScale = Math.max(minScale, +(clampScale - scaleStep).toFixed(3));
+        }
+        const finalOutW = Math.round(cellW * frames.length * clampScale);
+        const finalOutH = Math.round(cellH * clampScale);
+        if (finalOutW * finalOutH * 4 > MEM_LIMIT) {
+          const e = new Error('La cinta es demasiado grande incluso al mínimo de escala.');
+          e.code = 'CANVAS_TOO_LARGE';
+          throw e;
+        }
+      }
 
       // ---- 3. Construir RGBA en memoria ----
       const { buffer, width: outW, height: outH } = await buildStripRGBA(frames, cellW, cellH, clampScale);

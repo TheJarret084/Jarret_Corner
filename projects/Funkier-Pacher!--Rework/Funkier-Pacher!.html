@@ -41,6 +41,9 @@
               <button id="method-pngxml-btn" class="method-button" type="button">
                 <i class="fas fa-image"></i> Spritesheet + Data
               </button>
+              <button id="method-godot-btn" class="method-button" type="button">
+                <i class="fas fa-cubes"></i> Godot (.tres)
+              </button>
             </div>
           </div>
         </section>
@@ -101,6 +104,42 @@
           <p id="status-text-pngxml" class="status-text">Selecciona PNG y archivo de datos para continuar.</p>
         </section>
 
+        <section class="funky-panel" id="godot-upload-panel" style="display: none;" aria-labelledby="godot-title">
+          <div class="panel-header">
+            <h2 id="godot-title"><i class="fas fa-cubes"></i> Subir Spritesheet y .tres de Godot</h2>
+          </div>
+
+          <div class="dual-upload-container">
+            <div class="upload-section">
+              <div class="drop-zone" id="godot-png-drop-zone">
+                <p><i class="fas fa-image"></i></p>
+                <p>Spritesheet (PNG/WEBP)</p>
+                <input type="file" id="godot-image-input" accept=".png,.jpg,.jpeg,.webp" hidden>
+                <button class="select-file-button" id="godot-image-btn" type="button">
+                  <i class="fas fa-file-upload"></i> Seleccionar Imagen
+                </button>
+              </div>
+            </div>
+
+            <div class="upload-section">
+              <div class="drop-zone" id="godot-tres-drop-zone">
+                <p><i class="fas fa-code"></i></p>
+                <p>SpriteFrames (.tres)</p>
+                <input type="file" id="godot-tres-input" accept=".tres" hidden>
+                <button class="select-file-button" id="godot-tres-btn" type="button">
+                  <i class="fas fa-file-upload"></i> Seleccionar .tres
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button id="generate-btn-godot" class="generate-button" type="button" disabled>
+            <i class="fa-solid fa-gears"></i> Generar
+          </button>
+
+          <p id="status-text-godot" class="status-text">Selecciona el PNG y el .tres de Godot.</p>
+        </section>
+
         <section class="funky-panel settings-panel" aria-labelledby="settings-title">
           <div class="panel-header">
             <h2 id="settings-title"><i class="fas fa-sliders-h"></i> Configuración</h2>
@@ -153,6 +192,11 @@
         <i class="fab fa-discord"></i>
       </a>
     </div>
+    <a href="./tools/godot-to-sparrow.html" target="_blank" rel="noopener noreferrer"
+      style="display:inline-block; margin-top:10px; font-size:0.75em; opacity:0.6; text-decoration:none; padding:4px 10px; border:1px solid currentColor; border-radius:6px;"
+      title="Solo convierte el .tres a XML Sparrow, sin recortar ni armar cintas">
+      <i class="fas fa-file-export"></i> Godot .tres → XML rápido
+    </a>
   </footer>
 <!-- las 69 dependencias del dolor -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
@@ -160,6 +204,7 @@
 <script src="./js/modules/upng.js" defer></script>
 <script src="./js/modules/core.js" defer></script>
 <script src="./js/modules/app.js" defer></script>
+<script src="./js/modules/godot-input.js" defer></script>
 <script src="./js/Funkier-Pacher!.js" defer></script>
 </body>
 

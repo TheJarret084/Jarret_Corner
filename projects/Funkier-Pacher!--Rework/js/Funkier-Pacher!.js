@@ -1,5 +1,5 @@
 // Funkier-Pacher! bootstrap
-// Good Night Abelito V2.2.3 :D
+// Good Night Abelito V2.2.6:D
 (() => {
   'use strict';
 

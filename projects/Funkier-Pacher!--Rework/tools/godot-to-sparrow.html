@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Godot .tres → Sparrow XML</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 800px; margin: 30px auto; padding: 0 15px; background:#1e1e1e; color:#eee; }
+  h1 { font-size: 1.3em; }
+  textarea { width: 100%; height: 300px; background:#111; color:#0f0; font-family: monospace; font-size: 12px; }
+  input[type=text] { width: 300px; padding: 4px; }
+  button { padding: 8px 16px; background:#3a7; border:none; color:#fff; cursor:pointer; margin-top:10px; }
+  button:disabled { background:#555; }
+  .row { margin: 10px 0; }
+  #log { color:#f88; white-space: pre-wrap; }
+  #stats { color:#8cf; }
+</style>
+</head>
+<body>
+
+<h1>Godot SpriteFrames (.tres) → Sparrow XML</h1>
+<p>Sube el <code>.tres</code> exportado de Godot. Saca un XML Sparrow con todas las animaciones ya nombradas <code>anim0000</code>, <code>anim0001</code>, etc.</p>
+
+<div class="row">
+  <input type="file" id="fileInput" accept=".tres">
+</div>
+
+<div class="row">
+  <label>Nombre del PNG (imagePath en el XML): </label><br>
+  <input type="text" id="imgName" placeholder="ej: hgrimm.png">
+</div>
+
+<div class="row">
+  <button id="convertBtn" disabled>Convertir</button>
+  <button id="downloadBtn" disabled>Descargar XML</button>
+</div>
+
+<div id="stats"></div>
+<div id="log"></div>
+
+<textarea id="output" placeholder="Aquí sale el XML..."></textarea>
+
+<script>
+let tresText = "";
+
+const fileInput = document.getElementById('fileInput');
+const imgName = document.getElementById('imgName');
+const convertBtn = document.getElementById('convertBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const output = document.getElementById('output');
+const log = document.getElementById('log');
+const stats = document.getElementById('stats');
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  if (!imgName.value) {
+    imgName.value = file.name.replace(/\.tres$/i, '.png');
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    tresText = e.target.result;
+    convertBtn.disabled = false;
+    log.textContent = "";
+  };
+  reader.readAsText(file);
+});
+
+convertBtn.addEventListener('click', () => {
+  try {
+    const xml = convert(tresText, imgName.value || "atlas.png");
+    output.value = xml;
+    downloadBtn.disabled = false;
+    log.textContent = "";
+  } catch (err) {
+    log.textContent = "Error: " + err.message;
+    output.value = "";
+    downloadBtn.disabled = true;
+  }
+});
+
+downloadBtn.addEventListener('click', () => {
+  const blob = new Blob([output.value], { type: 'text/xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (imgName.value || "atlas").replace(/\.png$/i, '') + '.xml';
+  a.click();
+});
+
+function convert(text, image) {
+  // 1. Mapear cada AtlasTexture id -> region {x,y,w,h}
+  const atlasMap = {};
+  const atlasRe = /\[sub_resource type="AtlasTexture" id="([^"]+)"\][\s\S]*?region = Rect2\(\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+)\s*\)/g;
+  let m;
+  while ((m = atlasRe.exec(text)) !== null) {
+    atlasMap[m[1]] = {
+      x: Math.round(parseFloat(m[2])),
+      y: Math.round(parseFloat(m[3])),
+      w: Math.round(parseFloat(m[4])),
+      h: Math.round(parseFloat(m[5]))
+    };
+  }
+  if (Object.keys(atlasMap).length === 0) {
+    throw new Error("No encontré ninguna región AtlasTexture. ¿Es un SpriteFrames válido?");
+  }
+
+  // 2. Sacar cada animación: frames (ids en orden) + nombre
+  const animRe = /"frames":\s*\[([\s\S]*?)\],\s*"loop":\s*(true|false),\s*"name":\s*&?"([^"]+)",\s*"speed":\s*([\d.]+)/g;
+  const anims = [];
+  while ((m = animRe.exec(text)) !== null) {
+    const frameBlock = m[1];
+    const ids = [...frameBlock.matchAll(/SubResource\("([^"]+)"\)/g)].map(x => x[1]);
+    anims.push({ name: m[3], ids });
+  }
+  if (anims.length === 0) {
+    throw new Error("No encontré animaciones (bloque 'animations' no reconocido).");
+  }
+
+  // 3. Armar el XML Sparrow
+  let missing = 0;
+  let subTextures = "";
+  for (const anim of anims) {
+    anim.ids.forEach((id, i) => {
+      const r = atlasMap[id];
+      if (!r) { missing++; return; }
+      const frameName = anim.name + String(i).padStart(4, '0');
+      subTextures += `    <SubTexture name="${escapeXml(frameName)}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>\n`;
+    });
+  }
+
+  stats.textContent = `Animaciones: ${anims.length} | Frames totales: ${anims.reduce((a,b)=>a+b.ids.length,0)}` + (missing ? ` | ⚠ ${missing} frames sin región (revisa el log)` : '');
+
+  return `<TextureAtlas imagePath="${escapeXml(image)}">\n${subTextures}</TextureAtlas>`;
+}
+
+function escapeXml(s) {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+</script>
+
+</body>
+</html>
