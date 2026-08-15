@@ -8,27 +8,49 @@
   // -----------------------------
   // 1. Parser de .tres (Godot SpriteFrames)
   // -----------------------------
+  function round(v) { return Math.round(parseFloat(v)); }
+
   function parseGodotTres(text) {
+    // ---- Atlas: id -> { region, margin } ----
+    // Ojo: "margin" es opcional (formatos viejos no lo traen) y representa
+    // el offset de recorte (trim) dentro del frame completo original.
     const atlasMap = {};
-    const atlasRe = /\[sub_resource type="AtlasTexture" id="([^"]+)"\][\s\S]*?region = Rect2\(\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+)\s*\)/g;
+    const blockRe = /\[sub_resource type="AtlasTexture" id="([^"]+)"\]([\s\S]*?)(?=\n\[sub_resource|\n\[resource\]|$)/g;
     let m;
-    while ((m = atlasRe.exec(text)) !== null) {
-      atlasMap[m[1]] = {
-        x: Math.round(parseFloat(m[2])),
-        y: Math.round(parseFloat(m[3])),
-        width: Math.round(parseFloat(m[4])),
-        height: Math.round(parseFloat(m[5]))
+    while ((m = blockRe.exec(text)) !== null) {
+      const id    = m[1];
+      const block = m[2];
+      const regionM = block.match(/region\s*=\s*Rect2\(\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+)\s*\)/);
+      if (!regionM) continue;
+      const marginM = block.match(/margin\s*=\s*Rect2\(\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+)\s*\)/);
+      atlasMap[id] = {
+        region: { x: round(regionM[1]), y: round(regionM[2]), w: round(regionM[3]), h: round(regionM[4]) },
+        margin: marginM
+          ? { x: round(marginM[1]), y: round(marginM[2]), w: round(marginM[3]), h: round(marginM[4]) }
+          : { x: 0, y: 0, w: 0, h: 0 }
       };
     }
     if (Object.keys(atlasMap).length === 0) return null;
 
-    const animRe = /"frames":\s*\[([\s\S]*?)\],\s*"loop":\s*(true|false),\s*"name":\s*&?"([^"]+)",\s*"speed":\s*([\d.]+)/g;
+    // ---- Animaciones ----
+    // "loop" puede venir como true/false (tres viejos) o 0/1 (tres nuevos) — se acepta cualquiera.
+    const animRe = /"frames":\s*\[([\s\S]*?)\],\s*"loop":\s*(?:true|false|0|1),\s*"name":\s*&?"([^"]+)",\s*"speed":\s*([\d.]+)/g;
     const animations = [];
     while ((m = animRe.exec(text)) !== null) {
-      const ids = [...m[1].matchAll(/SubResource\("([^"]+)"\)/g)].map(x => x[1]);
-      const frames = [];
-      ids.forEach(id => { const r = atlasMap[id]; if (r) frames.push(r); });
-      if (frames.length) animations.push({ name: m[3], frames });
+      const ids   = [...m[1].matchAll(/SubResource\("([^"]+)"\)/g)].map(x => x[1]);
+      const raw   = ids.map(id => atlasMap[id]).filter(Boolean);
+      if (!raw.length) continue;
+
+      // tamaño completo del frame (sin trim) = región + el margin de cada lado.
+      // se normaliza al máximo del grupo para que la animación no "brinque" de tamaño.
+      let sourceW = 0, sourceH = 0;
+      for (const f of raw) {
+        sourceW = Math.max(sourceW, f.region.w + f.margin.x + f.margin.w);
+        sourceH = Math.max(sourceH, f.region.h + f.margin.y + f.margin.h);
+      }
+
+      const frames = raw.map(f => ({ region: f.region, margin: f.margin, sourceW, sourceH }));
+      animations.push({ name: m[2].trim() || 'animation', frames });
     }
     if (!animations.length) return null;
     return { animations };
@@ -138,11 +160,18 @@
       });
     }
 
-    function cropFrame(img, rect) {
+    function cropFrame(img, frame) {
       const c = document.createElement('canvas');
-      c.width = rect.width; c.height = rect.height;
+      c.width  = frame.sourceW;
+      c.height = frame.sourceH;
       const ctx = c.getContext('2d');
-      ctx.drawImage(img, rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height);
+      // dibuja la región recortada del atlas en su posición real dentro del
+      // frame completo (respeta el trim), en vez de pegarla en (0,0).
+      ctx.drawImage(
+        img,
+        frame.region.x, frame.region.y, frame.region.w, frame.region.h,
+        frame.margin.x, frame.margin.y, frame.region.w, frame.region.h
+      );
       return new Promise(resolve => c.toBlob(resolve, 'image/png'));
     }
 
