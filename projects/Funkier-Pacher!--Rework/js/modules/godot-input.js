@@ -64,15 +64,7 @@
       const raw   = ids.map(id => atlasMap[id]).filter(Boolean);
       if (!raw.length) continue;
 
-      // tamaño completo del frame (sin trim) = región + el margin de cada lado.
-      // se normaliza al máximo del grupo para que la animación no "brinque" de tamaño.
-      let sourceW = 0, sourceH = 0;
-      for (const f of raw) {
-        sourceW = Math.max(sourceW, f.region.w + f.margin.x + f.margin.w);
-        sourceH = Math.max(sourceH, f.region.h + f.margin.y + f.margin.h);
-      }
-
-      const frames = raw.map(f => ({ region: f.region, margin: f.margin, atlasId: f.atlasId, sourceW, sourceH }));
+      const frames = raw.map(f => ({ region: f.region, margin: f.margin, atlasId: f.atlasId }));
       animations.push({ name: m[2].trim() || 'animation', frames });
     }
     if (!animations.length) return null;
@@ -81,7 +73,62 @@
     return { animations, extResources, usedAtlasIds };
   }
 
+  function normalizeFrameCanvases(anim) {
+    // canvas completo = región + margin de cada lado. Se calcula UNA sola vez
+    // sobre TODO el grupo final (ya fusionado si aplica), no por mini-grupo,
+    // porque si no cada frame trae su propio tamaño de lienzo y al centrarlos
+    // en la cinta el contenido se desalinea entre frame y frame.
+    let w = 0, h = 0;
+    for (const f of anim.frames) {
+      w = Math.max(w, f.region.w + f.margin.x + f.margin.w);
+      h = Math.max(h, f.region.h + f.margin.y + f.margin.h);
+    }
+    anim.frames.forEach(f => { f.sourceW = w; f.sourceH = h; });
+    return anim;
+  }
+
   window.FunkierGodotParser = { parseTres: parseGodotTres };
+
+  // -----------------------------
+  // 1.5 Detectar "animaciones" de 1 solo frame nombradas prefijo-numero
+  //     (típico de cutscenes exportadas frame-por-frame desde Godot) y
+  //     fusionarlas en UNA sola cinta, en orden numérico natural — no
+  //     alfabético. Sin esto salían 247 PNGs sueltos de 1 frame en vez
+  //     de un spritesheet real, y encima desordenados (1, 10, 100, 11...).
+  // -----------------------------
+  function parseSeqName(name) {
+    const m = name.match(/^(.*?)-(\d+(?:-\d+)*)\s*$/);
+    if (!m) return null;
+    return { prefix: m[1].trim() || 'sequence', key: m[2].split('-').map(Number) };
+  }
+  function cmpSeqKey(a, b) {
+    for (let i = 0; i < Math.min(a.length, b.length); i++) {
+      if (a[i] !== b[i]) return a[i] - b[i];
+    }
+    return a.length - b.length;
+  }
+
+  function regroupSequentialAnimations(animations) {
+    const groups = {};      // prefix -> [{key, anim}]
+    const standalone = [];
+    for (const anim of animations) {
+      const seq = parseSeqName(anim.name);
+      if (seq) (groups[seq.prefix] = groups[seq.prefix] || []).push({ key: seq.key, anim });
+      else standalone.push(anim);
+    }
+
+    const result = [];
+    for (const prefix in groups) {
+      const list = groups[prefix];
+      // si solo hay 1, no era realmente una secuencia — se deja como estaba
+      if (list.length < 2) { result.push(list[0].anim); continue; }
+      list.sort((a, b) => cmpSeqKey(a.key, b.key));
+      const frames = [].concat(...list.map(x => x.anim.frames));
+      result.push({ name: prefix, frames, mergedFrom: list.length });
+    }
+    result.push(...standalone);
+    return result;
+  }
 
   // -----------------------------
   // 2. UI: tercera pestaña "Godot (.tres)"
@@ -371,14 +418,20 @@
           return;
         }
 
+        const animsToProcess = regroupSequentialAnimations(parsed.animations).map(normalizeFrameCanvases);
+        const mergedCount = animsToProcess.filter(a => a.mergedFrom).length;
+        if (mergedCount) {
+          console.info(`[godot-input] ${mergedCount} secuencia(s) tipo "nombre-N" fusionadas en spritesheets únicos.`);
+        }
+
         const removeDuplicates = !!removeDuplicatesCheckbox?.checked;
         const outZip = new JSZip();
 
-        const total = parsed.animations.length;
+        const total = animsToProcess.length;
         updateProgress(0, total || 1);
         let done = 0;
 
-        for (const anim of parsed.animations) {
+        for (const anim of animsToProcess) {
           done++;
           updateProgress(done, total);
           statusText && (statusText.textContent = `Procesando: ${anim.name} (${done}/${total})`);
