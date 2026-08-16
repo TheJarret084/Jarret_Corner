@@ -109,7 +109,16 @@
             <h2 id="godot-title"><i class="fas fa-cubes"></i> Subir Spritesheet y .tres de Godot</h2>
           </div>
 
-          <div class="dual-upload-container">
+          <div class="method-buttons" style="margin-bottom:10px;">
+            <button id="godot-mode-single" class="method-button active" type="button">
+              <i class="fas fa-image"></i> PNG + .tres
+            </button>
+            <button id="godot-mode-zip" class="method-button" type="button">
+              <i class="fas fa-file-zipper"></i> ZIP completo
+            </button>
+          </div>
+
+          <div id="godot-single-inputs" class="dual-upload-container">
             <div class="upload-section">
               <div class="drop-zone" id="godot-png-drop-zone">
                 <p><i class="fas fa-image"></i></p>
@@ -128,6 +137,19 @@
                 <input type="file" id="godot-tres-input" accept=".tres" hidden>
                 <button class="select-file-button" id="godot-tres-btn" type="button">
                   <i class="fas fa-file-upload"></i> Seleccionar .tres
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="godot-zip-inputs" class="dual-upload-container" style="display:none;">
+            <div class="upload-section">
+              <div class="drop-zone" id="godot-zip-drop-zone">
+                <p><i class="fas fa-file-zipper"></i></p>
+                <p>ZIP con el .tres y todos los PNG que usa (para casos con varias imágenes, ej. cutscenes)</p>
+                <input type="file" id="godot-zip-input" accept=".zip" hidden>
+                <button class="select-file-button" id="godot-zip-btn" type="button">
+                  <i class="fas fa-file-upload"></i> Seleccionar ZIP
                 </button>
               </div>
             </div>

@@ -10,10 +10,31 @@
   // -----------------------------
   function round(v) { return Math.round(parseFloat(v)); }
 
+  // Mapea id de ExtResource -> nombre de archivo (basename, sin la ruta res://)
+  // Puede haber UNO (spritesheet normal) o VARIOS (cutscenes con muchos PNG).
+  function parseExtResources(text) {
+    const map = {};
+    const re = /\[ext_resource type="Texture2D"[^\]]*\]/g;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const line = m[0];
+      const pathM = line.match(/path="([^"]+)"/);
+      const idM   = line.match(/\bid="([^"]+)"/);
+      if (!pathM || !idM) continue;
+      const basename = pathM[1].split('/').pop();
+      map[idM[1]] = basename;
+    }
+    return map;
+  }
+
   function parseGodotTres(text) {
-    // ---- Atlas: id -> { region, margin } ----
+    const extResources = parseExtResources(text);
+
+    // ---- Atlas: id -> { region, margin, atlasId } ----
     // Ojo: "margin" es opcional (formatos viejos no lo traen) y representa
     // el offset de recorte (trim) dentro del frame completo original.
+    // "atlasId" indica de cuál ExtResource (cuál PNG) sale esta región —
+    // en cutscenes puede haber uno distinto por cada frame.
     const atlasMap = {};
     const blockRe = /\[sub_resource type="AtlasTexture" id="([^"]+)"\]([\s\S]*?)(?=\n\[sub_resource|\n\[resource\]|$)/g;
     let m;
@@ -23,7 +44,9 @@
       const regionM = block.match(/region\s*=\s*Rect2\(\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+)\s*\)/);
       if (!regionM) continue;
       const marginM = block.match(/margin\s*=\s*Rect2\(\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+)\s*\)/);
+      const atlasIdM = block.match(/atlas\s*=\s*ExtResource\(\s*"?([^")]+)"?\s*\)/);
       atlasMap[id] = {
+        atlasId: atlasIdM ? atlasIdM[1] : '1',
         region: { x: round(regionM[1]), y: round(regionM[2]), w: round(regionM[3]), h: round(regionM[4]) },
         margin: marginM
           ? { x: round(marginM[1]), y: round(marginM[2]), w: round(marginM[3]), h: round(marginM[4]) }
@@ -49,11 +72,13 @@
         sourceH = Math.max(sourceH, f.region.h + f.margin.y + f.margin.h);
       }
 
-      const frames = raw.map(f => ({ region: f.region, margin: f.margin, sourceW, sourceH }));
+      const frames = raw.map(f => ({ region: f.region, margin: f.margin, atlasId: f.atlasId, sourceW, sourceH }));
       animations.push({ name: m[2].trim() || 'animation', frames });
     }
     if (!animations.length) return null;
-    return { animations };
+
+    const usedAtlasIds = [...new Set(Object.values(atlasMap).map(a => a.atlasId))];
+    return { animations, extResources, usedAtlasIds };
   }
 
   window.FunkierGodotParser = { parseTres: parseGodotTres };
@@ -82,15 +107,39 @@
     const generateBtn = document.getElementById('generate-btn-godot');
     const statusText  = document.getElementById('status-text-godot');
 
+    const modeSingleBtn = document.getElementById('godot-mode-single');
+    const modeZipBtn    = document.getElementById('godot-mode-zip');
+    const singleInputs  = document.getElementById('godot-single-inputs');
+    const zipInputs     = document.getElementById('godot-zip-inputs');
+    const godotZipInput = document.getElementById('godot-zip-input');
+    const godotZipBtn   = document.getElementById('godot-zip-btn');
+
     const resultPanel   = document.getElementById('result-panel');
     const resultContent = document.querySelector('#result-panel .result-content') || document.getElementById('result-panel');
     const downloadControls = document.getElementById('download-controls');
     const removeDuplicatesCheckbox = document.getElementById('remove-duplicates');
 
-    let state = { imageFile: null, tresFile: null };
+    let state = { imageFile: null, tresFile: null, zipFile: null, mode: 'single' };
     let createdURLs = [];
     const registerURL = u => { createdURLs.push(u); return u; };
     const revokeAll = () => { createdURLs.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); createdURLs = []; };
+
+    modeSingleBtn?.addEventListener('click', () => {
+      state.mode = 'single';
+      modeSingleBtn.classList.add('active');
+      modeZipBtn?.classList.remove('active');
+      if (singleInputs) singleInputs.style.display = '';
+      if (zipInputs) zipInputs.style.display = 'none';
+      checkReady();
+    });
+    modeZipBtn?.addEventListener('click', () => {
+      state.mode = 'zip';
+      modeZipBtn.classList.add('active');
+      modeSingleBtn?.classList.remove('active');
+      if (singleInputs) singleInputs.style.display = 'none';
+      if (zipInputs) zipInputs.style.display = '';
+      checkReady();
+    });
 
     function createFileListFromFile(file) {
       const dt = new DataTransfer();
@@ -117,12 +166,24 @@
       tresInput.files = createFileListFromFile(file);
       tresInput.dispatchEvent(new Event('change'));
     });
+    makeDropZoneHandlers(document.getElementById('godot-zip-drop-zone'), file => {
+      godotZipInput.files = createFileListFromFile(file);
+      godotZipInput.dispatchEvent(new Event('change'));
+    });
+
+    godotZipBtn?.addEventListener('click', () => godotZipInput?.click());
+    godotZipInput?.addEventListener('change', () => { state.zipFile = godotZipInput.files?.[0] || null; checkReady(); });
 
     imageBtn?.addEventListener('click', () => imageInput?.click());
     tresBtn?.addEventListener('click', () => tresInput?.click());
 
     function checkReady() {
       if (!generateBtn) return;
+      if (state.mode === 'zip') {
+        generateBtn.disabled = !state.zipFile;
+        if (statusText) statusText.textContent = state.zipFile ? `Listo: ${state.zipFile.name}` : 'Selecciona el ZIP con el .tres y todos los PNG que usa.';
+        return;
+      }
       generateBtn.disabled = !(state.imageFile && state.tresFile);
       if (!statusText) return;
       if (state.imageFile && state.tresFile) statusText.textContent = `Listo: ${state.imageFile.name} + ${state.tresFile.name}`;
@@ -160,7 +221,8 @@
       });
     }
 
-    function cropFrame(img, frame) {
+    function cropFrame(imageResolver, frame) {
+      const img = imageResolver(frame.atlasId);
       const c = document.createElement('canvas');
       c.width  = frame.sourceW;
       c.height = frame.sourceH;
@@ -173,6 +235,17 @@
         frame.margin.x, frame.margin.y, frame.region.w, frame.region.h
       );
       return new Promise(resolve => c.toBlob(resolve, 'image/png'));
+    }
+
+    // Busca dentro del zip un archivo cuyo nombre (sin ruta) coincida con basename.
+    function findZipEntryByBasename(zipObj, basename) {
+      const target = basename.toLowerCase();
+      let found = null;
+      zipObj.forEach((relPath, entry) => {
+        if (found || entry.dir) return;
+        if (relPath.toLowerCase().split('/').pop() === target) found = entry;
+      });
+      return found;
     }
 
     function updateProgress(current, total) {
@@ -244,14 +317,62 @@
 
     async function runGodot() {
       try {
-        statusText && (statusText.textContent = 'Leyendo .tres...');
-        const tresText = await state.tresFile.text();
+        let tresText, imageResolver, baseName;
+
+        if (state.mode === 'zip') {
+          statusText && (statusText.textContent = 'Leyendo ZIP...');
+          const inZip = await JSZip.loadAsync(state.zipFile);
+
+          // buscar el .tres de tipo SpriteFrames dentro del zip (puede haber más de un .tres)
+          const tresEntries = [];
+          inZip.forEach((relPath, entry) => { if (!entry.dir && /\.tres$/i.test(relPath)) tresEntries.push(entry); });
+          if (!tresEntries.length) { statusText && (statusText.textContent = 'No hay ningún .tres dentro del ZIP.'); return; }
+
+          let chosenEntry = null;
+          for (const entry of tresEntries) {
+            const t = await entry.async('text');
+            if (/type="SpriteFrames"/.test(t)) { chosenEntry = entry; tresText = t; break; }
+          }
+          if (!chosenEntry) { statusText && (statusText.textContent = 'Ninguno de los .tres del ZIP es un SpriteFrames.'); return; }
+
+          const parsedPeek = parseGodotTres(tresText);
+          if (!parsedPeek) { statusText && (statusText.textContent = 'No reconocí el .tres dentro del ZIP.'); return; }
+
+          // cargar solo las imágenes que realmente se usan
+          const imageCache = {};
+          const missing = [];
+          for (const atlasId of parsedPeek.usedAtlasIds) {
+            const basename = parsedPeek.extResources[atlasId];
+            if (!basename) { missing.push(`(id ${atlasId} sin ext_resource)`); continue; }
+            const entry = findZipEntryByBasename(inZip, basename);
+            if (!entry) { missing.push(basename); continue; }
+            const blob = await entry.async('blob');
+            imageCache[atlasId] = await loadImage(blob);
+          }
+          if (missing.length) {
+            statusText && (statusText.textContent = `Faltan imágenes en el ZIP: ${missing.join(', ')}`);
+            return;
+          }
+          imageResolver = atlasId => imageCache[atlasId];
+          baseName = chosenEntry.name.split('/').pop().replace(/\.[^/.]+$/, '');
+        } else {
+          statusText && (statusText.textContent = 'Leyendo .tres...');
+          tresText = await state.tresFile.text();
+          const img = await loadImage(state.imageFile);
+          imageResolver = () => img; // un solo PNG, se usa para cualquier atlasId
+          baseName = state.tresFile.name.replace(/\.[^/.]+$/, '');
+        }
+
         const parsed = parseGodotTres(tresText);
         if (!parsed) { statusText && (statusText.textContent = 'No reconocí el .tres (¿es un SpriteFrames válido?).'); return; }
 
-        const img = await loadImage(state.imageFile);
+        if (state.mode === 'single' && parsed.usedAtlasIds.length > 1) {
+          statusText && (statusText.textContent = `Este .tres usa ${parsed.usedAtlasIds.length} imágenes distintas — usa el modo "ZIP completo" en vez de PNG + .tres.`);
+          return;
+        }
+
         const removeDuplicates = !!removeDuplicatesCheckbox?.checked;
-        const zip = new JSZip();
+        const outZip = new JSZip();
 
         const total = parsed.animations.length;
         updateProgress(0, total || 1);
@@ -263,7 +384,7 @@
           statusText && (statusText.textContent = `Procesando: ${anim.name} (${done}/${total})`);
 
           let blobs = [];
-          for (const rect of anim.frames) blobs.push(await cropFrame(img, rect));
+          for (const frame of anim.frames) blobs.push(await cropFrame(imageResolver, frame));
 
           if (removeDuplicates && blobs.length > 1) {
             const unique = [blobs[0]];
@@ -288,15 +409,14 @@
             continue;
           }
 
-          zip.file(`${anim.name}.png`, sheetBlob);
+          outZip.file(`${anim.name}.png`, sheetBlob);
           const url = registerURL(URL.createObjectURL(sheetBlob));
           const bmp = await createImageBitmap(sheetBlob);
           resultContent && resultContent.appendChild(createPreviewElement({ name: anim.name, url, frames: blobs.length, width: bmp.width, height: bmp.height }));
           bmp.close?.();
         }
 
-        const baseName = state.tresFile.name.replace(/\.[^/.]+$/, '');
-        const finalBlob = await zip.generateAsync({ type: 'blob' });
+        const finalBlob = await outZip.generateAsync({ type: 'blob' });
         addDownloadButton(finalBlob, `TJ-godot-${baseName}.zip`);
         statusText && (statusText.textContent = '¡Listo!');
       } catch (err) {
