@@ -259,6 +259,27 @@
       canvas.getContext('2d').drawImage(bmp, 0, 0);
       bmp.close?.();
       return { blob, canvas, usedScale: scale };
+    },
+
+    // -------------------------------------------------------
+    // blobToWebp — convierte cualquier blob de imagen (la cinta PNG ya
+    // armada) a .webp, sin re-escalar ni re-centrar nada: 1 a 1.
+    // Se usa en los 3 modos para exportar el mismo resultado en ambos
+    // formatos dentro del mismo zip.
+    // -------------------------------------------------------
+    blobToWebp: async function(blob, quality = 0.92) {
+      const bmp = await createImageBitmap(blob);
+      try {
+        const c = document.createElement('canvas');
+        c.width = bmp.width;
+        c.height = bmp.height;
+        const ctx = c.getContext('2d');
+        if (!ctx) return null;
+        ctx.drawImage(bmp, 0, 0);
+        return await new Promise(resolve => c.toBlob(resolve, 'image/webp', quality));
+      } finally {
+        bmp.close?.();
+      }
     }
   };
 

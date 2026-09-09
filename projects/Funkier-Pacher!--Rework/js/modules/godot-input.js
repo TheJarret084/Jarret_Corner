@@ -10,11 +10,52 @@
   // -----------------------------
   function round(v) { return Math.round(parseFloat(v)); }
 
+  // Extrae los objetos "{ ... }" de nivel superior dentro de un array de texto,
+  // respetando el anidado de llaves (Godot 4 anida un objeto por frame dentro
+  // de "frames": [{...}, {...}], así que un regex simple "\{...?\}" cortaría
+  // en el primer "}" interno en vez del cierre real de la animación).
+  function splitTopLevelBraceObjects(text) {
+    const out = [];
+    let depth = 0, start = -1;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (c === '{') { if (depth === 0) start = i; depth++; }
+      else if (c === '}') {
+        depth--;
+        if (depth === 0 && start >= 0) { out.push(text.slice(start + 1, i)); start = -1; }
+      }
+    }
+    return out;
+  }
+
+  // Extrae el contenido entre "[" y su "]" correspondiente (balanceado, no
+  // el primer "]" que aparezca) empezando en fromIndex (que debe apuntar
+  // exactamente al "[" de apertura). Necesario porque "animations = [...]"
+  // trae arrays anidados adentro ("frames": [...] por animación) y un .tres
+  // guardado sin saltos de línea (minificado, o reexportado por otra
+  // herramienta) rompía la vieja detección basada en buscar "\n]".
+  function extractBalancedBrackets(text, fromIndex) {
+    let depth = 0;
+    for (let i = fromIndex; i < text.length; i++) {
+      const c = text[i];
+      if (c === '[') depth++;
+      else if (c === ']') {
+        depth--;
+        if (depth === 0) return text.slice(fromIndex + 1, i);
+      }
+    }
+    return null;
+  }
+
   // Mapea id de ExtResource -> nombre de archivo (basename, sin la ruta res://)
   // Puede haber UNO (spritesheet normal) o VARIOS (cutscenes con muchos PNG).
+  // Acepta cualquier variante de tipo de textura (Texture2D, CompressedTexture2D,
+  // PortableCompressedTexture2D, etc.) — antes solo aceptaba "Texture2D" a secas
+  // y con .tres exportados desde versiones más nuevas de Godot esto quedaba
+  // vacío, lo cual dejaba TODA la animación sin imagen resoluble -> zip vacío.
   function parseExtResources(text) {
     const map = {};
-    const re = /\[ext_resource type="Texture2D"[^\]]*\]/g;
+    const re = /\[ext_resource type="[^"]*Texture[^"]*"[^\]]*\]/g;
     let m;
     while ((m = re.exec(text)) !== null) {
       const line = m[0];
@@ -29,6 +70,13 @@
 
   function parseGodotTres(text) {
     const extResources = parseExtResources(text);
+    // id por defecto cuando un AtlasTexture no trae "atlas = ExtResource(...)"
+    // explícito (pasa en algunos .tres viejos). Antes se asumía el literal "1",
+    // pero Godot 4 genera ids tipo "1_syx8w" — con eso el default nunca
+    // coincidía con nada real y esos frames quedaban sin imagen resoluble.
+    // Si solo hay UN ext_resource de textura, no hay ambigüedad: es ese.
+    const extResourceIds = Object.keys(extResources);
+    const defaultAtlasId = extResourceIds.length === 1 ? extResourceIds[0] : '1';
 
     // ---- Atlas: id -> { region, margin, atlasId } ----
     // Ojo: "margin" es opcional (formatos viejos no lo traen) y representa
@@ -46,7 +94,7 @@
       const marginM = block.match(/margin\s*=\s*Rect2\(\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+),\s*([\d.\-]+)\s*\)/);
       const atlasIdM = block.match(/atlas\s*=\s*ExtResource\(\s*"?([^")]+)"?\s*\)/);
       atlasMap[id] = {
-        atlasId: atlasIdM ? atlasIdM[1] : '1',
+        atlasId: atlasIdM ? atlasIdM[1] : defaultAtlasId,
         region: { x: round(regionM[1]), y: round(regionM[2]), w: round(regionM[3]), h: round(regionM[4]) },
         margin: marginM
           ? { x: round(marginM[1]), y: round(marginM[2]), w: round(marginM[3]), h: round(marginM[4]) }
@@ -56,16 +104,34 @@
     if (Object.keys(atlasMap).length === 0) return null;
 
     // ---- Animaciones ----
-    // "loop" puede venir como true/false (tres viejos) o 0/1 (tres nuevos) — se acepta cualquiera.
-    const animRe = /"frames":\s*\[([\s\S]*?)\],\s*"loop":\s*(?:true|false|0|1),\s*"name":\s*&?"([^"]+)",\s*"speed":\s*([\d.]+)/g;
+    // Antes esto exigía el orden EXACTO frames -> loop -> name -> speed en el
+    // mismo objeto de texto. Es el orden habitual (Godot lo serializa así en
+    // la gran mayoría de versiones), pero cuando algún .tres traía las claves
+    // en otro orden, o con espacios/formato ligeramente distinto, el regex
+    // completo fallaba en silencio y "animations" quedaba vacío -> zip vacío
+    // sin ningún aviso. Ahora se parte el array de animaciones en bloques
+    // individuales por objeto "{ ... }" y se extrae cada clave por separado,
+    // sin importar el orden.
+    const animsStartM = text.match(/animations\s*=\s*\[/);
     const animations = [];
-    while ((m = animRe.exec(text)) !== null) {
-      const ids   = [...m[1].matchAll(/SubResource\("([^"]+)"\)/g)].map(x => x[1]);
-      const raw   = ids.map(id => atlasMap[id]).filter(Boolean);
-      if (!raw.length) continue;
-
-      const frames = raw.map(f => ({ region: f.region, margin: f.margin, atlasId: f.atlasId }));
-      animations.push({ name: m[2].trim() || 'animation', frames });
+    if (animsStartM) {
+      const openBracketIdx = animsStartM.index + animsStartM[0].length - 1;
+      const body = extractBalancedBrackets(text, openBracketIdx);
+      if (body !== null) {
+        // separa por objetos de nivel superior "{ ... }" dentro del array,
+        // respetando el anidado (ver splitTopLevelBraceObjects arriba)
+        const objs = splitTopLevelBraceObjects(body);
+        for (const obj of objs) {
+          const framesM = obj.match(/"frames":\s*\[([\s\S]*?)\]/);
+          const nameM   = obj.match(/"name":\s*&?"([^"]+)"/);
+          if (!framesM) continue;
+          const ids = [...framesM[1].matchAll(/SubResource\("([^"]+)"\)/g)].map(x => x[1]);
+          const raw = ids.map(id => atlasMap[id]).filter(Boolean);
+          if (!raw.length) continue;
+          const frames = raw.map(f => ({ region: f.region, margin: f.margin, atlasId: f.atlasId }));
+          animations.push({ name: (nameM && nameM[1].trim()) || 'animation', frames });
+        }
+      }
     }
     if (!animations.length) return null;
 
@@ -426,6 +492,7 @@
 
         const removeDuplicates = !!removeDuplicatesCheckbox?.checked;
         const outZip = new JSZip();
+        let addedAny = false;
 
         const total = animsToProcess.length;
         updateProgress(0, total || 1);
@@ -463,10 +530,25 @@
           }
 
           outZip.file(`${anim.name}.png`, sheetBlob);
+          try {
+            const webpBlob = await FTF.blobToWebp(sheetBlob);
+            if (webpBlob) outZip.file(`${anim.name}.webp`, webpBlob);
+          } catch (e) { console.warn('[godot-input] webp convert failed for', anim.name, e); }
+          addedAny = true;
           const url = registerURL(URL.createObjectURL(sheetBlob));
           const bmp = await createImageBitmap(sheetBlob);
           resultContent && resultContent.appendChild(createPreviewElement({ name: anim.name, url, frames: blobs.length, width: bmp.width, height: bmp.height }));
           bmp.close?.();
+        }
+
+        if (!addedAny) {
+          // Antes esto igual generaba y ofrecía un ZIP vacío sin avisar nada.
+          // Si no se pudo meter ni una sola animación (frames sin imagen
+          // resoluble, atlasId mal emparejado, etc.) hay que decirlo, no
+          // entregar un .zip vacío como si hubiera salido bien.
+          statusText && (statusText.textContent = 'No se generó ninguna animación — revisa que el PNG corresponda al .tres, o si es un caso con varias imágenes usa el modo "ZIP completo".');
+          resultContent && resultContent.appendChild(createErrorBox('No se pudo generar ninguna cinta a partir de este .tres. Ninguna animación tenía sus frames resolubles contra la(s) imagen(es) dada(s).'));
+          return;
         }
 
         const finalBlob = await outZip.generateAsync({ type: 'blob' });

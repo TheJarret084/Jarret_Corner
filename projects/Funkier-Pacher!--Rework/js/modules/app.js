@@ -453,6 +453,10 @@
 
           // add to zip
           try { zip.file(`${animName}.png`, sheetBlob); } catch (e) { console.error('Error añadiendo al zip', e); }
+          try {
+            const webpBlob = await FTF.blobToWebp(sheetBlob);
+            if (webpBlob) zip.file(`${animName}.webp`, webpBlob);
+          } catch (e) { console.warn('webp convert failed for', animName, e); }
 
           // create preview and append
           const url = registerObjectURL(URL.createObjectURL(sheetBlob));
@@ -562,6 +566,10 @@
 
           // add to zip and preview
           try { newZip.file(`${animName}.png`, sheetBlob); } catch (e) { console.error('zip add failed', e); }
+          try {
+            const webpBlob = await FTF.blobToWebp(sheetBlob);
+            if (webpBlob) newZip.file(`${animName}.webp`, webpBlob);
+          } catch (e) { console.warn('webp convert failed for', animName, e); }
           const url = registerObjectURL(URL.createObjectURL(sheetBlob));
           resultContent && resultContent.appendChild(createPreviewElement({ name: animName, url, frames: processedBlobs.length, width: sheetDims?.width || 0, height: sheetDims?.height || 0 }));
         }
